@@ -1,20 +1,22 @@
 \name{getTransitionTable}
 \Rdversion{1.1}
 \alias{getTransitionTable}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Retrieve the transition table of a network
 }
 \description{
-Retrieves the complete transition table and additional attractor information of a network
+Retrieves the transition table and additional attractor information of a network. 
 }
 \usage{
 getTransitionTable(attractorInfo)
 }
 \arguments{
   \item{attractorInfo}{
-	An object of class \code{AttractorInfo}, as returned by \code{\link{getAttractors}}
+	An object of class \code{AttractorInfo}, as returned by \code{\link{getAttractors}}. As the transition table information in this structure is required, \code{getAttractors} must be called in synchronous mode and with \code{returnTable} set to TRUE.
 }
+}
+\details{
+Depending on the configuration of the call to \code{getAttractors} that returned \code{attractorInfo}, this function either returns the complete transition table (for exhaustive synchronous search) or the part of the transition table calculated in a heuristic synchronous search. Asynchronous search is not supported, as no transition table is calculated.
 }
 
 \value{
@@ -31,7 +33,7 @@ library(BoolNet)
 data(cellcycle)
 
 # get attractors
-attractors <- getAttractors(net)
+attractors <- getAttractors(cellcycle)
 
 # print the transition table
 print(getTransitionTable(attractors))
@@ -40,4 +42,5 @@ print(getTransitionTable(attractors))
 % R documentation directory.
 \keyword{Boolean network
 	transition
+	transition table
 	state}

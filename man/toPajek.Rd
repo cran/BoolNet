@@ -13,7 +13,7 @@ toPajek(attractorInfo, file = "boolean.net", includeLabels=FALSE)
 }
 \arguments{
   \item{attractorInfo}{
-	An object of class \code{AttractorInfo}, as returned by \code{\link{getAttractors}}
+	An object of class \code{AttractorInfo}, as returned by \code{\link{getAttractors}}. As the transition table information in this structure is required, \code{getAttractors} must be called in synchronous mode and with \code{returnTable} set to TRUE.
 }
   \item{file}{
 	The name of the output file for Pajek. Defaults to "boolean.net".
@@ -35,10 +35,10 @@ library(BoolNet)
 data(cellcycle)
 
 # get attractors
-attractors <- getAttractors(net)
+attractors <- getAttractors(cellcycle)
 
 # export to Pajek
-toPajek(attractors,file="pajek_export.net")
+toPajek(attractors, file="pajek_export.net")
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

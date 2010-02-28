@@ -1,17 +1,17 @@
 \name{chooseNetwork}
 \alias{chooseNetwork}
 \title{
-Build a network from a collection of transition functions
+Extract a single Boolean network from a probabilistic Boolean network
 }
 \description{
-Extracts the specified set of transition functions from a \code{BooleanNetworkCollection} object. This is necessary due to the fact that the reconstruction algorithms may return several transition functions per gene if no unique network could be reconstructed.
+Creates a \code{BooleanNetwork} object with exactly one function per gene by extracting a specified set of transition functions from a \code{ProbabilisticBooleanNetwork} object.
 }
 \usage{
-chooseNetwork(networkCollection, functionIndices)
+chooseNetwork(probabilisticNetwork, functionIndices)
 }
 \arguments{
-  \item{networkCollection}{
-A \code{BooleanNetworkCollection} object as returned by \code{\link{reconstructNetwork}}
+  \item{probabilisticNetwork}{
+A \code{ProbabilisticBooleanNetwork} object as returned by \if{latex}{\cr}\code{\link{reconstructNetwork}} or \code{\link{loadNetwork}}
 }
   \item{functionIndices}{
 A vector of function indices with one entry for each gene
@@ -29,20 +29,18 @@ Constant genes are automatically fixed (e.g. knocked-out or over-expressed). Thi
 library(BoolNet)
 
 # load example data
-data(cellcycle)
-
-# extract transition table
-tt <- getTransitionTable(getAttractors(net))
-
-# reconstruct networks from transition table
-netCollection <- reconstructNetwork(tt,method="bestfit",maxK=6)
+data(examplePBN)
 
 # extract a unique network
-net2 <- chooseNetwork(netCollection,rep(1,length(netCollection$genes)))
+# - always use the first function
+net <- chooseNetwork(examplePBN, rep(1, length(examplePBN$genes)))
 
 # get attractors from this network
-print(getAttractors(net2))
+print(getAttractors(net))
 
 }
 \keyword{Boolean network
+  probabilistic Boolean network
+  PBN
+  conversion
 	reconstruction}

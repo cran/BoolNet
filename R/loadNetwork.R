@@ -3,80 +3,125 @@
 # <bodySeparator> is the character that separates targets and factors
 loadNetwork <- function(file,bodySeperator=",") 
 {
-	op <- c("!","&", "\\|", "\\(", "\\)")
+  op <- c("!","&", "\\|", "\\(", "\\)")
 
-	func <- tolower(readLines(file,-1)[-1])
+  func <- tolower(readLines(file,-1)[-1])
+  func <- func[nchar(func) > 0]
 
-	# / in a gene name disturbs parsing
-	func <- gsub("/","_",func) 
+  # / in a gene name disturbs parsing
+  func <- gsub("/","_",func) 
 
-	tmp <-  unname(sapply(func,function(x){strsplit(x,bodySeperator)[[1]]}))
-	targets <- tmp[1,]
-	factors <- tmp[2,]
+  tmp <-  unname(lapply(func,function(x){strsplit(x,bodySeperator)[[1]]}))
+  targets <- sapply(tmp,function(rule)rule[1])
+  factors <- sapply(tmp,function(rule)rule[2])
+  probabilities <- sapply(tmp,function(rule)
+                          {
+                            if (length(rule) >= 3)
+                              as.numeric(rule[3])
+                            else
+                              1.0
+                          })
 
-	factors.tmp <- sapply(factors,function(x)
-	# extract gene names from Boolean expressions
-	{
-	sapply(op,function(y)
-	{
-	x <<- gsub(y," ",x)
-	})
-	tmp <- strsplit(x," ")[[1]]
+  factors.tmp <- lapply(factors,function(x)
+  # extract gene names from Boolean expressions
+  {
+    # replace operators by spaces
+    sapply(op,function(y)
+    {
+      x <<- gsub(y," ",x)
+    })
+    
+    # create a list of involved factors
+    tmp <- strsplit(x," ")[[1]]
+    tmp <- unique(tmp[tmp != ""])
+  })
 
-	tmp <- unique(tmp[tmp != ""])
-	})
+  # create list of all gene names in both sides of the functions
+  genes <- unique(c(targets,unname(unlist(factors.tmp))))
+  
+  isProbabilistic <- (length(unique(targets)) < length(targets))
 
-	# create list of all gene names in both sides of the functions
-	genes <- unique(c(targets,unname(unlist(factors.tmp))))
+  # extract "real" gene names from the list, drop constants
+  suppressWarnings(genes <- genes[is.na(as.integer(genes))])
 
-	# extract "real" gene names from the list, drop constants
-	suppressWarnings(genes <- genes[is.na(as.integer(genes))])
+  fixed <- rep(-1,length(genes))
+  names(fixed) <- genes
 
-	fixed <- rep(-1,length(genes))
+  interactions <- list()
 
-	interactions <- NULL
+  for(i in 1:length(targets))
+  {
+    target <- targets[i]
+    inputGenes <- factors.tmp[[i]]
+    interaction <- list()
+    if(suppressWarnings(is.na(as.integer(inputGenes[1]))))
+    # the input is not a number
+    {
+      inputIndices <- match(inputGenes,genes)
+      exp <- as.matrix(allcombn(2,length(inputIndices)) - 1)
+      for(j in 1:length(inputIndices))
+      {
+        # create variables in R and assign a truth table column
+        tmp1 <- paste(exp[,j],collapse=",")        
+         eval(parse(text = paste(inputGenes[j],"=c(",tmp1,")",sep="")))
+      }
+      tryCatch(
+        interaction <- list(input = inputIndices,
+                         func = as.numeric(eval(parse(text=factors[i]))),
+                         expression = factors[i]),
+        error = function(err)
+                stop(paste("An error was detected in expression \"",factors[i],"\": \n",
+                    err,sep="")))                         
+    }
+    else
+    # this is a constant gene
+    {
+      if (!isProbabilistic)
+        fixed[target] <- as.integer(inputGenes)
+      interaction <- list(input=0,func=as.integer(inputGenes),expression = inputGenes)
+    }
+    if (isProbabilistic)
+    {
+      interaction$probability <- probabilities[i]
+      interactions[[target]][[length(interactions[[target]]) + 1]] <- interaction
+    }
+    else
+      interactions[[target]] <- interaction
+    
+  }
 
-	for(i in 1:length(targets))
-	{
-		inputGenes <- factors.tmp[[i]]
-		if(suppressWarnings(is.na(as.integer(inputGenes[1]))))
-		# the input is not a number
-		{
-			inputIndices = match(inputGenes,genes)
-			exp = as.matrix(allcombn(2,length(inputIndices)) - 1)
-			for(j in 1:length(inputIndices))
-		      	{
-				tmp1 = paste(exp[,j],collapse=",")
-				eval(parse(text = paste(inputGenes[j],"=c(",tmp1,")")))
-		      	}
-			interactions[[i]] = list(input = inputIndices,
-						 func = as.numeric(eval(parse(text=factors[i]))),
-						 expression = factors[i])
-		  }
-		  else
-		  # this is a constant gene
-		  {
-		  	fixed[i] = as.integer(inputGenes)
-		  	interactions[[i]] = list(input=0,func=fixed[i],expression = fixed[i])
-		  }        
-	}
+  onlyInputs <- setdiff(genes,targets)
+  if(length(onlyInputs) > 0)
+  # some genes are only used as inputs, but are not involved in the network
+  # -> create dummy input and function
+  {
+    for(gene in onlyInputs)
+    {
+      if (isProbabilistic)
+        interactions[[gene]][[1]] = list(list(input = length(interactions)+1,func=c(0,1),
+        									  expression = gene))
+      else
+        interactions[[gene]] = list(input = length(interactions)+1,func=c(0,1),
+        							expression = gene)
+    }
+  }
+  
+  if (isProbabilistic)
+  {
+    wrongProb <- sapply(interactions,function(interaction)
+                                    abs(1.0-sum(sapply(interaction,function(func)func$probability))) > 0.0001)
+    if (any(wrongProb))
+      stop(paste("The probabilities of gene(s) ",paste(genes[wrongProb],collapse=", ")," do not sum up to 1!",sep=""))
+  }  
 
-	if(length(targets) < length(genes))
-	# some genes are only used as inputs, but are not involved in the network
-	# -> create dummy input and function
-	{
-		for(i in (length(targets)+1):length(genes))
-		{
-	  		interactions[[i]] = list(input = 0,func=-1)
-		}
-	}
-	
-	names(interactions) <- genes
-	
-	res <- list(interactions = interactions,
-		    genes = genes,
-		    fixed = fixed)
-	class(res) <- "BooleanNetwork"
-	return(res)
+  res <- list(interactions = interactions,
+              genes = genes,
+              fixed = fixed)
+  
+  if (isProbabilistic)
+    class(res) <- c("ProbabilisticBooleanNetwork","BooleanNetworkCollection")
+  else
+    class(res) <- "BooleanNetwork"
+  return(res)
 }
 

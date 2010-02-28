@@ -4,31 +4,41 @@
 \alias{BoolNet}
 \docType{package}
 \title{Analyze Boolean networks}
-\description{Tools for reconstruction, analysis and visualization of Boolean networks, in particular for the identification of attractors in gene-regulatory networks}
+\description{Tools for reconstruction, analysis and visualization of synchronous, asynchronous, and probabilistic Boolean networks, in particular for the identification of attractors in gene-regulatory networks}
 \details{
 \tabular{ll}{
 Package: \tab BoolNet\cr
 Type: \tab Package\cr
-Version: \tab 1.3\cr
-Date: \tab 2009-10-02\cr
+Version: \tab 1.4\cr
+Date: \tab 2010-02-28\cr
 License: \tab Artistic-2.0\cr
 LazyLoad: \tab yes\cr
 }
-This package provides useful methods for the reconstruction and generation of Boolean networks and for their analysis. In particular, it is designed for the analysis of gene-regulatory networks.
+This package provides useful methods for the construction and generation of Boolean networks and for their analysis. In particular, it is designed for the analysis of gene-regulatory networks. The software supports three types of networks:
+\describe{
 
-The \code{\link{reconstructNetwork}} function infers Boolean networks from time series measurements using several popular reconstruction algorithms.
-Boolean networks can also be expressed in a description language and loaded from files using \code{\link{loadNetwork}}.
+\item{Synchronous Boolean networks}{These networks consist of a set of Boolean variables (genes) \var{X} and a set of transition functions, one for each variable. These transition functions map an input from the set \var{X} to a Boolean value. A state is a vector of values for each of the variables in \var{X}. Then, the next state of the network is calculated by applying \emph{all} transition functions to the state.}
+
+\item{Asynchronous Boolean networks}{Asynchronous networks have the same structure as synchronous Boolean networks. Yet, the next state of the network is calculating by choosing only \emph{one} of the transition functions at random and updating the corresponding Boolean variable (gene). This corresponds to the assumption that in a genetic network, gene expression levels are likely to change at different points of time.}
+
+\item{Probabilistic Boolean networks}{Probabilistic networks allow for specifying more than one transition function per variable/gene. Each of these functions has a probability to be chosen, where the probabilities of all functions for one variable sum up to 1. Transitions are performed synchronously by choosing one transition function for each gene according to their probabilities and applying them to the current state.}
+}
+
+Networks can be assembled in several ways using \pkg{BoolNet}: The \code{\link{reconstructNetwork}} function infers Boolean networks from time series of measurements using several popular reconstruction algorithms. \code{\link{binarizeTimeSeries}} provides a means of binarizing real-valued time series for these reconstruction algorithms.
+Boolean networks (synchronous, asynchronous, and probabilistic networks) can also be expressed in a description language and loaded from files using \code{\link{loadNetwork}}. Furthermore, networks can be imported from BioTapestry using \code{\link{loadBioTapestry}}.
 Via \code{\link{generateRandomNKNetwork}} and \code{\link{perturbNetwork}}, the package supports various methods of generating random networks and perturbing existing networks for robustness analysis.
 
-The \code{\link{getAttractors}} function identifies attractor cycles in a Boolean network. Attractors can be identified by exhaustive search or heuristic methods.
+The \code{\link{getAttractors}} function identifies attractor cycles in a synchronous or asynchronous Boolean network. Attractors can be identified by exhaustive search or heuristic methods.
 
-The package also provides methods to visualize state transitions and basins of attraction (\code{\link{plotStateGraph}}),
-to plot the wiring of a network (\code{\link{plotNetworkWiring}}), to plot the attractor state table (\code{\link{plotAttractors}}), and to export them to LaTeX (\code{\link{attractorsToLaTeX}}) and Pajek (\code{\link{toPajek}}).
+The \code{\link{markovSimulation}} function identifies relevant states in probabilistic Boolean networks by performing a Markov chain simulation.
+
+The package also provides methods to visualize state transitions and basins of attraction \if{latex}{\cr}
+(\code{\link{plotPBNTransitions}}, \code{\link{plotStateGraph}}), to plot the wiring of a network \if{latex}{\cr}(\code{\link{plotNetworkWiring}}), to plot the attractor state table (\code{\link{plotAttractors}}), and to export them to LaTeX (\code{\link{attractorsToLaTeX}}) and Pajek (\code{\link{toPajek}}).
 
 Transition tables of the network can be analyzed using \code{\link{getTransitionTable}}.
 }
 \author{
-Christoph Muessel, Dao Zhou, Hans Kestler
+Christoph Muessel, Martin Hopfensitz, Dao Zhou, Hans Kestler
 
 Maintainer: Hans Kestler <hans.kestler@uni-ulm.de>
 
@@ -42,96 +52,53 @@ Further references are listed in the corresponding help sections.
 }
 \keyword{package 
 	Boolean network
+	probabilistic Boolean network
+	PBN
 	attractor
 	cycle
 	basin
 	transition
+	Markov chain simulation
 	state
 	graph
 	reconstruction}
 
 \examples{
-# Perform a robustness test on a network
-# by counting the numbers of perturbed networks
-# containing the attractors of the original net
-# and measuring their basin sizes
-
 library(BoolNet)
 
-# load mammalian cell cycle network
+##################################
+# Example 1: identify attractors #
+################################## 
+
+# load example data
 data(cellcycle)
 
-# get attractors in original network
-attrs <- getAttractors(net, canonical=TRUE)
+# get all synchronous attractors by exhaustive search
+attractors <- getAttractors(cellcycle)
 
-# create 100 perturbed copies of the network,
-# search for attractors and measure basin sizes
-perturbationResults <- sapply(1:100,function(i)
-{
-  # perturb network and identify attractors
-	perturbedNet <- perturbNetwork(net, perturb="functions", method="bitflip", maxNumBits=1)
-	perturbedAttrs <- getAttractors(perturbedNet, canonical=TRUE)
-	
-	# check whether the attractors in the original network exist in the perturbed network
-	attractorIndices <- sapply(attrs$attractors,function(attractor1)
-				{
-					index <- which(sapply(perturbedAttrs$attractors,function(attractor2)
-						{
-							identical(attractor1,attractor2)
-						}))
-					if (length(index) == 0)
-						NA
-					else
-						index
-				})
+# plot attractors side by side
+par(mfrow=c(2,length(attractors$attractors)))
+plotAttractors(attractors)
 
-  # if the attractors exist, measure the sizes of their basins
-	basinSizes <- sapply(attractorIndices,function(attractorIndex)
-				{
-					if (is.na(attractorIndex))
-						NA
-					else
-						perturbedAttrs$attractors[[attractorIndex]]$basinSize
-				})
-	return(c(attractorIndices,basinSizes))
-})
+# identifies asynchronous attractors
+attractors <- getAttractors(cellcycle, 
+                            type="asynchronous", startStates=100)
+\donttest{plotAttractors(attractors, mode="graph")}
 
-# perturbationResults now contains a matrix
-# with the first 2 columns specifying the indices or the 
-# original attractors in the perturbed network 
-# (or NA if the attractor was not found) and the next 2 
-# columns counting the numbers of states
-# in the basin of attraction (or NA if the attractor was not found)
+####################################
+# Example 2: reconstruct a network #
+####################################
 
-# measure the total numbers of occurrences in the perturbed copies
-# for each of the original attractors
-numOccurrences <- apply(perturbationResults[1:length(attrs$attractors),,drop=FALSE], 1,
-                        function(row)sum(!is.na(row)))
+# load example data
+data(yeastTimeSeries)
 
+# perform binarization with k-means
+bin <- binarizeTimeSeries(yeastTimeSeries)
 
-# print information
-cat("Number of occurrences of the original attractors",
-	"in 100 perturbed copies of the network:\n")
-for (i in 1:length(attrs$attractors))
-{
-  cat("Attractor ",i,": ",numOccurrences[i],"\n",sep="")
-}
+# reconstruct networks from transition table
+net <- reconstructNetwork(bin$binarizedMeasurements, 
+                          method="bestfit", maxK=3)
 
-# plot a histogram of the basin sizes
-# - in this case mostly unspectacular, as the attractor
-# usually either disappears or does not change.
-
-par(mfrow=c(length(attrs$attractors),1))
-for (i in 1:length(attrs$attractors))
-{
-  basinSizes <- perturbationResults[i + length(attrs$attractors),]
-  basinSizes <- basinSizes[!is.na(basinSizes)]
-  hist(basinSizes,
-       breaks=seq(0,1024,length.out=20),
-       xlab="Size of basin of attraction",
-       main=paste("Basin sizes of attractor",i,"in 100 perturbed networks"))
-  
-  # for comparison, draw basin size of original attractor
-  abline(v=attrs$attractors[[i]]$basinSize,col="red")
-}
+# analyze the network using a Markov chain simulation
+print(markovSimulation(net, returnTable=FALSE))
 }

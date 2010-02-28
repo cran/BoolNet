@@ -6,7 +6,7 @@
 Retrieve summary information on a state
 }
 \description{
-Returns information on the supplied state, i.e. the successive state after a transition, the attractor to which the state leads, and the distance to this attractor.
+Returns information on the supplied state, i.e. the successive state after a transition, the (synchronous) attractor to which the state leads, and the distance to this attractor.
 }
 \usage{
 getStateSummary(attractorInfo, state)
@@ -14,7 +14,7 @@ getStateSummary(attractorInfo, state)
 
 \arguments{
   \item{attractorInfo}{
-	An object of class \code{AttractorInfo}, as returned by \code{\link{getAttractors}}
+	An object of class \code{AttractorInfo}, as returned by \code{\link{getAttractors}}. As the transition table information in this structure is required, \code{getAttractors} must be called in synchronous mode and with \code{returnTable} set to TRUE.
 }
   \item{state}{
 	A 0-1 vector with n elements (where n is the number of genes in the underlying networks) describing the state.
@@ -34,10 +34,10 @@ library(BoolNet)
 data(cellcycle)
 
 # get attractors
-attractors <- getAttractors(net)
+attractors <- getAttractors(cellcycle)
 
 # print information for an arbitrary state
-print(getStateSummary(attractors,c(1,1,1,1,1,1,1,1,1,1)))
+print(getStateSummary(attractors, c(1,1,1,1,1,1,1,1,1,1)))
 }
 \keyword{Boolean network
 	transition

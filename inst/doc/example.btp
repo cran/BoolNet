@@ -1,0 +1,211 @@
+<BioTapestry version="3.1" >
+  <workspace x="1" y="0" w="12000" h="9000" />
+  <startupView/>
+  <fonts>
+    <font name="small" type="serif" isBold="true" isItalic="false" size="20" />
+    <font name="medium" type="serif" isBold="true" isItalic="false" size="28" />
+    <font name="cisRegName" type="serif" isBold="true" isItalic="false" size="28" />
+    <font name="geneName" type="serif" isBold="true" isItalic="false" size="28" />
+    <font name="link" type="serif" isBold="true" isItalic="false" size="28" />
+    <font name="mediumLarge" type="sanSerif" isBold="true" isItalic="false" size="30" />
+    <font name="netModule" type="sanSerif" isBold="true" isItalic="false" size="34" />
+    <font name="large" type="sanSerif" isBold="true" isItalic="false" size="34" />
+    <font name="notes" type="sanSerif" isBold="true" isItalic="false" size="34" />
+    <font name="date" type="sanSerif" isBold="false" isItalic="false" size="25" />
+    <font name="title" type="sanSerif" isBold="true" isItalic="false" size="32" />
+  </fonts>
+  <displayOptions />
+  <colors>
+    <color color="EX-dark-cyan" name="Dark Steel Blue" r="0" g="101" b="128" />
+    <color color="EX-cyan" name="Cyan" r="0" g="255" b="255" />
+    <color color="EX-yellow-orange" name="Tangerine" r="255" g="153" b="0" />
+    <color color="EX-pale-green" name="Pale Green" r="133" g="204" b="102" />
+    <color color="lightOrange" name="Light Orange" r="244" g="211" b="170" />
+    <color color="EX-dark-green" name="Dark Green" r="39" g="128" b="0" />
+    <color color="lightGray" name="Light Gray" r="240" g="240" b="240" />
+    <color color="EX-pale-red-orange" name="Dark Salmon" r="230" g="156" b="138" />
+    <color color="lightBlue" name="Light Blue" r="220" g="220" b="240" />
+    <color color="EX-yellow-green" name="Lime" r="154" g="255" b="0" />
+    <color color="EX-yellow" name="Gold" r="255" g="203" b="0" />
+    <color color="EX-dark-gray-purple" name="Dark Blue" r="0" g="25" b="128" />
+    <color color="yellowGreen" name="Yellow Green" r="246" g="249" b="170" />
+    <color color="EX-dark-red" name="Deep Ochre" r="140" g="56" b="56" />
+    <color color="EX-pale-magenta" name="Light Plum" r="211" g="138" b="230" />
+    <color color="EX-purple" name="Indigo" r="102" g="51" b="255" />
+    <color color="EX-pale-purple" name="Cornflower Blue" r="149" g="165" b="230" />
+    <color color="EX-red" name="Bright Red" r="255" g="0" b="0" />
+    <color color="EX-pale-yellow-green" name="Pale Goldenrod" r="221" g="230" b="138" />
+    <color color="EX-dark-purple" name="Slate Blue" r="77" g="56" b="140" />
+    <color color="EX-pale-cyan" name="Aquamarine" r="138" g="230" b="182" />
+    <color color="EX-pure-blue" name="Blue" r="1" g="0" b="255" />
+    <color color="inactiveLightBlue" name="Very Light Blue" r="235" g="235" b="250" />
+    <color color="lightPurple" name="Light Purple" r="235" g="219" b="229" />
+    <color color="black" name="Black" r="0" g="0" b="0" />
+    <color color="EX-dark-yellow-green" name="Olive Green" r="115" g="128" b="0" />
+    <color color="EX-dark-tan" name="Dark Tan" r="166" g="133" b="83" />
+    <color color="EX-magenta" name="Fuchsia" r="254" g="0" b="255" />
+    <color color="EX-pale-blue" name="Powder Blue" r="102" g="183" b="204" />
+    <color color="white" name="White" r="255" g="255" b="255" />
+    <color color="lightGreen" name="Light Green" r="214" g="239" b="209" />
+    <color color="inactiveLightGreen" name="Very Light Green" r="230" g="255" b="220" />
+    <color color="inactiveLightPurple" name="Very Light Purple" r="245" g="229" b="240" />
+    <color color="EX-orange" name="Pumpkin Orange" r="255" g="103" b="0" />
+    <color color="inactiveYellowGreen" name="Light Yellow Green" r="255" g="255" b="220" />
+    <color color="inactiveLightOrange" name="Very Light Orange" r="255" g="230" b="200" />
+    <color color="EX-medium-magenta" name="Mauve" r="166" g="83" b="166" />
+    <color color="EX-blue-magenta" name="Bright Purple" r="154" g="0" b="255" />
+    <color color="EX-green" name="Bright Green" r="1" g="255" b="0" />
+    <color color="EX-dark-magenta" name="Violet" r="102" g="0" b="128" />
+    <color color="inactiveLightGray" name="Very Light Gray" r="245" g="245" b="245" />
+    <color color="EX-pale-blue-magenta" name="Lilac" r="146" g="102" b="204" />
+    <color color="darkGray" name="Dark Gray" r="150" g="150" b="150" />
+    <color color="EX-pale-yellow orange" name="Dark Wheat" r="204" g="175" b="102" />
+    <color color="EX-dark-orange" name="Sienna" r="128" g="92" b="0" />
+    <color color="EX-blue" name="Sky Blue" r="0" g="152" b="255" />
+    <color color="EX-pale-red" name="Rose" r="204" g="102" b="153" />
+  </colors>
+  <images>
+  </images>
+  <userTreePaths>
+  </userTreePaths>
+  <genome name="Full Genome" id="bioTapA" >
+    <rootLongName />
+    <rootDescription />
+    <nodes>
+      <boxes>
+        <box name="Input 1" id="3" >
+          <simulationLogic type="AND" >
+            <simParameters>
+              <simParameter name="initVal" value="1" />
+            </simParameters>
+          </simulationLogic>
+        </box>
+        <box name="Input 2" id="4" >
+          <simulationLogic type="AND" />
+        </box>
+      </boxes>
+      <genes>
+        <gene name="Gene 1" id="0" >
+          <simulationLogic type="XOR" />
+        </gene>
+        <gene name="Gene 2" id="1" >
+          <simulationLogic type="AND" />
+        </gene>
+        <gene name="Gene 3" id="2" >
+          <simulationLogic type="OR" />
+        </gene>
+      </genes>
+    </nodes>
+    <links>
+      <link label="" src="0" targ="0" sign="-" id="13" targPad="5" />
+      <link label="" src="0" targ="1" sign="+" id="10" targPad="1" />
+      <link label="" src="0" targ="2" sign="+" id="12" targPad="2" />
+      <link label="" src="1" targ="2" sign="+" id="11" targPad="1" />
+      <link label="" src="2" targ="1" sign="+" id="9" targPad="3" />
+      <link label="" src="3" targ="0" sign="+" id="6" targPad="0" launchPad="1" />
+      <link label="" src="4" targ="0" sign="-" id="8" targPad="2" launchPad="1" />
+      <link label="" src="4" targ="1" sign="-" id="7" targPad="2" launchPad="1" />
+    </links>
+    <netOverlays>
+    </netOverlays>
+    <notes>
+    </notes>
+  </genome>
+  <genomeInstances>
+  </genomeInstances>
+  <layouts>
+    <layout name="bioTapB" genome="bioTapA" type="free" >
+      <layoutMetadata />
+      <props>
+        <nprops>
+          <nprop id="0" color="EX-orange" x="5870.0" y="4680.0" orient="right" />
+          <nprop id="1" color="EX-dark-cyan" x="6440.0" y="4640.0" orient="right" />
+          <nprop id="2" color="EX-blue" x="6160.0" y="4160.0" orient="right" />
+          <nprop id="3" color="darkGray" x="5770.0" y="4620.0" orient="right" />
+          <nprop id="4" color="darkGray" x="5450.0" y="4250.0" orient="right" />
+        </nprops>
+        <lprops>
+          <linkBus labelX="5200.0" labelY="4280.0" labelDir="" src="0" >
+            <drawStyle color="EX-orange" style="solid" thick="regular" />
+            <segments>
+              <linkSegment id="3" parent="0" strtX="6000.0" strtY="4690.0" endX="6080.0" endY="4690.0" />
+              <linkSegment id="2" parent="1" strtX="6000.0" strtY="4640.0" endX="5930.0" endY="4640.0" />
+              <linkSegment id="1" parent="0" strtX="6000.0" strtY="4690.0" endX="6000.0" endY="4640.0" />
+              <linkSegment id="0" strtX="6000.0" strtY="4690.0" />
+              <linkSegment id="7" parent="4" strtX="6080.0" strtY="4390.0" endX="6340.0" endY="4390.0" />
+              <linkSegment id="6" parent="5" strtX="6080.0" strtY="4130.0" endX="6190.0" endY="4130.0" />
+              <linkSegment id="5" parent="4" strtX="6080.0" strtY="4390.0" endX="6080.0" endY="4130.0" />
+              <linkSegment id="4" parent="3" strtX="6080.0" strtY="4690.0" endX="6080.0" endY="4390.0" />
+              <linkSegment id="9" parent="8" strtX="6340.0" strtY="4630.0" endX="6460.0" endY="4630.0" />
+              <linkSegment id="8" parent="7" strtX="6340.0" strtY="4390.0" endX="6340.0" endY="4630.0" />
+            </segments>
+            <drops>
+              <drop ref="*" connectStart="0" />
+              <drop ref="10" connectEnd="9" />
+              <drop ref="13" connectEnd="2" />
+              <drop ref="12" connectEnd="6" />
+            </drops>
+          </linkBus>
+          <linkBus labelX="4820.0" labelY="4280.0" labelDir="" src="1" >
+            <drawStyle color="EX-dark-cyan" style="solid" thick="regular" />
+            <segments>
+              <linkSegment id="3" parent="2" strtX="6600.0" strtY="4870.0" endX="6100.0" endY="4870.0" />
+              <linkSegment id="2" parent="0" strtX="6600.0" strtY="4650.0" endX="6600.0" endY="4870.0" />
+              <linkSegment id="0" strtX="6600.0" strtY="4650.0" />
+              <linkSegment id="5" parent="4" strtX="6100.0" strtY="4150.0" endX="6180.0" endY="4150.0" />
+              <linkSegment id="4" parent="3" strtX="6100.0" strtY="4870.0" endX="6100.0" endY="4150.0" />
+            </segments>
+            <drops>
+              <drop ref="*" connectStart="0" />
+              <drop ref="11" connectEnd="5" />
+            </drops>
+          </linkBus>
+          <linkBus labelX="3220.0" labelY="3790.0" labelDir="" src="3" >
+            <drawStyle color="black" style="solid" thick="regular" />
+            <segments>
+              <linkSegment id="0" strtX="5880.0" strtY="4620.0" />
+            </segments>
+            <drops>
+              <drop ref="*" connectStart="0" />
+              <drop ref="6" connectStart="0" />
+            </drops>
+          </linkBus>
+          <linkBus labelX="3310.0" labelY="3940.0" labelDir="" src="4" >
+            <drawStyle color="black" style="solid" thick="regular" />
+            <segments>
+              <linkSegment id="3" parent="0" strtX="5620.0" strtY="4250.0" endX="5620.0" endY="4560.0" />
+              <linkSegment id="0" strtX="5620.0" strtY="4250.0" />
+              <linkSegment id="7" parent="6" strtX="6360.0" strtY="4250.0" endX="6360.0" endY="4610.0" />
+              <linkSegment id="6" parent="0" strtX="5620.0" strtY="4250.0" endX="6360.0" endY="4250.0" />
+              <linkSegment id="4" parent="3" strtX="5620.0" strtY="4560.0" endX="5900.0" endY="4560.0" />
+              <linkSegment id="8" parent="7" strtX="6360.0" strtY="4610.0" endX="6470.0" endY="4610.0" />
+            </segments>
+            <drops>
+              <drop ref="*" connectStart="0" />
+              <drop ref="7" connectEnd="8" />
+              <drop ref="8" connectEnd="4" />
+            </drops>
+          </linkBus>
+          <linkBus labelX="4440.0" labelY="4280.0" labelDir="" src="2" >
+            <drawStyle color="EX-blue" style="solid" thick="regular" />
+            <segments>
+              <linkSegment id="2" parent="0" strtX="6380.0" strtY="4170.0" endX="6380.0" endY="4590.0" />
+              <linkSegment id="0" strtX="6380.0" strtY="4170.0" />
+              <linkSegment id="4" parent="2" strtX="6380.0" strtY="4590.0" endX="6480.0" endY="4590.0" />
+            </segments>
+            <drops>
+              <drop ref="*" connectStart="0" />
+              <drop ref="9" connectEnd="4" />
+            </drops>
+          </linkBus>
+        </lprops>
+      </props>
+    </layout>
+  </layouts>
+  <QPCR threshold="1.6" >
+  </QPCR>
+  <TimeCourseData>
+  </TimeCourseData>
+  <TemporalInputRangeData>
+  </TemporalInputRangeData>
+</BioTapestry>

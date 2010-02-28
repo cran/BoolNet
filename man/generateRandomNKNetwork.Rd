@@ -56,7 +56,7 @@ generateRandomNKNetwork(n, k,
 	The bias parameter for biased functions for \code{functionGeneration="biased"}. Defaults to 0.5 (no bias).
 }
   \item{gamma}{
-	The Gamma parameter of the Zeta distribution for \code{topology="scale_free"}.
+	The Gamma parameter of the Zeta distribution for \code{topology="scale_free"}. Default is 2.5.
 }
   \item{approx_cutoff}{
 	This parameter is only used with \code{topology="scale_free"}. It sets the number of iterations in the sum used to approximate the Riemann Zeta function. Defaults to 100.
@@ -68,7 +68,7 @@ The function supports a high number of different configurations to generate rand
 Constant genes are automatically fixed (e.g. knocked-out or over-expressed). This means that they are always set to the constant value, and states with the complementary value are not considered in transition tables etc. If you would like to change this behaviour, use \code{\link{fixGenes}} to reset the fixing.
 }
 \value{
-An object of class \code{BooleanNetwork} containing the generated random network. The class \code{BooleanNetwork} is described in more detail in \code{\link{loadNetwork}}.
+An object of class \code{BooleanNetwork} containing the generated random network. The class \if{latex}{\cr}\code{BooleanNetwork} is described in more detail in \code{\link{loadNetwork}}.
 }
 \references{
 S. A. Kauffman (1969), Metabolic stability and epigenesis in randomly constructed nets. J. Theor. Biol. 22:437--467.

@@ -3,47 +3,72 @@
 \alias{plotAttractors}
 
 \title{
-Plot state table of attractors
+Plot state tables or transition graphs of attractors
 }
 \description{
-Visualizes attractors by drawing a table of the involved states in two colors.
+Visualizes attractors, either by drawing a table of the involved states in two colors, or by drawing a graph of transitions between the states of the attractor.
 }
 \usage{
 plotAttractors(attractorInfo, 
-               grouping = list(), 
+               subset, 
                title = "", 
+               mode = c("table","graph"),
+               grouping = list(), 
                plotFixed = TRUE, 
-               onColor = "green", offColor = "red")
+               onColor = "green",
+               offColor = "red",
+               layout = layout.circle, 
+               drawLabels = TRUE,
+               ...) 
 }
 \arguments{
   \item{attractorInfo}{
 	An object of class \code{AttractorInfo}, as returned by \code{\link{getAttractors}}
 }
-  \item{grouping}{An optional structure to form groups of genes in the plot. This is a list with the following elements: 
- \describe{
-  	\item{class}{A vector of names for the groups. These names will be printed in the region belonging to the group in the plot.}
-  	\item{index}{A list with the same length as \code{class}. Each element is a vector of gene indices belonging to the group.}}
-}
- 
+  \item{subset}{An subset of attractors to be plotted. This is a vector of attractor indices in \code{attractorInfo}.}
+  
+   
   \item{title}{
 	An optional title for the plot
 }
-  \item{plotFixed}{
+  
+  \item{mode}{Switches between two kinds of attractor plots. See Details for more information. Default is "table".}
+  
+  \item{grouping}{This optional parameter is only used if \code{mode="table"} and specifies a structure to form groups of genes in the plot. This is a list with the following elements: 
+ \describe{
+  	\item{class}{A vector of names for the groups. These names will be printed in the region belonging to the group in the plot.}  	
+  	\item{index}{A list with the same length as \code{class}. Each element is a vector of gene indices belonging to the group.}}
+}
+  \item{plotFixed}{This optional parameter is only used if \code{mode="table"}.
 	If this is true, genes with fixed values are included in the plot. Otherwise, these genes are not drawn.
 }
-  \item{onColor}{
-	An optional color value for the 1/ON values in the table. Defaults to green.
+  \item{onColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 1/ON values in the table. Defaults to green.
 }
-  \item{offColor}{
-	An optional color value for the 0/OFF values in the table. Defaults to red.
+  \item{offColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 0/OFF values in the table. Defaults to red.
+}
+
+  \item{layout}{If \code{mode="graph"}, this parameter specifies a layouting function that determines the placement of the nodes in the graph. Please refer to the \code{\link[igraph]{layout}} manual entry in the \pkg{igraph} package for further details. By default, the circle layout is used.
+}
+
+  \item{drawLabels}{This parameter is only relevant if \code{mode="graph"}. It determines whether the nodes of the graph are annotated with the corresponding values of the genes in the attractor states.
+}
+    \item{\dots}{
+Further graphical parameters to be passed to \code{\link[igraph:plot.graph]{plot.igraph}} if \code{mode="graph"}.
 }
 }
 \details{
-Attractors in \code{attractorInfo} are first grouped by length. Then, a figure is plotted to the currently selected device for each attractor length (i.e. one plot with all attractors consisting of 1 state, one plot with all attractors consisting of 2 states, etc.). This means that on the standard X11 output device, only the last plot is displayed unless you set \code{par(mfrow=c(...))} accordingly.
+This function comprises two different types of plots: 
+
+The "table" mode visualizes the gene values of the states in the attractor and is only suited for synchronous or steady-state attractors. Complex asynchronous attractors are omitted in this mode. Attractors in \code{attractorInfo} are first grouped by length. Then, a figure is plotted to the currently selected device for each attractor length (i.e. one plot with all attractors consisting of 1 state, one plot with all attractors consisting of 2 states, etc.). This means that on the standard X11 output device, only the last plot is displayed unless you set \code{par(mfrow=c(...))} accordingly.
 The figure is a table with the genes in the rows and the states of the attractors in the columns. Cells of the table are (by default) red for 0/OFF values and green for 1/ON values. If \code{grouping} is set, the genes are rearranged according to the indices in the group, horizontal separation lines are plotted between the groups, and the group names are printed.
+
+The "graph" mode visualizes the transitions between different states. It creates a graph in which the vertices are the states in the attractor and the edges are state transitions among these states. This mode can visualize all kinds of attractors, including complex/loose attractors. One plot is drawn for each attractor. As before, this means that on the standard output device, only the last plot is displayed unless you set \code{par(mfrow=c(...))} accordingly.
+
 }
 \value{
-A list of matrices corresponding to the plots is returned. Each of these matrices has the genes in the rows and the states of the attractors in the columns.
+If \code{mode="table"}, a list of matrices corresponding to the tables is returned. Each of these matrices has the genes in the rows and the states of the attractors in the columns.
+
+If \code{mode="graph"}, a list of objects of class \code{igraph} is returned. Each of these objects describes the graph for one attractor.
 }
 \seealso{
 \code{\link{getAttractors}}, \code{\link{attractorsToLaTeX}}
@@ -55,11 +80,27 @@ library(BoolNet)
 data(cellcycle)
 
 # get attractors
-attractors <- getAttractors(net)
+attractors <- getAttractors(cellcycle)
 
-# plot attractors side by side
-par(mfrow=c(1,length(attractors$attractors)))
+# calculate number of different attractor lengths, 
+# and plot attractors side by side in "table" mode
+par(mfrow=c(1, length(table(sapply(attractors$attractors,
+                          function(attractor)
+                          {
+                            length(attractor$involvedStates)
+                          })))))
 plotAttractors(attractors)
+
+# plot attractors in "graph" mode
+par(mfrow=c(1, length(attractors$attractors)))
+\donttest{plotAttractors(attractors, mode="graph")}
+
+# identify asynchronous attractors
+attractors <- getAttractors(cellcycle, type="asynchronous")
+
+# plot attractors in "graph" mode
+par(mfrow=c(1, length(attractors$attractors)))
+\donttest{plotAttractors(attractors, mode="graph")}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

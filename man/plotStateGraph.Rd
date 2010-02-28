@@ -10,7 +10,7 @@ Plots a graph containing all states visited in \code{attractorInfo}, and optiona
 \usage{
 plotStateGraph(attractorInfo, highlightAttractors = TRUE, 
                colorBasins = TRUE, colorSet, 
-               drawLegend=TRUE, drawLabels=FALSE, 
+               drawLegend = TRUE, drawLabels = FALSE, 
                layout = layout.fruchterman.reingold, 
                basin.lty = 2, attractor.lty = 1, 
                plotIt = TRUE, ...)
@@ -18,8 +18,8 @@ plotStateGraph(attractorInfo, highlightAttractors = TRUE,
 
 \arguments{
   \item{attractorInfo}{
-	An object of class \code{AttractorInfo}, as returned by \code{\link{getAttractors}}
-}
+	An object of class \code{AttractorInfo}, as returned by \code{\link{getAttractors}}. As the transition table information in this structure is required, \code{\link{getAttractors}} must be called in synchronous mode and with \code{returnTable} set to TRUE.
+} 
   \item{highlightAttractors}{
 	If this parameter is true, edges in attractors are drawn bold and with a different line type (which can be specified in \code{attractor.lty}). Defaults to TRUE.
 }
@@ -67,10 +67,10 @@ library(BoolNet)
 data(cellcycle)
 
 # get attractors
-attractors <- getAttractors(net)
+attractors <- getAttractors(cellcycle)
 
 # plot state graph
-plotStateGraph(attractors,main="Cell cycle network")
+plotStateGraph(attractors, main="Cell cycle network")
 
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
