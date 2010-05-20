@@ -237,6 +237,17 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
   reordering <- order(attractorLengths)
   result$attractors <- result$attractors[reordering]
   
+  if (!is.null(result$stateInfo))
+  {
+    newAttractorAssignment = result$stateInfo$attractorAssignment
+    for (i in 1:length(reordering))
+    {
+      idx <- which(reordering == i)
+      newAttractorAssignment[which(result$stateInfo$attractorAssignment == i)] <- idx
+    }
+    result$stateInfo$attractorAssignment <- newAttractorAssignment
+  }
+  
   # extend the resulting structure by additional information, and assign a class      
   result$stateInfo$genes <- network$genes
   result$stateInfo$fixedGenes <- network$fixed
