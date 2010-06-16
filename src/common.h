@@ -46,4 +46,15 @@ extern void dec2bin(int *bin, int *dec, int *numBits);
  */
 extern void insertFixedGenes(unsigned int * value, int* fixedGenes, unsigned int numGenes);
 
+
+/**
+ * Removes values of fixed genes from states - this is required as
+ * fixed genes are not encoded in the internal state representations.
+ * <value> is a pointer to a state to be corrected.
+ * <fixedGenes> is an array specifying which genes are fixed, as contained in
+ * the BooleanNetwork structure.
+ * <numGenes> is the length of <fixedGenes>.
+ * The function changes the state pointed to by <value> and has no return value.
+ */
+extern void removeFixedGenes(unsigned int * value, int* fixedGenes, unsigned int numGenes);
 #endif

@@ -318,9 +318,15 @@ StateTreeNode * findNodeRec(StateTreeNode * parent, unsigned int * data, unsigne
 	for (i = numElements - 1; i >= 0; --i)
 	{
 		if (data[i] > parent->data[i])
+		{
 			direction = 1;
+			break;
+		}
 		if (data[i] < parent->data[i])
+		{
 			direction = 2;
+		  break;
+		}  
 	}
 	switch(direction)
 	{
@@ -376,17 +382,19 @@ StateTreeNode * findNode(StateTreeNode ** root, unsigned int * data, unsigned in
  * a new node is inserted into the tree <root>.
  * <numElementsPerEntry> is the number of array elements required to store one state.
  * <net> describes the network for which a state transition is performed.
+ * <basinCounter> is a counter to be increased when a new state is identified
  */
 StateTreeNode * findSuccessor(StateTreeNode ** root, StateTreeNode * current,
-							 unsigned int numElementsPerEntry, BooleanNetwork * net)
+							 unsigned int numElementsPerEntry, BooleanNetwork * net, unsigned int * basinCounter)
 {
-	bool dummy;
+	bool found;
 	if (current->type.sync.successor == 0)
 	// the state does not exist => calculate state transition and insert it
 	{
 		unsigned int nextState[numElementsPerEntry];
 		stateTransition(current->data,nextState,net);
-		current->type.sync.successor = findNode(root,nextState,numElementsPerEntry, &dummy);
+		current->type.sync.successor = findNode(root,nextState,numElementsPerEntry, &found);
+ 		++ *basinCounter;
 	}
 	return current->type.sync.successor;
 }
@@ -407,7 +415,6 @@ void inOrderSerializeTree(StateTreeNode * root,
 						  unsigned int numElements,
 						  unsigned int * nodeNo)
 {
-
 	if (root->leftChild != 0)
 	// recursive descent of left subtree
 		inOrderSerializeTree(root->leftChild,initialStates,table,attractorAssignment,
@@ -562,13 +569,10 @@ unsigned long long * getTransitionTable(BooleanNetwork * net)
 
 /**
  * Retrieves attractors from a given transition table <table> with <numberOfStates> entries.
- * <specialInitializations> is a vector with <numSpecialInitializations>*2 entries, where the elements
- * 2*k entries are the gene indices, and the 2*k+1 entries are the corresponding initialization values (0 or 1)
- *
+ * 
  * Returns a list of attractors - the last element of this list is empty!
  */
-pAttractorInfo getAttractors(unsigned long long * table, unsigned int numberOfStates, int *specialInitializations, int numSpecialInitializations,
-							unsigned int numberOfGenes)
+pAttractorInfo getAttractors(unsigned long long * table, unsigned int numberOfStates, unsigned int numberOfGenes)
 {
 	unsigned long long i;
 	unsigned int current_attractor = 0, elementsPerEntry;
@@ -685,30 +689,6 @@ pAttractorInfo getAttractors(unsigned long long * table, unsigned int numberOfSt
 		}
 	}
 
-	if(numSpecialInitializations>0)
-	// if special initializations are supplied,
-	// correct the basin size by omitting states that
-	// are not valid according to these restrictions
-	{
-		unsigned int newBasin[current_attractor];
-		memset(newBasin,0,sizeof(int)*current_attractor);
-		for( i = 0; i < numberOfStates; i++)
-		{
-			int tmp = 1, j;
-			for(j = 0; (j < numSpecialInitializations) & (tmp >0);j++)
-				tmp = tmp & (((i& 1<<specialInitializations[2*j])>0?1:0 )== (specialInitializations[2*j+1]));
-
-			if(tmp)
-				newBasin[result->attractorAssignment[i]-1]++;
-		}
-		tmpList = attractorHead; i = 0;
-		while(tmpList->next !=NULL)
-		{
-			tmpList->basinSize = newBasin[i++];
-			tmpList = tmpList->next;
-		}
-	}
-
 	result->attractorList = attractorHead;
 
 	free(table);
@@ -721,15 +701,13 @@ pAttractorInfo getAttractors(unsigned long long * table, unsigned int numberOfSt
  * Here, <ceil(net->numGenes / 32)> consecutive array entries describe one state, thus
  * the array size is <ceil(net->numGenes / 32) * numberOfStates>
  * <net> describes the network structure.
- * <specialInitializations> is a vector with <numSpecialInitializations>*2 entries, where the elements
- * 2*k entries are the gene indices, and the 2*k+1 entries are the corresponding initialization values (0 or 1).
  */
 pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned int numberOfStates,
-									  BooleanNetwork * net, int *specialInitializations, int numSpecialInitializations)
+									  BooleanNetwork * net)
 {
 	unsigned long long i;
-	unsigned int j, current_attractor = 0, elementsPerEntry;
-	bool dummy;
+	unsigned int current_attractor = 0, elementsPerEntry;
+	bool found;
 
 	// calculate the number of array elements required for one state
 	// (depending on the number of genes)
@@ -748,11 +726,11 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 	pAttractor attractorHead, attractorList,tmpList;
 	attractorHead = attractorList = (pAttractor) calloc(1,sizeof(Attractor));
 	attractorList->next = NULL;
-
+	
 	for(i = 0; i < numberOfStates; i++)
 	{
-		// check whether the current state is already in the state tree, otherwise insert it
-		StateTreeNode * currentState = findNode(&stateTree,&selectedStates[i*elementsPerEntry],elementsPerEntry,&dummy);
+	  // check whether the current state is already in the state tree, otherwise insert it
+		StateTreeNode * currentState = findNode(&stateTree,&selectedStates[i*elementsPerEntry],elementsPerEntry,&found);
 		if(!currentState->type.sync.attractorAssignment)
 		// the current state has not yet been visited
 		{
@@ -761,6 +739,7 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 			current_attractor++;
 
 			unsigned int steps = 0;
+			unsigned int basinSize = 0;
 
 			while(!currentState->type.sync.attractorAssignment)
 			// iterate while no attractor has been assigned
@@ -774,7 +753,7 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 				currentState->type.sync.attractorAssignment = current_attractor;
 
 				// perform a state transition
-				currentState = findSuccessor(&stateTree,currentState,elementsPerEntry,net);
+				currentState = findSuccessor(&stateTree,currentState,elementsPerEntry,net,&basinSize);
 			}
 			if(current_attractor == currentState->type.sync.attractorAssignment)
 			//calculate length and basin size of new attractor
@@ -786,7 +765,7 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 				int maxstep = currentState->type.sync.stepsToAttractor;
 
 				int rec = 0;
-				StateTreeNode * tmp = findNode(&stateTree,&selectedStates[i*elementsPerEntry],elementsPerEntry,&dummy);
+				StateTreeNode * tmp = findNode(&stateTree,&selectedStates[i*elementsPerEntry],elementsPerEntry,&found);
 
 				while(memcmp(tmp->data,currentState->data,elementsPerEntry*sizeof(unsigned int)))
 				{
@@ -794,7 +773,7 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 					tmp->type.sync.stepsToAttractor = maxstep - tmp->type.sync.stepsToAttractor;
 
 					// perform a state transition
-					tmp = findSuccessor(&stateTree,tmp,elementsPerEntry,net);
+					tmp = findSuccessor(&stateTree,tmp,elementsPerEntry,net,&basinSize);
 				}
 
 				attractorList->length = steps - rec;
@@ -807,7 +786,7 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 				{
 					tmp->type.sync.stepsToAttractor = 0;
 					memcpy(&attractorList->involvedStates[a],tmp->data,elementsPerEntry*sizeof(unsigned int));
-					tmp = findSuccessor(&stateTree,tmp,elementsPerEntry,net);
+					tmp = findSuccessor(&stateTree,tmp,elementsPerEntry,net,&basinSize);
 					a += elementsPerEntry;
 				}
 				while(memcmp(tmp->data,currentState->data,elementsPerEntry*sizeof(unsigned int)));
@@ -825,7 +804,7 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 
 				// assign states to attractor basin, and
 				// correct the numbers of steps to the attractor
-				StateTreeNode * tmp = findNode(&stateTree,&selectedStates[i*elementsPerEntry],elementsPerEntry,&dummy);
+				StateTreeNode * tmp = findNode(&stateTree,&selectedStates[i*elementsPerEntry],elementsPerEntry,&found);
 				int maxstp = currentState->type.sync.stepsToAttractor + steps;
 
 				while(memcmp(tmp->data,currentState->data,elementsPerEntry*sizeof(unsigned int)))
@@ -834,7 +813,7 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 					tmp->type.sync.stepsToAttractor = maxstp - tmp->type.sync.stepsToAttractor + 1;
 
 					//perform a state transition
-					tmp = findSuccessor(&stateTree,tmp,elementsPerEntry,net);
+					tmp = findSuccessor(&stateTree,tmp,elementsPerEntry,net,&basinSize);
 				}
 
 				// update basin size in attractor record
@@ -844,41 +823,8 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 				for (i = 1; i < currentState->type.sync.attractorAssignment; ++i)
 					tmpList = tmpList->next;
 
-				tmpList->basinSize = tmpList->basinSize + steps;
+				tmpList->basinSize = tmpList->basinSize + basinSize;
 			}
-		}
-	}
-
-	if(numSpecialInitializations > 0)
-	// if special initializations are supplied,
-	// correct the basin size by omitting states that
-	// are not valid according to these restrictions
-	{
-		unsigned int newBasin[current_attractor];
-		memset(newBasin,0,sizeof(int)*current_attractor);
-
-		for( i = 0; i < numberOfStates; ++i)
-		{
-			StateTreeNode * currentState = findNode(&stateTree,&selectedStates[i*elementsPerEntry],elementsPerEntry,&dummy);
-			int fitsInitializations = 1;
-			for(j = 0; (j < numSpecialInitializations) & (fitsInitializations != 0); ++j)
-			{
-				unsigned int genePosition = specialInitializations[2*j];
-				unsigned int geneValue = specialInitializations[2*j+1];
-				fitsInitializations = fitsInitializations &
-										((currentState->data[genePosition / BITS_PER_BLOCK_32] &
-										 (1 << (geneValue % BITS_PER_BLOCK_32))) == geneValue);
-			}
-
-			if(fitsInitializations)
-				++newBasin[currentState->type.sync.attractorAssignment-1];
-		}
-		tmpList = attractorHead;
-		i = 0;
-		while(tmpList->next !=NULL)
-		{
-			tmpList->basinSize = newBasin[i++];
-			tmpList = tmpList->next;
 		}
 	}
 
@@ -1402,7 +1348,6 @@ SEXP getAttractors_R(SEXP inputGenes,
 					 SEXP transitionFunctions,
 					 SEXP transitionFunctionPositions,
 					 SEXP fixedGenes,
-					 SEXP specialInitializations,
 					 SEXP startStates,
 					 SEXP networkType,
 					 SEXP geneProbabilities,
@@ -1433,10 +1378,6 @@ SEXP getAttractors_R(SEXP inputGenes,
 	if (!isNull(geneProbabilities) && length(geneProbabilities) > 0)
 		_probabilities = REAL(geneProbabilities);
 
-	int* _specialInitializations = NULL;
-	if (!isNull(specialInitializations))
-		_specialInitializations = INTEGER(specialInitializations);
-
 	// count fixed genes, and create an index array for non-fixed genes:
 	// <network.nonFixedGeneBits[i]> contains the bit positions in a state
 	// at which the <i>-th gene is stored - this is different from <i>
@@ -1465,7 +1406,7 @@ SEXP getAttractors_R(SEXP inputGenes,
 		unsigned long long numStates = pow(2,numNonFixed);
 
 		// find attractors
-		res = getAttractors(table, numStates, _specialInitializations, length(specialInitializations), network.numGenes);
+		res = getAttractors(table, numStates, network.numGenes);
 	}
 	else
 	// start states supplied => only identify attractors for these states
@@ -1477,9 +1418,16 @@ SEXP getAttractors_R(SEXP inputGenes,
 			numElts = network.numGenes / BITS_PER_BLOCK_32 + 1;
 
 		unsigned int* _startStates = (unsigned int*) INTEGER(startStates);
+	
 		if (_networkType == SYNC_MODE)
+		{
+		  for (unsigned int i = 0; i < length(startStates); ++i)
+		  {
+		    removeFixedGenes(&_startStates[i*numElts],network.fixedGenes,network.numGenes);
+		  }
 			res = getAttractorsForStates(_startStates, length(startStates) / numElts,
-										&network,_specialInitializations, length(specialInitializations));
+										&network);
+		}
 		else
 		{
 			res = getLooseAttractors(_startStates, length(startStates) / numElts,

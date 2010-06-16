@@ -135,13 +135,13 @@ data(cellcycle)
 
 # compare the in-degrees of the states in the
 # cell cycle network to random networks
-testNetworkProperties(cellcycle, testFunction="testIndegree")
+\donttest{testNetworkProperties(cellcycle, testFunction="testIndegree")}
 
 # compare the in-degrees of the states in the
 # cell cycle network to random networks,
 # and plot the Kullback-Leibler distances of the 100 experiments
-testNetworkProperties(cellcycle, testFunction="testIndegree",
-                      accumulation = "kullback_leibler")
+\donttest{testNetworkProperties(cellcycle, testFunction="testIndegree",
+                      accumulation = "kullback_leibler")}
 
 # compare the robustness of attractors in the cell cycle network
 # to random networks

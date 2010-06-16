@@ -290,6 +290,12 @@ The following code performs a synchronous state transition for the state in whic
 data(cellcycle)
 stateTransition(cellcycle, rep(1,10))
 @
+To calculate all state transitions in a synchronous network until an attractor is reached, you can call
+<<>>=
+getPathToAttractor(cellcycle,rep(0,10))
+@
+The returned matrix consists of the subsequent states, where the last state is the first state of the corresponding attractor.
+
 A random asynchronous transition is performed using
 <<eval=FALSE>>=
 stateTransition(cellcycle, rep(1,10), type="asynchronous")
@@ -298,6 +304,8 @@ stateTransition(cellcycle, rep(1,10), type="asynchronous")
  [1] 1 1 1 1 0 1 1 1 1 1
 \end{verbatim}
 In this case, the fifth gene, CycA, was chosen at uniformly at random and updated. We can also specify non-uniform probabilities for the genes, for example
+
+\enlargethispage{0.5cm}
 <<eval=FALSE>>=
 stateTransition(cellcycle, rep(1,10), type="asynchronous", 
 geneProbabilities=c(0.05,0.05,0.2,0.3,0.05,0.05,0.05,0.05,0.1,0.1))
@@ -495,7 +503,7 @@ attractorsToLaTeX(attr,subset=2,file="attractors.tex")
 @
 exports the same state table to a \LaTeX\ document.
 
-\begin{figure}[h]
+\begin{figure}[t]
 \centering
 \includegraphics[width=0.75\linewidth]{attractor1}
 \caption{Visualization of the state changes in an attractor. The columns of the table represent consecutive states of the attractor. On top, the percentage of states leading to the attractor is supplied.}
@@ -503,17 +511,15 @@ exports the same state table to a \LaTeX\ document.
 \end{figure}
 
 To identify asynchronous attractors, another special heuristic algorithm is included. This algorithm again starts from a small subset of states and makes a number of random transitions to reach an attractor with a high probability. After that, a validation step is performed to analyze whether a complex attractor has been identified.
+
 The command
-\begin{samepage}
 <<eval=FALSE>>=
 attr <- getAttractors(cellcycle, type="asynchronous",
 method="random", startStates=500)
 @
-\end{samepage}
 conducts an asynchronous search with 500 random start states on the mammalian cell cycle network.
 In this case, the algorithm has identified both the steady-state attractor and the complex attractor:
-
-\begin{samepage}
+\pagebreak
 <<eval=FALSE>>=
 attr
 @
@@ -541,7 +547,7 @@ and 338 transition(s):
 Genes are encoded in the following order: cycd rb e2f cyce 
 cyca p27 cdc20 cdh1 ubch10 cycb
 \end{verbatim}
-\end{samepage}
+
 For the complex attractor, the involved transitions are printed out. By default, the algorithm tries to avoid self-loops, i.e. transitions that lead to the same state again. This means that self-loop transitions are only allowed if there is no other transition that leads to a different state. If you would like to allow the algorithm to enter self-loops even if transitions to different states are possible, you can call
 <<eval=FALSE>>=
 attr <- getAttractors(cellcycle, type="asynchronous",

@@ -89,3 +89,32 @@ void insertFixedGenes(unsigned int * value, int* fixedGenes, unsigned int numGen
 	// re-encode Boolean array to integer value
 	bin2dec((int *)value,(int*)tmp,(int*)&numGenes);
 }
+
+/**
+ * Removes values of fixed genes from states - this is required as
+ * fixed genes are not encoded in the internal state representations.
+ * <value> is a pointer to a state to be corrected.
+ * <fixedGenes> is an array specifying which genes are fixed, as contained in
+ * the BooleanNetwork structure.
+ * <numGenes> is the length of <fixedGenes>.
+ * The function changes the state pointed to by <value> and has no return value.
+ */
+void removeFixedGenes(unsigned int * value, int* fixedGenes, unsigned int numGenes)
+{	
+	unsigned int tmp[numGenes];
+	memset(tmp,0,sizeof(unsigned int) * numGenes);
+	unsigned int i, j = 0;
+
+	// build an array of Boolean values for the genes
+	for (i = 0; i < numGenes; ++i)
+	{
+		if (fixedGenes[i] == -1)
+		{
+			tmp[j] = ((value[i / BITS_PER_BLOCK_32] & (1 << (i % BITS_PER_BLOCK_32))) != 0) ? 1 : 0;
+			++j;
+		}
+	}
+
+	// re-encode Boolean array to integer value
+	bin2dec((int *)value,(int*)tmp,(int*)&numGenes);
+}

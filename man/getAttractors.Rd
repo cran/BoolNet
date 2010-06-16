@@ -46,10 +46,10 @@ See Details for more information on the algorithms.
   	The value of \code{startStates} depends on the chosen method. See \code{method} for more details.
   }  
   \item{genesON}{
-	A vector of genes whose values are fixed to 1 (which reduces the size of the returned truth table). This is only used if \code{type="synchronous"}, as the asynchronous search does not return a truth table.
+	A vector of genes whose values are fixed to 1, which reduces the complexity of the search. This is equivalent to a preceding call of \code{\link{fixGenes}}.
 }
   \item{genesOFF}{
-	A vector of genes whose value are fixed to 0 (which reduces the size of the returned truth table). This is only used if \code{type="synchronous"}, as the asynchronous search does not return a truth table.
+	A vector of genes whose values are fixed to 0, which reduces the complexity of the search. This is equivalent to a preceding call of \code{\link{fixGenes}}.
 }
   \item{canonical}{
 	If set to true, the states in the attractors are rearranged such that the state whose binary encoding
@@ -129,7 +129,7 @@ A. Garg, A. Di Cara, I. Xenarios, L. Mendoza, G. De Micheli (2008): Synchronous 
 }
 
 \seealso{
-\code{\link{loadNetwork}}, \code{\link{generateRandomNKNetwork}}, \code{\link{plotAttractors}}, \code{\link{attractorsToLaTeX}}, \code{\link{getTransitionTable}}, \code{\link{getBasinOfAttraction}}, \code{\link{getStateSummary}}
+\code{\link{loadNetwork}}, \code{\link{generateRandomNKNetwork}}, \code{\link{plotAttractors}}, \code{\link{attractorsToLaTeX}}, \code{\link{getTransitionTable}}, \code{\link{getBasinOfAttraction}}, \code{\link{getStateSummary}}, \code{\link{getPathToAttractor}}, \code{\link{fixGenes}}
 }
 \examples{
 library(BoolNet)

@@ -46,7 +46,17 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
   if ((length(network$genes) > 29) & (match.arg(method) == "exhaustive") & (match.arg(type) == "synchronous"))
     stop(paste("An exhaustive attractor search is not supported for networks with more than 29 genes!",
           "Please use a heuristic method or provide start states!"))
-    
+  
+  # fix genes according to genesON and genesOFF
+  if (length(genesON) > 0) 
+  {
+    network <- fixGenes(network,genesON,1)
+  }
+  if (length(genesOFF) > 0) 
+  {
+    network <- fixGenes(network,genesOFF,0)
+  }
+  
   fixedPositions <- which(network$fixed != -1)
   nonFixedPositions <- which(network$fixed == -1)
   
@@ -140,35 +150,6 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
   
   if (length(startStates) > 0)
     convertedStartStates <- sapply(startStates,function(x)bin2dec(x,length(network$genes)))
-  
-  # build list of special initializations from genesON and genesOFF
-  if (length(genesON) > 0) 
-  {
-    onPositions <- match(tolower(genesON), network$genes)
-    # correct the indices for fixed positions (these genes are omitted)
-    sapply(fixedPositions, function(x) 
-    {
-      idx <- (onPositions > x)
-      onPositions[idx] <<- onPositions[idx] - 1
-    })
-    onPositions <- onPositions - 1
-    # build a two-row matrix with the gene index in the first row
-    # and the value in the second row
-    specialInitialization <- rbind(onPositions,rep(1, length(genesON)))
-  }
-  if (length(genesOFF) > 0) 
-  {
-    offPositions <- match(tolower(genesOFF), network$genes)
-    # correct the indices for fixed positions (these genes are omitted)
-    sapply(fixedPositions, function(x) 
-    {
-        idx <- (offPositions > x)
-        offPositions[idx] <<- offPositions[idx] - 1
-    })
-    offPositions <- offPositions - 1
-    specialInitialization <- cbind(specialInitialization,
-            rbind(offPositions,rep(0,length(genesOFF))))
-  }
 
   # the C code requires all interactions to be coded into one vector:
   # Assemble all input gene lists in one list <inputGenes>, and remember the split positions in <inputGenePositions>.
@@ -188,7 +169,7 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
   # Call the C code
   result <- .Call("getAttractors_R",inputGenes,inputGenePositions,
         transitionFunctions,transitionFunctionPositions,
-        as.integer(network$fixed),as.integer(specialInitialization),
+        as.integer(network$fixed),
         as.integer(convertedStartStates),
         as.integer(networkType),
         as.double(geneProbabilities),
@@ -239,13 +220,8 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
   
   if (!is.null(result$stateInfo))
   {
-    newAttractorAssignment = result$stateInfo$attractorAssignment
-    for (i in 1:length(reordering))
-    {
-      idx <- which(reordering == i)
-      newAttractorAssignment[which(result$stateInfo$attractorAssignment == i)] <- idx
-    }
-    result$stateInfo$attractorAssignment <- newAttractorAssignment
+    inverseOrder <- sapply(1:length(reordering),function(x)which(reordering == x))    
+    result$stateInfo$attractorAssignment <- inverseOrder[result$stateInfo$attractorAssignment]
   }
   
   # extend the resulting structure by additional information, and assign a class      
