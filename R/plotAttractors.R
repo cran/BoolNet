@@ -91,7 +91,7 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
             
         # output frequency of attractor (basin size / number of states)
         freq <- round(sapply(attractorInfo$attractors[intersect(which(attractorLengths == len),subset)],
-            function(attractor)attractor$basinSize/length(attractorInfo$stateInfo$table)) * 100,2)
+            function(attractor)attractor$basinSize/ncol(attractorInfo$stateInfo$table)) * 100,2)
 
         if (!isTRUE(all(is.na(freq))))
         {

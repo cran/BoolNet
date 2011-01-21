@@ -10,7 +10,8 @@ Reconstructs a Boolean network from a set of time series or from a transition ta
 reconstructNetwork(measurements, 
                    method = c("bestfit", "reveal"), 
                    maxK = 5, 
-                   readableFunctions = FALSE)
+                   readableFunctions = FALSE,
+                   allSolutions = FALSE)
 }
 \arguments{
   \item{measurements}{
@@ -25,6 +26,10 @@ reconstructNetwork(measurements,
   \item{readableFunctions}{
 	If this is true, readable DNF representations of the truth tables of the functions are generated. These DNF are displayed when the network is printed. The DNF representations are not minimized and can thus be very long. If set to FALSE, the truth table result column is displayed.
 }
+
+  \item{allSolutions}{
+  If this is true, all solutions with the minimum error and up to \code{maxK} inputs are returned. By default, \code{allSolutions=FALSE}, which means that only the solutions with both minimum error and minimum \code{k} are returned.
+  }
 }
 \details{
 	Both algorithms iterate over all possible input combinations. While Best-Fit Extension is capable of returning functions that do not perfectly explain the measurements (for example, if there are inconsistent measurements or if \code{maxK} was specified too small), REVEAL only finds functions that explain all measurements. For more information, please refer to the cited publications.

@@ -147,7 +147,7 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
   specialInitialization <- NULL
   
   convertedStartStates <- NULL
-  
+
   if (length(startStates) > 0)
     convertedStartStates <- sapply(startStates,function(x)bin2dec(x,length(network$genes)))
 

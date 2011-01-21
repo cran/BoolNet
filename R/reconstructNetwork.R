@@ -3,7 +3,8 @@
 # If <method> is "reveal", Liang's REVEAL algorithm is called.
 # <maxK> specifies the maximum number of input genes of a function.
 # If <readableFunctions> is true, DNF representations of the functions are generated.
-reconstructNetwork <- function(measurements,method=c("bestfit","reveal"),maxK=5,readableFunctions=FALSE)
+reconstructNetwork <- function(measurements,method=c("bestfit","reveal"),maxK=5,
+                               readableFunctions=FALSE, allSolutions=FALSE)
 {
   if (maxK < 0)
     stop("maxK must be >= 0!")
@@ -30,7 +31,8 @@ reconstructNetwork <- function(measurements,method=c("bestfit","reveal"),maxK=5,
           as.integer(t(as.matrix(measurements[,(numGenes+1):(2*numGenes)]))),
           as.integer(nrow(measurements)),
           as.integer(maxK),
-          as.integer(meth))
+          as.integer(meth),
+          as.integer(allSolutions))
     genenames <- sapply(colnames(measurements)[1:numGenes],function(x)strsplit(x,".",fixed=TRUE)[[1]][2])
   }
   else
@@ -71,14 +73,15 @@ reconstructNetwork <- function(measurements,method=c("bestfit","reveal"),maxK=5,
           outputStates,
           as.integer(length(inputStates) / numGenes),
           as.integer(maxK),
-          as.integer(meth))
+          as.integer(meth),
+          as.integer(allSolutions))
     
   }
   
   if (any(sapply(res,function(interaction)length(interaction)==0)))
   # some function lists are empty
     warning("Some functions could not be inferred. Possibly the input data is noisy or maxK was chosen too small!")
-  
+    
   # prepare result object
   res <- list(genes=genenames,
               interactions=lapply(res,function(gene)
@@ -106,5 +109,18 @@ reconstructNetwork <- function(measurements,method=c("bestfit","reveal"),maxK=5,
   names(res$fixed) <- res$genes
   
   class(res) <- c("ProbabilisticBooleanNetwork","BooleanNetworkCollection")
+  
+  
+  if (allSolutions)
+  # simplify functions and remove duplicates
+  {
+    res <- simplifyNetwork(res)
+    res$interactions <- lapply(res$interactions,function(interaction)
+                               {
+                                 duplicates <- duplicated(sapply(interaction,function(func)func$expression))
+                                 return(interaction[!duplicates])
+                               })
+  }
+  
   return(res)
 }

@@ -194,7 +194,7 @@ static inline bool nextCombination(unsigned int * comb, unsigned int * pos, unsi
  */
 void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
 					  unsigned int numStates, unsigned int numGenes, unsigned int maxK,
-					  FunctionListElement ** result, unsigned int * errors)
+					  FunctionListElement ** result, unsigned int * errors, bool allSolutions)
 {
 	unsigned int i;
 	unsigned int numElts;
@@ -268,7 +268,7 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
 		for (k = 1; k <= maxK; ++k)
 		// iterate over possible numbers of inputs
 		{
-			if (errors[i] == 0)
+			if (errors[i] == 0 && !allSolutions)
 				break;
 
 			// initialize gene combination vector
@@ -342,7 +342,7 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
 					freeFunctionList(&result[i]);
 				}
 
-				if (error <= errors[i] && bestLength[i] >= k)
+				if (error <= errors[i] && (bestLength[i] >= k || allSolutions))
 				{
 
 					// create a stack of possible functions to be able
@@ -492,7 +492,7 @@ static inline double entropy(unsigned int * inputStates, unsigned int * outputSt
  */
 void reveal(unsigned int * inputStates, unsigned int * outputStates,
 			unsigned int numStates, unsigned int numGenes, unsigned int maxK,
-			FunctionListElement ** result, unsigned int * errors)
+			FunctionListElement ** result, unsigned int * errors, bool allSolutions)
 {
 	unsigned int i;
 	unsigned int numElts;
@@ -538,7 +538,7 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
 		for (k = 1; k <= maxK; ++k)
 		// iterate over possible numbers of inputs
 		{
-			if (errors[i] == 0)
+			if (errors[i] == 0 && !allSolutions)
 				break;
 
 			// initialize gene combination vector
@@ -660,13 +660,14 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
  * elements consists of a vector of input genes, the function as a binary vector, and
  * the error this function makes on the input time series.
  */
-SEXP reconstructNetwork_R(SEXP inputStates, SEXP outputStates, SEXP numberOfStates, SEXP maxK, SEXP method)
+SEXP reconstructNetwork_R(SEXP inputStates, SEXP outputStates, SEXP numberOfStates, SEXP maxK, SEXP method, SEXP allSolutions)
 {
 	int * _inputStates = INTEGER(inputStates);
 	int * _outputStates = INTEGER(outputStates);
 	int _numberOfStates = *INTEGER(numberOfStates);
 	int _maxK = *INTEGER(maxK);
 	int _method = *INTEGER(method);
+	int _allSolutions = *INTEGER(allSolutions);
 
 	unsigned int numGenes = length(inputStates) /  _numberOfStates;
 
@@ -705,11 +706,11 @@ SEXP reconstructNetwork_R(SEXP inputStates, SEXP outputStates, SEXP numberOfStat
 	if (_method == 0)
 		// perform Lähdesmäki's best-fit extension
 		bestFitExtension(encodedInputStates,encodedOutputStates,
-						 _numberOfStates,numGenes,_maxK,res,errors);
+						 _numberOfStates,numGenes,_maxK,res,errors,_allSolutions);
 	else
 		// start REVEAL algorithm
 		reveal(encodedInputStates,encodedOutputStates,
-								 _numberOfStates,numGenes,_maxK,res,errors);
+								 _numberOfStates,numGenes,_maxK,res,errors,_allSolutions);
 
 //	for (gene = 0; gene < numGenes; ++gene)
 //	{

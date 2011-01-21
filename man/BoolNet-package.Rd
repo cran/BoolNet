@@ -9,8 +9,8 @@
 \tabular{ll}{
 Package: \tab BoolNet\cr
 Type: \tab Package\cr
-Version: \tab 1.42\cr
-Date: \tab 2010-06-16\cr
+Version: \tab 1.43\cr
+Date: \tab 2011-01-21\cr
 License: \tab Artistic-2.0\cr
 LazyLoad: \tab yes\cr
 }
@@ -38,7 +38,7 @@ The package also provides methods to visualize state transitions and basins of a
 Transition tables of the network can be analyzed using \code{\link{getTransitionTable}}.
 }
 \author{
-Christoph Muessel, Martin Hopfensitz, Dao Zhou, Hans Kestler
+Christoph Müssel, Martin Hopfensitz, Dao Zhou, Hans Kestler
 
 Maintainer: Hans Kestler <hans.kestler@uni-ulm.de>
 

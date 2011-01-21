@@ -104,7 +104,7 @@ void removeFixedGenes(unsigned int * value, int* fixedGenes, unsigned int numGen
 	unsigned int tmp[numGenes];
 	memset(tmp,0,sizeof(unsigned int) * numGenes);
 	unsigned int i, j = 0;
-
+	
 	// build an array of Boolean values for the genes
 	for (i = 0; i < numGenes; ++i)
 	{

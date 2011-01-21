@@ -705,7 +705,7 @@ pAttractorInfo getAttractors(unsigned long long * table, unsigned int numberOfSt
 pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned int numberOfStates,
 									  BooleanNetwork * net)
 {
-	unsigned long long i;
+  unsigned long long i;
 	unsigned int current_attractor = 0, elementsPerEntry;
 	bool found;
 
@@ -719,7 +719,7 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 	{
 		elementsPerEntry = net->numGenes / BITS_PER_BLOCK_32 + 1;
 	}
-
+	
 	// all states are stored in a tree for fast search
 	StateTreeNode * stateTree = 0;
 
@@ -1421,7 +1421,7 @@ SEXP getAttractors_R(SEXP inputGenes,
 	
 		if (_networkType == SYNC_MODE)
 		{
-		  for (unsigned int i = 0; i < length(startStates); ++i)
+		  for (unsigned int i = 0; i < length(startStates) / numElts; ++i)
 		  {
 		    removeFixedGenes(&_startStates[i*numElts],network.fixedGenes,network.numGenes);
 		  }

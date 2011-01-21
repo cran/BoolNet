@@ -1,0 +1,18 @@
+citHeader("To cite package 'BoolNet' in publications use:")
+     
+citEntry(entry = "article",
+        title = "BoolNet -- an R package for generation, reconstruction and analysis of Boolean networks",
+        author = personList(as.person("Christoph M\\\"ussel"),
+                            as.person("Martin Hopfensitz"),
+                            as.person("Hans A. Kestler")),
+        journal = "Bioinformatics",
+        volume = 26,
+        number = 10,
+        pages = "1378--1380",
+        year = 2010,
+
+        textVersion =
+        paste("Christoph Müssel, Martin Hopfensitz, Hans A. Kestler (2010). ",
+              "BoolNet -- an R package for generation, reconstruction and analysis of Boolean networks. ",
+              "Bioinformatics 26(10):1378-1380.", sep=""))
+
