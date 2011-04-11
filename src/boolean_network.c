@@ -1554,8 +1554,10 @@ SEXP getAttractors_R(SEXP inputGenes,
 				if (_networkType == SYNC_MODE)
 					// insert fixed gene values, as they are missing in the calculated results
 					insertFixedGenes(&el->involvedStates[i*el->numElementsPerEntry],network.fixedGenes,network.numGenes);
+				
 				memcpy(&array[i*el->numElementsPerEntry],
 					  &el->involvedStates[i*el->numElementsPerEntry],el->numElementsPerEntry*sizeof(unsigned int));
+					  
 		}
 		SETCAR(attractorSXP,stateSXP);
 

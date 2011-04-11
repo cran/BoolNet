@@ -19,7 +19,7 @@ dec2bin <- function(dec,len)
 {
   bin = rep(0,len)
   
-  bin = .C("dec2bin",as.integer(bin),as.integer(dec),as.integer(len))[[1]]
+  bin = .C("dec2bin",as.integer(bin),as.integer(dec),as.integer(len),NAOK=TRUE)[[1]]
 }
 
 # Generate a list of all assignments of n variables with N possible values

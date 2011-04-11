@@ -4,6 +4,7 @@
 # If <colorBasins> is true, each basin is drawn in a different color. 
 # Colors can be provided in <colorSet>.
 # <layout> specifies the graph layouting function.
+# If <piecewise> is true, subgraphs are layouted separately.
 # <basin.lty> and <attractor.lty> specify the line types used to draw states in the basins
 # and in the attractors (if <highlightAttractor> is set).
 # If <plotIt> is not set, only the igraph object is returned, but no graph is plotted.
@@ -11,7 +12,7 @@
 # Returns an object of class igraph
 plotStateGraph <- function(attractorInfo,highlightAttractors=TRUE,colorBasins=TRUE,colorSet,
              drawLegend=TRUE,drawLabels=FALSE,layout=layout.fruchterman.reingold,
-             basin.lty=2,attractor.lty=1,plotIt=TRUE,...)
+             piecewise=FALSE,basin.lty=2,attractor.lty=1,plotIt=TRUE,...)
 {
   stopifnot(inherits(attractorInfo,"AttractorInfo"))
 
@@ -98,6 +99,8 @@ plotStateGraph <- function(attractorInfo,highlightAttractors=TRUE,colorBasins=TR
       labels <- graphStruct$vertices
     else
       labels <- NA
+    if (piecewise)
+      layout <- piecewise.layout(res, layout)
     plot(res,vertex.size=args$vertex.size,layout=layout,
          edge.arrow.mode=args$edge.arrow.mode,
          vertex.label=labels,vertex.label.cex=args$vertex.label.cex,

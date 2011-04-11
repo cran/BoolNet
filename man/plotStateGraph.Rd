@@ -11,7 +11,8 @@ Plots a graph containing all states visited in \code{attractorInfo}, and optiona
 plotStateGraph(attractorInfo, highlightAttractors = TRUE, 
                colorBasins = TRUE, colorSet, 
                drawLegend = TRUE, drawLabels = FALSE, 
-               layout = layout.fruchterman.reingold, 
+               layout = layout.fruchterman.reingold,
+               piecewise = FALSE,  
                basin.lty = 2, attractor.lty = 1, 
                plotIt = TRUE, ...)
 }
@@ -38,6 +39,11 @@ plotStateGraph(attractorInfo, highlightAttractors = TRUE,
   \item{layout}{
 	A layouting function that determines the placement of the nodes in the graph. Please refer to the \code{\link[igraph]{layout}} manual entry in the \pkg{igraph} package for further details. By default, the Fruchterman-Reingold algorithm is used.
 }
+
+  \item{piecewise}{
+  If set to true, a piecewise layout is used, i.e. the subgraphs corresponding to different basins of attraction are separated and layouted separately.  
+}
+
   \item{basin.lty}{
 	The line type used for edges in a basin of attraction. Defaults to 2 (dashed).
 }

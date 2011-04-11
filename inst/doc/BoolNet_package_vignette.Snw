@@ -476,6 +476,21 @@ is depicted in Figure~\ref{fig:stategraph}. The blue basin belongs to attractor 
 \label{fig:stategraph}
 \end{figure}
 
+The above call does not ensure that the basins of attraction are clearly separated in the plot. If this is desired, one can choose to use a piecewise layout, which means that the layouting function is applied separately to each basin of attraction, and the basins are drawn side by side.
+The result of
+<<>>=
+plotStateGraph(attr, piecewise=TRUE)
+@
+is depicted in Figure~\ref{fig:piecewisestategraph}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.75\linewidth]{piecewisestategraph}
+\caption{The state graph of the mammalian cell cycle network using a piecewise layout. Each node represents a state of the network, and each arrow is a state transition. The colors mark different basins of attraction. Attractors are highlighted using bold lines.}
+\label{fig:piecewisestategraph}
+\end{figure}
+
+
 Exhaustive search consumes a high amount of time and memory with increasing size of the network, which makes it intractable for large networks (\texttt{BoolNet} currently supports networks with up to 29 genes for exhaustive search due to memory restrictions in {\em R}). Therefore, \texttt{BoolNet} also allows for heuristic search of attractors, which works for larger networks as well. Heuristic synchronous search starts from a predefined small set of states and identifies the attractors to which state transitions from these states lead. The start states can either be supplied, or they can be calculated randomly.
 
 <<eval=FALSE>>=
@@ -576,6 +591,7 @@ Another way of identifying relevant states in Boolean networks are Markov chain 
 
 The following performs a Markov experiment with the predefined number of 1000 iterations on the example PBN described in \cite{shmulevich02}:
 
+\enlargethispage{-0.5cm}
 <<>>=
 data(examplePBN)
 sim <- markovSimulation(examplePBN)
