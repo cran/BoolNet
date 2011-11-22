@@ -7,9 +7,9 @@ Print the results of a Markov chain simulation
 A specialized method to print an object of class \code{MarkovSimulation}. This prints all states that have a non-zero probability to be reached after the number of iterations in the Markov simulation. If the simulation was run with \code{returnTable=TRUE}, it also prints a table of state transitions and their probabilities to be chosen in a single step.
 }
 \usage{
-print.MarkovSimulation(x, 
-                       activeOnly = FALSE,
-                       ...)
+\method{print}{MarkovSimulation}(x,
+      activeOnly = FALSE,
+      ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

@@ -8,7 +8,7 @@ Print a Boolean network
 A specialized method to print an object of class \code{BooleanNetwork}. This prints the transition functions of all genes. If genes are knocked-out or over-expressed, these genes are listed below the functions.
 }
 \usage{
-print.BooleanNetwork(x, ...)
+\method{print}{BooleanNetwork}(x, ...)
 }
 \arguments{
 

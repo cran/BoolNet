@@ -10,9 +10,9 @@ A specialized method to print an object of class \code{ProbabilisticBooleanNetwo
 This prints all alternative transition functions and their probabilities. If the network is the result of a reconstruction from time series measurements, it also outputs the error the functions make on the time series. If genes are knocked-out or over-expressed, these genes are listed below the functions.
 }
 \usage{
-print.ProbabilisticBooleanNetwork(x, ...)
+\method{print}{ProbabilisticBooleanNetwork}(x, ...)
                                
-print.BooleanNetworkCollection(x, ...)
+\method{print}{BooleanNetworkCollection}(x, ...)
 }
 \arguments{
 

@@ -43,7 +43,8 @@ plotPBNTransitions <- function(markovSimulation,stateSubset,
     probabilities <- markovSimulation$table$probabilities
   
   # determine set of vertices
-  vertices <- as.data.frame(as.character(unique(c(as.character(edgeMatrix[,1]),as.character(edgeMatrix[,2])))))
+  vertices <- as.data.frame(as.character(unique(c(as.character(edgeMatrix[,1]),
+                            as.character(edgeMatrix[,2])))))
 
   # build graph                             
   graph <- graph.data.frame(edgeMatrix,vertices=vertices,directed=TRUE)
@@ -51,7 +52,7 @@ plotPBNTransitions <- function(markovSimulation,stateSubset,
   if (drawProbabilities)
     graph <- set.edge.attribute(graph,"label",value=paste("    ",probabilities))
   if (drawStateLabels)
-    label <- vertices[,1]
+    label <- as.character(vertices[,1])
   else
     label <- NA
     

@@ -34,7 +34,12 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
     }
     else
     if (is.numeric(startStates))
-      method <- "random"
+    {
+      if (length(startStates) > 1)
+        stop("Please supply either the number of start states or a list of start states in startStates!")
+      else
+        method <- "random"
+    }
     else
     if (is.list(startStates) & (length(startStates) > 0))
       method = "chosen"

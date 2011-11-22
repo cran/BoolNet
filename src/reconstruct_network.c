@@ -16,7 +16,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <math.h>
-#include "random.h"
 #include "common.h"
 
 /**

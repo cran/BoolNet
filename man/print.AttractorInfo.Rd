@@ -8,9 +8,9 @@ Print attractor cycles
 Specialized print method to print the attractor cycles stored in an \code{AttractorInfo} object. For simple or steady-state attractors, the states of the attractors are printed in binary encoding in the order they are reached. For asynchronous complex/loose attractors, the possible transitions of the states in the attractor are printed. The method can print either the full states, or only the active genes of the states.
 }
 \usage{
-print.AttractorInfo(x,
-                    activeOnly = FALSE, 
-                    ...)
+\method{print}{AttractorInfo}(x,
+      activeOnly = FALSE, 
+      ...)
 }
 \arguments{
 

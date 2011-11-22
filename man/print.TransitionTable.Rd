@@ -9,13 +9,13 @@ Print a transition table
 Specialized print method to print a transition table with the initial state in the first column, the successor state in the second column, the basin of attraction to which the state leads in the third column, and the number of transitions to the attractor in the fourth column.
 }
 \usage{
-print.TransitionTable(x,
-                      activeOnly = FALSE, 
-                      ...)
+\method{print}{TransitionTable}(x,
+      activeOnly = FALSE, 
+      ...)
 
-print.BooleanStateInfo(x,
-                       activeOnly=FALSE, 
-                       ...)
+\method{print}{BooleanStateInfo}(x,
+      activeOnly=FALSE, 
+      ...)
 }
 \arguments{
 

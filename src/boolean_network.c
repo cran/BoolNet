@@ -1355,6 +1355,7 @@ SEXP getAttractors_R(SEXP inputGenes,
 					 SEXP avoidSelfLoops,
 					 SEXP returnTable)
 {
+  GetRNGstate();
 
 	// decode information in SEXP for use in C
 
@@ -1401,7 +1402,10 @@ SEXP getAttractors_R(SEXP inputGenes,
 		unsigned long long * table = getTransitionTable(&network);
 
 		if (table == 0)
+		{
+  		PutRNGstate();
 			return R_NilValue;
+    }
 
 		unsigned long long numStates = pow(2,numNonFixed);
 
@@ -1604,6 +1608,8 @@ SEXP getAttractors_R(SEXP inputGenes,
 	// free resources
 	freeAttractorInfo(res);
 	free(network.nonFixedGeneBits);
+
+  PutRNGstate();
 
 	return(resSXP);
 }

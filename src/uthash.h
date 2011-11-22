@@ -37,8 +37,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define TYPEOF(x)
 #endif
 
+// Modified by C. Muessel to avoid exiting R
+#include <R.h>
+#define uthash_fatal(msg) error(msg)        /* fatal error (out of memory,etc) */
 
-#define uthash_fatal(msg) exit(-1)        /* fatal error (out of memory,etc) */
 #define uthash_malloc(sz) malloc(sz)      /* malloc fcn                      */
 #define uthash_free(ptr) free(ptr)        /* free fcn                        */
 
