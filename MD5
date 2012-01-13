@@ -1,4 +1,4 @@
-a60bb971f7fd951094384691bfbf685a *DESCRIPTION
+a5636db13fcc88d667625b6990d592b5 *DESCRIPTION
 995d68253cab3efaac8db257ba255afb *NAMESPACE
 ddfbfcb46127d4402327b3d509f813fd *R/attractorsToLaTeX.R
 0e037f01fa88a832cb43d3a9d5e9f5dd *R/binarizeTimeSeries.R
@@ -40,7 +40,7 @@ cef6ddd9d3b69bfa32f3c5950e9502c6 *data/cellcycle.rda
 62409980eecaca8e52f1d495f499d6bd *inst/CITATION
 73f3ca1e2c6d02d43f8248c34cbe2719 *inst/doc/BoolNet_package_vignette.Snw
 56b012bef8b9eb77ec6ee8c50213b838 *inst/doc/BoolNet_package_vignette.bib
-d6e28770967f5729742161398470f7de *inst/doc/BoolNet_package_vignette.pdf
+b4fbd62645e93ac53005446fd204166c *inst/doc/BoolNet_package_vignette.pdf
 56dffdbcf065597916be54cd3093a497 *inst/doc/attractor1.pdf
 462943d1a5e8c9e9e2c8016b1123ae4c *inst/doc/attractor2.pdf
 182f17338132fdac2a557f97ce9d5161 *inst/doc/basinsize.pdf
@@ -59,7 +59,7 @@ afa4bc65fe533ee9ffdeb8808caa76c1 *inst/doc/piecewisestategraph.pdf
 9cdaa6def60436caa3b3ac2b0e918a0c *inst/doc/stategraph.pdf
 99c3cfee3a4d14bcf7dd0b4aac27916b *inst/doc/wiring.pdf
 d86a9a94edb2c17de545b0d529d440ad *inst/doc/wiring_biotap.pdf
-6370b607e5e2ded1b29ca612ff7b65cc *man/BoolNet-package.Rd
+dc4c06d0c9ba98203bd35a6f84b40f88 *man/BoolNet-package.Rd
 af1f8b36e0b39d8cb336a4bce1d1f9c1 *man/attractorsToLaTeX.Rd
 c7ee70e4df4a035948f39fc5223baf24 *man/binarizeTimeSeries.Rd
 b905157206c49213275eac00525457a6 *man/cellcycle.Rd
@@ -92,7 +92,7 @@ deef899f8c83c1fdaa6bb7955bfaa457 *man/stateTransition.Rd
 38ac0f8f17ead466b11b728eb0bf67cc *man/testNetworkProperties.Rd
 24e245711e6f836d4c43432200ef9a34 *man/toPajek.Rd
 2f7a4285f220917476513c7bf38c4c47 *man/yeastTimeSeries.Rd
-0d814c879579769859bd7c8fb15adca2 *src/boolean_network.c
+d1850aaab2d4136db08973fb725ab019 *src/boolean_network.c
 2af41c3c546df4304e945a90cec506d0 *src/common.c
 7b1393e449b83e92ece83639c4d2058b *src/common.h
 4d84c855a4b2018355f7dff0dbcbb883 *src/probabilistic_boolean_network.c

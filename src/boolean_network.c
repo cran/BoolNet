@@ -1603,13 +1603,12 @@ SEXP getAttractors_R(SEXP inputGenes,
 	UNPROTECT(1);
 	SETCADR(resSXP,attractorsSXP);
 
+  PutRNGstate();
 	UNPROTECT(1);
 
 	// free resources
 	freeAttractorInfo(res);
 	free(network.nonFixedGeneBits);
-
-  PutRNGstate();
 
 	return(resSXP);
 }
