@@ -1,7 +1,9 @@
 generateRandomNKNetwork <- function(n,k,topology=c("fixed","homogeneous","scale_free"),
           linkage=c("uniform","lattice"),
           functionGeneration=c("uniform","biased"),
-          simplify=FALSE, noIrrelevantGenes=TRUE, readableFunctions=FALSE,
+          validationFunction, failureIterations=10000,
+          simplify=FALSE, noIrrelevantGenes=TRUE, 
+          readableFunctions=FALSE,
           d_lattice=1, zeroBias=0.5, gamma=2.5, approx_cutoff=100)
 {
   k_i_vec <- switch(match.arg(topology),
@@ -25,9 +27,15 @@ generateRandomNKNetwork <- function(n,k,topology=c("fixed","homogeneous","scale_
     stop("If setting 'zeroBias' to 0 or 1, you must set 'noIrrelevantGenes' to FALSE!")
   
   geneNames <- paste("Gene",1:n)
+  
+  if (!missing(validationFunction))
+    validationFunction <- match.fun(validationFunction)
+  else
+    validationFunction <- NULL    
       
   interactions <- mapply(function(i,k_i)
       {
+        table <- allcombn(2,k_i) - 1
         if (k_i == 0)
         {
           genes <- 0
@@ -46,7 +54,10 @@ generateRandomNKNetwork <- function(n,k,topology=c("fixed","homogeneous","scale_
             stop("'linkage' must be one of \"uniform\",\"lattice\""))
 
             containsIrrelevant <- TRUE
-            while(containsIrrelevant)
+            validFunction <- TRUE
+            
+            counter <- 0
+            while((!validFunction) || containsIrrelevant)
             {
                 func <- switch(match.arg(functionGeneration,c("uniform","biased")),
                     uniform = round(runif(min=0,max=1,n=2^k_i)),
@@ -55,25 +66,27 @@ generateRandomNKNetwork <- function(n,k,topology=c("fixed","homogeneous","scale_
 
                 if (noIrrelevantGenes)
                 {
-                  table <- allcombn(2,k_i) - 1
-
                   dropGenes <- apply(table,2,function(gene)
                   # determine all genes that have no influence on the results,
                   # i.e. the result column is equal for 0 values and 1 values
                           {
                             (identical(func[gene==1],
                                   func[gene==0]))
-                          })
-                                    
-                  if (sum(dropGenes) == 0)
-                    containsIrrelevant <- FALSE
-                  
+                          })                                    
+                  containsIrrelevant <- (sum(dropGenes) > 0)                  
                 }
                 else
                   containsIrrelevant <- FALSE
+                
+                if (!is.null(validationFunction))
+                  validFunction <- validationFunction(table, func)
+                  
+                counter <- counter + 1
+                if (counter > failureIterations)
+                  stop(paste("Could not find a transition function matching the restrictions of",
+                             "\"validationFunction\" in", failureIterations, " runs.",
+                             "Change \"validationFunction\" or increase \"failureIterations\"!"))
             }
-
-
         }
         return(list(input=genes,func=func,
           expression=getInteractionString(readableFunctions,

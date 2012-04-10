@@ -72,6 +72,7 @@ markovSimulation <- function(network, numIterations=1000, startStates=list(), cu
   if (length(startStates) > 0)
     convertedStartStates <- sapply(startStates,function(x)bin2dec(x,length(network$genes)))
 
+  on.exit(.C("freeAllMemory", PACKAGE = "BoolNet"))
   # call C code
   res <- .Call("markovSimulation_R",
       inputGenes,inputGenePositions,

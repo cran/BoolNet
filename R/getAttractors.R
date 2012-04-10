@@ -7,7 +7,7 @@
 getAttractors <- function (network, type=c("synchronous","asynchronous"), 
          method=c("exhaustive","random","chosen"), startStates=list(),
          genesON = c(), genesOFF = c(), canonical=TRUE,
-         randomChainLength = 1000, avoidSelfLoops = TRUE, 
+         randomChainLength = 10000, avoidSelfLoops = TRUE, 
          geneProbabilities = NULL, 
          returnTable=TRUE) 
 {
@@ -171,6 +171,7 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
     synchronous = 0,
     asynchronous = 1)
   
+  on.exit(.C("freeAllMemory", PACKAGE = "BoolNet"))
   # Call the C code
   result <- .Call("getAttractors_R",inputGenes,inputGenePositions,
         transitionFunctions,transitionFunctionPositions,

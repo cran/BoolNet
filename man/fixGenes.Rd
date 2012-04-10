@@ -28,16 +28,13 @@ Depending on the input, an object of class \code{BooleanNetwork} or \code{Probab
 \code{\link{loadNetwork}}}
 
 \examples{
-
-library(BoolNet)
-
 # load example data
 data(cellcycle)
 
-# knock out gene cycd (index 1)
+# knock out gene CycD (index 1)
 net <- fixGenes(cellcycle, 1, 0)
 # or
-net <- fixGenes(cellcycle, "cycd", 0)
+net <- fixGenes(cellcycle, "CycD", 0)
 
 # get attractors by exhaustive search
 attractors <- getAttractors(net)

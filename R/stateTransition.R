@@ -19,7 +19,7 @@ stateTransition <- function(network,state,type=c("synchronous","asynchronous","p
   
   if (match.arg(type) ==  "probabilistic")
   {
-    if (missing(chosenFunctions))
+    if (missing(chosenFunctions) || is.null(chosenFunctions))
     {
       chosenFunctions <- sapply(network$interactions,function(gene)
                                 {
@@ -58,9 +58,9 @@ stateTransition <- function(network,state,type=c("synchronous","asynchronous","p
       synchronous = which(nonFixedIndices),
       asynchronous =
       {
-        if (missing(chosenGene))
+        if (missing(chosenGene) || is.null(chosenGene))
         {
-          if (missing(geneProbabilities))
+          if (missing(geneProbabilities) || is.null(geneProbabilities))
             sample(which(nonFixedIndices),1)
           else
           {
@@ -117,5 +117,6 @@ stateTransition <- function(network,state,type=c("synchronous","asynchronous","p
   }
 
   res[!nonFixedIndices] = network$fixed[!nonFixedIndices]
+  names(res) <- network$genes
   return(res)
 }

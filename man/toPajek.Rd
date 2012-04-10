@@ -29,8 +29,6 @@ This function has no return value.
 \code{\link{loadNetwork}}
 }
 \examples{
-library(BoolNet)
-
 # load example data
 data(cellcycle)
 

@@ -12,6 +12,7 @@ generateRandomNKNetwork(n, k,
                         topology = c("fixed", "homogeneous", "scale_free"), 
                         linkage = c("uniform", "lattice"), 
                         functionGeneration = c("uniform", "biased"), 
+                        validationFunction, failureIterations=10000,
                         simplify = FALSE, noIrrelevantGenes=TRUE, 
                         readableFunctions = FALSE, 
                         d_lattice = 1, zeroBias = 0.5, 
@@ -39,6 +40,15 @@ generateRandomNKNetwork(n, k,
   \item{functionGeneration}{
 	If set to "uniform", the truth table result column of the function is filled uniformly at random with 0 and 1. If set to "biased", a bias is introduced, where the probability of drawing a 0 is determined by the parameter \code{zeroBias}.
 }
+
+  \item{validationFunction}{
+An optional function that restricts the generated Boolean functions to certain classes. The function should have two input parameter \code{input} and \code{func} that receive a candidate function. \code{input} is a matrix of 0/1 integer values specifying the input part of the truth table of the candidate function, with the input genes in the columns. Each of the 2^k rows of \code{input}  (where k is the number of input genes) corresponds to one entry of \code{func}, which is an integer vector of 0/1 values corresponding to the output of the candidate function. The validation function should return \code{TRUE} if the candidate function is accepted or \code{FALSE} if it is rejected.
+}
+
+  \item{failureIterations}{
+The maximum number of iterations the generator tries to generate a function that is accepted by \code{validationFunction} before it gives up and throws an error. Defaults to 10000.  
+}
+
   \item{simplify}{
 	If this is true, \code{\link{simplifyNetwork}} is called to simplify the gene transition functions after the perturbation. This removes irrelevant input genes. Should not be used together with \code{noIrrelevantGenes=TRUE}, as this automatically generates a network that cannot be simplified any further. Defaults to FALSE.
 }
@@ -83,9 +93,6 @@ M. Aldana and S. Coppersmith and L. P. Kadanoff (2003), Boolean dynamics with ra
 \code{\link{perturbNetwork}},\code{\link{loadNetwork}}, \code{\link{simplifyNetwork}}, \code{\link{fixGenes}}
 }
 \examples{
-
-library(BoolNet)
-
 # generate different random networks
 net1 <- generateRandomNKNetwork(n=10, k=10, 
                                 topology="scale_free", 
@@ -93,12 +100,14 @@ net1 <- generateRandomNKNetwork(n=10, k=10,
                                 functionGeneration="uniform",
                                 noIrrelevantGenes=FALSE, 
                                 simplify=TRUE)
+                                
 net2 <- generateRandomNKNetwork(n=10, k=3, 
                                 topology="homogeneous", 
                                 linkage="lattice", 
                                 functionGeneration="uniform", 
                                 d_lattice=1.5, 
                                 simplify=TRUE)
+                                
 net3 <- generateRandomNKNetwork(n=10, k=2, 
                                 topology="fixed", 
                                 linkage="uniform", 
@@ -110,8 +119,6 @@ net3 <- generateRandomNKNetwork(n=10, k=2,
 print(getAttractors(net1))
 print(getAttractors(net2))
 print(getAttractors(net3))
-
-
 }
 \keyword{LaTeX
 	Boolean network

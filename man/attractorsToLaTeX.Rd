@@ -27,7 +27,7 @@ attractorsToLaTeX(attractorInfo,
   
   \item{grouping}{An optional structure to form groups of genes in the plot. This is a list with the following elements: 
  \describe{
-  	\item{class}{A vector of names for the groups. These names will be printed in the region belonging to the group in the plot.}
+  	\item{class}{A vector of names for the groups. These names will be printed in the region belonging to the group in the table.}
   	\item{index}{A list with the same length as \code{class}. Each element is a vector of gene indices belonging to the group.}}
 }
  
@@ -35,7 +35,7 @@ attractorsToLaTeX(attractorInfo,
 	An optional title for the plot
 }
   \item{plotFixed}{
-	If this is true, genes with fixed values are included in the plot. Otherwise, these genes are not drawn.
+	If this is true, genes with fixed values are included in the plot. Otherwise, these genes are not shown.
 }
   \item{onColor}{
 	An optional color value for the 1/ON values in the table. Defaults to dark grey.
@@ -56,11 +56,9 @@ The output file does not contain a document header and requires the inclusion of
 A list of matrices corresponding to the plots is returned. Each of these matrices has the genes in the rows and the states of the attractors in the columns.
 }
 \seealso{
-\code{\link{getAttractors}}, \code{\link{plotAttractors}}
+\code{\link{getAttractors}}, \code{\link{plotAttractors}}, \code{\link{sequenceToLaTeX}}, \code{\link{plotSequence}}
 }
 \examples{
-library(BoolNet)
-
 # load example data
 data(cellcycle)
 

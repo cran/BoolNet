@@ -20,7 +20,6 @@ P. T. Spellman, G. Sherlock, M. Q. Zhang, V. R. Iyer, K. Anders, M. B. Eisen, P.
 Yeast cell cycle analysis project web site: \url{http://genome-www.stanford.edu/cellcycle}
 }
 \examples{
-library(BoolNet)
 data(yeastTimeSeries)
 
 # the data set is stored in a variable called 'yeastTimeSeries'

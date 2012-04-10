@@ -56,8 +56,6 @@ I. Shmulevich, E. R. Dougherty, S. Kim, W. Zhang (2002), Probabilistic Boolean n
 \code{\link{reconstructNetwork}}, \code{\link{plotPBNTransitions}}, \code{\link{getTransitionProbabilities}}
 }
 \examples{
-library(BoolNet)
-
 # load example network
 data(examplePBN)
 

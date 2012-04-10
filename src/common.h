@@ -1,5 +1,9 @@
 #ifndef COMMON_H
 #define COMMON_H
+
+#include <R.h>
+#include "uthash.h"
+
 /**
  * Common structures and definitions
  */
@@ -18,6 +22,87 @@
 
 // Set the <i>-th bit in <x> to <v>
 #define SET_BIT_TO_VAL(x,i,v) (((x) & (~(1 << (i)))) | ((v) << (i)))
+
+typedef struct
+{
+  // a pointer to the allocated memory
+	void * ptr;
+
+	// used by the hash table
+	UT_hash_handle hh;
+} AllocatedMemory;
+
+// map that stores all allocated memory pointers
+// to free them on interrupt
+extern AllocatedMemory * memoryMap;
+
+/**
+ * Custom function to allocate memory that stores
+ * the pointers in the global map.
+ */
+inline void* CALLOC(unsigned int n, unsigned int sz) 
+{
+  void * ptr = calloc(n, sz); 
+  AllocatedMemory * m = calloc(1, sizeof(AllocatedMemory)); 
+  m->ptr = ptr; 
+  HASH_ADD_PTR(memoryMap, ptr, m);
+  return ptr;
+}
+
+/**
+ * Custom function to free memory that was
+ * allocated using CALLOC().
+ */
+inline void FREE(void * ptr) 
+{
+  AllocatedMemory * m; 
+  HASH_FIND_PTR(memoryMap, &ptr, m); 
+  HASH_DEL(memoryMap, m); 
+  free(m); 
+  free(ptr);
+}
+
+/**
+ * Free all remaining memory blocks stored in
+ * the global map.
+ */
+extern void freeAllMemory();
+
+/**
+ * A structure that provides flexible
+ * large array blocks as a list of arrays
+ */
+typedef struct ALE
+{
+  void * array;
+    
+  struct ALE * next;
+} ArrayListElement;
+
+
+inline void allocNewArray(ArrayListElement ** head, unsigned int numElements, unsigned int elementSize)
+{
+  ArrayListElement * el = CALLOC(1, sizeof(ArrayListElement));
+  el->array = CALLOC(numElements, elementSize);
+  el->next = *head;
+  *head = el;
+}
+
+/*
+ * Free an array list <head>.
+ */
+inline void freeArrayList(ArrayListElement * head)
+{
+  ArrayListElement * current = head;
+  while (current != NULL)
+	{
+		ArrayListElement * next = current->next;
+		FREE(current->array);
+		FREE(current);
+		current = next;
+	}
+}
+
 
 /**
  * Encode a vector of binary values in an integer.

@@ -67,8 +67,6 @@ plotStateGraph(attractorInfo, highlightAttractors = TRUE,
 	\code{\link{getAttractors}}, \code{\link{plotNetworkWiring}}, \code{\link[igraph:plot.common]{igraph.plotting}}
 }
 \examples{
-library(BoolNet)
-
 # load example data
 data(cellcycle)
 

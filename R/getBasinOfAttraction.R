@@ -7,7 +7,7 @@ getBasinOfAttraction <- function(attractorInfo,attractorNo)
     stop(paste("This AttractorInfo structure does not contain transition table information.",
            "Please re-run getAttractors() with a synchronous search and returnTable=TRUE!"))
   
-  if (missing(attractorNo) || attractorNo < 0 || attractorNo > length(attractorInfo$attractors))
+  if (missing(attractorNo) || attractorNo <= 0 || attractorNo > length(attractorInfo$attractors))
     stop("Please provide a valid attractor number!")
   
   table <- getTransitionTable(attractorInfo)

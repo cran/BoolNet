@@ -9,8 +9,8 @@
 \tabular{ll}{
 Package: \tab BoolNet\cr
 Type: \tab Package\cr
-Version: \tab 1.46\cr
-Date: \tab 2012-01-13\cr
+Version: \tab 1.50\cr
+Date: \tab 2012-04-10\cr
 License: \tab Artistic-2.0\cr
 LazyLoad: \tab yes\cr
 }
@@ -33,9 +33,9 @@ The \code{\link{getAttractors}} function identifies attractor cycles in a synchr
 The \code{\link{markovSimulation}} function identifies relevant states in probabilistic Boolean networks by performing a Markov chain simulation.
 
 The package also provides methods to visualize state transitions and basins of attraction \if{latex}{\cr}
-(\code{\link{plotPBNTransitions}}, \code{\link{plotStateGraph}}), to plot the wiring of a network \if{latex}{\cr}(\code{\link{plotNetworkWiring}}), to plot the attractor state table (\code{\link{plotAttractors}}), and to export them to LaTeX (\code{\link{attractorsToLaTeX}}) and Pajek (\code{\link{toPajek}}).
+(\code{\link{plotPBNTransitions}}, \code{\link{plotStateGraph}}), to plot the wiring of a network \if{latex}{\cr}(\code{\link{plotNetworkWiring}}), to plot attractor state tables (\code{\link{plotAttractors}}) and sequences of states (\code{\link{plotSequence}}), and to export them to LaTeX (\code{\link{attractorsToLaTeX}} and \code{\link{sequenceToLaTeX}}) and Pajek (\code{\link{toPajek}}).
 
-Transition tables of the network can be analyzed using \code{\link{getTransitionTable}}.
+Transition tables of the network can be analyzed using \code{\link{getTransitionTable}}. Paths from start states to their corresponding attractors are identified using \code{\link{getPathToAttractor}}.
 }
 \author{
 Christoph Müssel, Martin Hopfensitz, Dao Zhou, Hans Kestler
@@ -64,8 +64,6 @@ Further references are listed in the corresponding help sections.
 	reconstruction}
 
 \examples{
-library(BoolNet)
-
 ##################################
 # Example 1: identify attractors #
 ################################## 

@@ -53,8 +53,6 @@ S. Liang, S. Fuhrman and R. Somogyi (1998), REVEAL, a general reverse engineerin
 \code{\link{binarizeTimeSeries}}, \code{\link{chooseNetwork}}
 }
 \examples{
-library(BoolNet)
-
 # load example data
 data(yeastTimeSeries)
 

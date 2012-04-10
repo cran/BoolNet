@@ -32,8 +32,6 @@ The simplified network of class \code{BooleanNetwork} or \code{ProbabilisticBool
 \code{\link{loadNetwork}},\code{\link{generateRandomNKNetwork}}, \code{\link{perturbNetwork}}, \code{\link{reconstructNetwork}}, \code{\link{fixGenes}}
 }
 \examples{
-library(BoolNet)
-
 # load example data
 data(cellcycle)
 

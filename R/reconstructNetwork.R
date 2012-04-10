@@ -25,6 +25,7 @@ reconstructNetwork <- function(measurements,method=c("bestfit","reveal"),maxK=5,
       warning(paste("maxK was chosen greater than the total number of input genes and reset to ",numGenes,"!",sep=""))
     }
     
+      on.exit(.C("freeAllMemory", PACKAGE = "BoolNet"))
     # call C code
     res <- .Call("reconstructNetwork_R",
           as.integer(t(as.matrix(measurements[,1:numGenes]))),
@@ -67,6 +68,7 @@ reconstructNetwork <- function(measurements,method=c("bestfit","reveal"),maxK=5,
       
     }
     
+    on.exit(.C("freeAllMemory", PACKAGE = "BoolNet"))
     # call C code
     res <- .Call("reconstructNetwork_R",
           inputStates,

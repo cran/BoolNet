@@ -12,7 +12,7 @@ getAttractors(network,
               startStates = list(),
               genesON = c(), genesOFF = c(), 
               canonical = TRUE,
-              randomChainLength = 1000, 
+              randomChainLength = 10000, 
               avoidSelfLoops = TRUE, 
               geneProbabilities = NULL, 
               returnTable = TRUE) 
@@ -57,7 +57,7 @@ makes up the smallest number is the first element of the vector. This ensures th
 }
 
 \item{randomChainLength}{
-If \code{type="asynchronous"}, this parameter specifies the number of random transitions performed by the search to enter a potential attractor (see Details). Defaults to 1000.
+If \code{type="asynchronous"}, this parameter specifies the number of random transitions performed by the search to enter a potential attractor (see Details). Defaults to 10000.
 }
 
 \item{avoidSelfLoops}{
@@ -129,11 +129,9 @@ A. Garg, A. Di Cara, I. Xenarios, L. Mendoza, G. De Micheli (2008): Synchronous 
 }
 
 \seealso{
-\code{\link{loadNetwork}}, \code{\link{generateRandomNKNetwork}}, \code{\link{plotAttractors}}, \code{\link{attractorsToLaTeX}}, \code{\link{getTransitionTable}}, \code{\link{getBasinOfAttraction}}, \code{\link{getStateSummary}}, \code{\link{getPathToAttractor}}, \code{\link{fixGenes}}
+\code{\link{loadNetwork}}, \code{\link{generateRandomNKNetwork}}, \code{\link{plotAttractors}}, \code{\link{attractorsToLaTeX}}, \code{\link{getTransitionTable}}, \code{\link{getBasinOfAttraction}}, \code{\link{getAttractorSequence}}, \code{\link{getStateSummary}}, \code{\link{getPathToAttractor}}, \code{\link{fixGenes}}, \code{\link{generateState}}
 }
 \examples{
-library(BoolNet)
-
 # load example data
 data(cellcycle)
 

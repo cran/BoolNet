@@ -1,17 +1,22 @@
 # Load a network in a specified rule description language
 # from file <file>.
 # <bodySeparator> is the character that separates targets and factors
-loadNetwork <- function(file,bodySeperator=",") 
+# <lowercaseGenes> specifies whether gene names are converted to lower case
+loadNetwork <- function(file, bodySeparator=",", lowercaseGenes=FALSE) 
 {
   op <- c("!","&", "\\|", "\\(", "\\)")
 
-  func <- tolower(readLines(file,-1)[-1])
+  func <- readLines(file,-1)[-1]
+  
+  if (lowercaseGenes)
+    func <- tolower(func)
+  
   func <- func[nchar(func) > 0]
 
   # / in a gene name disturbs parsing
   func <- gsub("/","_",func) 
 
-  tmp <-  unname(lapply(func,function(x){strsplit(x,bodySeperator)[[1]]}))
+  tmp <-  unname(lapply(func,function(x){strsplit(x,bodySeparator)[[1]]}))
   targets <- sapply(tmp,function(rule)rule[1])
   factors <- sapply(tmp,function(rule)rule[2])
   probabilities <- sapply(tmp,function(rule)

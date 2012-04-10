@@ -33,7 +33,7 @@ stateTransition(network,
     
   Default is "synchronous" for objects of class \code{BooleanNetwork} and "probabilistic" for objects of class \code{ProbabilisticBooleanNetwork}.}
   
-  \item{geneProbabilities}{An optional vector of probabilities for the genes if \code{type="asynchronous"}. By default, each gene has the same probability to be chosen for the next state transition. These probabilities can be modified by supplying a vector of probabilities for each of the genes which sums up to one.}
+  \item{geneProbabilities}{An optional vector of probabilities for the genes if \code{type="asynchronous"}. By default, each gene has the same probability to be chosen for the next state transition. These probabilities can be modified by supplying a vector of probabilities for the genes which sums up to one.}
   
   \item{chosenGene}{If \code{type="asynchronous"} and this parameter is supplied, no random update is performed. Instead, the gene with the supplied name or index is chosen for the next transition.}
   
@@ -43,11 +43,9 @@ stateTransition(network,
 \value{
 	The subsequent state of the network, encoded as a vector with one 0-1 element for each gene.}
 \seealso{
-\code{\link{loadNetwork}}, \code{\link{generateRandomNKNetwork}}
+\code{\link{loadNetwork}}, \code{\link{generateRandomNKNetwork}}, \code{\link{generateState}}
 }
 \examples{
-library(BoolNet)
-
 # load example network
 data(cellcycle)
 
@@ -56,7 +54,7 @@ print(stateTransition(cellcycle, c(1,1,1,1,1,1,1,1,1,1)))
 
 # calculate an asynchronous state transition of gene CycA
 print(stateTransition(cellcycle, c(1,1,1,1,1,1,1,1,1,1),
-                      type="asynchronous", chosenGene="cyca"))
+                      type="asynchronous", chosenGene="CycA"))
                       
 # load probabilistic network
 data(examplePBN)

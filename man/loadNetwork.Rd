@@ -9,16 +9,23 @@ Load a Boolean network from a file
 Loads a Boolean network or probabilistic Boolean network from a file and converts it to an internal transition table representation.
 }
 \usage{
-loadNetwork(file, bodySeperator = ",")
+loadNetwork(file, 
+            bodySeparator = ",",
+            lowercaseGenes = FALSE)
 }
 
 \arguments{
   \item{file}{
 	The name of the file to be read
 }
-  \item{bodySeperator}{
+
+  \item{bodySeparator}{
 	An optional separation character to divide the target factors and the formulas. Default is ",".
 }
+
+  \item{lowercaseGenes}{
+    If set to \code{TRUE}, all gene names are converted to lower case, i.e. the gene names are case-insensitive. This corresponds to the behaviour of \pkg{BoolNet} versions prior to 1.5. Defaults to \code{FALSE}.
+  }
 }
 \details{
 The routine supports a description language based on the Boolean operators AND (&), or (|), and NOT (!). 
@@ -66,8 +73,6 @@ If there is at least one gene with two or more alternative transition functions,
 \code{\link{getAttractors}}, \code{\link{markovSimulation}}, \code{\link{toPajek}}, \code{\link{stateTransition}}, \code{\link{fixGenes}}
 }
 \examples{
-library(BoolNet)
-
 # write example network to file
 sink("testNet.bn")
 cat("targets, functions\n")

@@ -1,7 +1,7 @@
 \documentclass[a4paper]{article}
 
 \SweaveOpts{keep.source=TRUE}
-%\VignetteIndexEntry{Detailed introduction into all major features of BoolNet}
+%\VignetteIndexEntry{Detailed introduction to all major features of BoolNet}
 
 \usepackage{graphicx}
 \usepackage{amsmath}
@@ -197,7 +197,7 @@ plots a graph similar to that in Figure~\ref{fig:wiring}. To use this function, 
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.75\linewidth]{wiring}
+\includegraphics[width=0.65\linewidth]{wiring}
 \caption{The wiring graph of the reconstructed network. Each node of the graph represents one gene, and each arrow represents a gene dependency.}
 \label{fig:wiring}
 \end{figure}
@@ -212,10 +212,73 @@ For example,
 singleNet <- chooseNetwork(net, c(1,2,3,2))
 @
 creates a Boolean network by extracting the first function of gene Fkh2, the second function of genes Swi5 and Clb1, and the third function of gene Sic1 from the above probabilistic network:
-\pagebreak[4]
 <<>>=
 singleNet
 @
+
+\texttt{BoolNet} also supports the generation of artificial time series from existing networks: The \texttt{generateTimeSeries()} function generates a set of time series from a network using random start states and optionally adds Gaussian noise.
+<<eval=FALSE>>=
+series <- generateTimeSeries(cellcycle, 
+                             numSeries=100, 
+                             numMeasurements=10, 
+                             noiseLevel=0.1)
+@
+generates a list of 100 time series by calculating 10 consecutive transitions from 100 randomly chosen network states in the mammalian cell cycle network. The series are subject to Gaussian noise with a standard deviation of 0.1, such that the result is a list of real-valued matrices.
+
+We can now binarize these simulated measurements and try to reconstruct the original network:
+<<eval=FALSE>>=
+binSeries <- binarizeTimeSeries(series, method="kmeans")
+net <- reconstructNetwork(binSeries$binarizedMeasurements, method="bestfit")
+net
+@
+\enlargethispage{0.5cm}
+\begin{verbatim}
+Probabilistic Boolean network with 10 genes
+
+Involved genes:
+CycD Rb E2F CycE CycA p27 Cdc20 Cdh1 UbcH10 CycB
+
+Transition functions:
+
+Alternative transition functions for gene CycD:
+CycD = <f(CycD){01}> (probability: 1, error: 0)
+
+Alternative transition functions for gene Rb:
+Rb = <f(CycD,CycE,CycA,p27,CycB){10100010001000100000000000000000}> 
+(probability: 1, error: 0)
+
+Alternative transition functions for gene E2F:
+E2F = <f(Rb,CycA,p27,CycB){1010001000000000}> (probability: 1, error: 0)
+
+Alternative transition functions for gene CycE:
+CycE = <f(Rb,E2F){0100}> (probability: 1, error: 0)
+
+Alternative transition functions for gene CycA:
+CycA = <f(Rb,CycA,Cdc20,Cdh1,UbcH10){10100000111000000000000000000000}> 
+(probability: 0.5, error: 5)
+CycA = <f(Rb,CycA,Cdc20,Cdh1,UbcH10){10100000111000000000000000000010}> 
+(probability: 0.5, error: 5)
+
+Alternative transition functions for gene p27:
+p27 = <f(CycD,CycE,CycA,p27,CycB){10100010001000000000000000000000}> 
+(probability: 1, error: 0)
+
+Alternative transition functions for gene Cdc20:
+Cdc20 = <f(CycB){01}> (probability: 1, error: 0)
+
+Alternative transition functions for gene Cdh1:
+Cdh1 = <f(CycA,p27,Cdc20,CycB){1011101100111011}> (probability: 1, error: 0)
+
+Alternative transition functions for gene UbcH10:
+UbcH10 = <f(CycA,Cdc20,Cdh1,UbcH10,CycB){11110001111100111111001111110011}> 
+(probability: 0.5, error: 0)
+UbcH10 = <f(CycA,Cdc20,Cdh1,UbcH10,CycB){11110001111100111111001111110111}> 
+(probability: 0.5, error: 0)
+
+Alternative transition functions for gene CycB:
+CycB = <f(Cdc20,Cdh1){1000}> (probability: 1, error: 0)
+\end{verbatim}
+Obviously, the number of generated time series is still to small to reconstruct the network unambiguously. However, the result comes close to the original network.
 
 \subsection{Creating random networks}
 
@@ -240,14 +303,49 @@ net <- generateRandomNKNetwork(n=10, k=3, linkage="lattice")
 @
 creates a network in which the transition functions of the genes depend on a choice of genes with adjacent indices \cite{aldana03_2}. This leads to networks with highly interdependent genes.
 
-It is also possible to influence the truth tables of the functions by changing the ratio of 1 and 0 returned by the functions: 
+It is also possible to influence the truth tables of the functions in several ways. The parameter \texttt{zeroBias} changes the ratio of 1 and 0 returned by the functions: 
 <<>>=
 net <- generateRandomNKNetwork(n=10, k=3, 
 functionGeneration="biased", zeroBias=0.75)
 @
-generates a network in which the outcome of a transition function is 0 for around 75\% of the inputs. 
+generates a network in which the outcome of a transition function is 0 for around 75\% of the inputs.
 
-By default, \texttt{generateRandomNKNetwork()} creates functions that cannot be simplified, i.e. that do not contain any genes that are irrelevant for the outcome of the function. If desired, this behaviour can be changed by setting \texttt{noIrrelevantGenes} to FALSE.
+A more intricate way of influencing the function generation is the specification of a validation function. Validation functions can restrict the generated Boolean functions to certain classes by rejecting invalid functions. For example, \emph{canalyzing functions} are expected to be biologically plausible \cite{kauffman04}. A canalyzing function has the property that one input can determine the output value on its own, i.e. if this input is either active or inactive, the output of the function is always the same.
+
+We can specify a simple validation function that checks whether a Boolean function is canalyzing:
+<<>>=
+isCanalyzing <- function(input, func)
+{
+  for (i in 1:ncol(input))
+  # check each input gene
+  {
+    inputGene <- input[,i]
+    for (v in c(0,1))
+    # test for inputs 0 and 1 whether all output
+    # values are the same
+    {  
+      if (length(unique(func[inputGene == v])) == 1)
+      # => this gene can determine the output on its own
+        return(TRUE)
+    }
+  }
+  # the function is not canalyzing
+  return(FALSE)
+}
+@
+\begin{sloppypar}
+Here, \texttt{input} is a matrix containing the input part of the transition table, and \texttt{func} is the output of the Boolean function. For each input gene, the function \texttt{isCanalyzing()} compares the output values when the gene is 0 and 1 and checks whether they are all equal. In this case, the function is canalyzing.
+
+If a validation function is supplied to \texttt{generateRandomNKNetwork()}, the generator generates Boolean functions until either the validation function returns \texttt{TRUE} or the maximum number of iterations (specified by the parameter \texttt{failureIterations}) is reached, in which case it fails.
+\end{sloppypar}
+
+<<>>=
+net <- generateRandomNKNetwork(n=10, k=3, 
+validationFunction="isCanalyzing", failureIterations=1000)
+@
+creates a network with 10 genes in which all functions have 3 inputs, of which at least one is canalyzing.
+
+By default, \texttt{generateRandomNKNetwork()} creates functions that cannot be simplified, i.e. that do not contain any genes that are irrelevant for the outcome of the function. If desired, this behaviour can be changed by setting \texttt{noIrrelevantGenes} to \texttt{FALSE}.
 
 The presented parameters can be combined, and there are further options and parameters, so that a broad variety of networks with different structural properties can be generated. For a full reference of the possible parameters, please refer to the manual.
 
@@ -256,7 +354,7 @@ The presented parameters can be combined, and there are further options and para
 \texttt{BoolNet} allows for temporarily knocking out and overexpressing genes in a network without touching the transition functions. This means that genes can be set to a fixed value, and in any calculation on the network, this fixed value is taken instead of the value of the corresponding transition function. Knocked-out and overexpressed genes speed up the analysis of the network, as they can be ignored in many calculations. For example, to knock out CycD in the mammalian cell cycle network, we call
 <<>>=
 data(cellcycle)
-knockedOut <- fixGenes(cellcycle, "cycd", 0)
+knockedOut <- fixGenes(cellcycle, "CycD", 0)
 @
 or alternatively use the gene index
 <<>>=
@@ -264,17 +362,17 @@ knockedOut <- fixGenes(cellcycle, 1, 0)
 @
 This sets the gene constantly to 0. To over-express the gene (i.e. to fix it to 1), the corresponding call is
 <<>>=
-overExpressed <- fixGenes(cellcycle, "cycd", 1)
+overExpressed <- fixGenes(cellcycle, "CycD", 1)
 @
 The command
 <<>>=
-originalNet <- fixGenes(knockedOut, "cycd", -1)
+originalNet <- fixGenes(knockedOut, "CycD", -1)
 @
 reactivates the gene (for both knock and overexpression) and resets the network to its original state. 
 
 The function also accepts multiple genes in a single call, such as
 <<>>=
-newNet <- fixGenes(cellcycle, c("cycd","cyce"), c(0,1))
+newNet <- fixGenes(cellcycle, c("CycD","CycE"), c(0,1))
 @
 which knocks out CycD and overexpresses CycE.
 
@@ -290,62 +388,89 @@ The following code performs a synchronous state transition for the state in whic
 data(cellcycle)
 stateTransition(cellcycle, rep(1,10))
 @
+
 To calculate all state transitions in a synchronous network until an attractor is reached, you can call
 <<>>=
-getPathToAttractor(cellcycle,rep(0,10))
+path <- getPathToAttractor(cellcycle, rep(0,10))
+path
 @
-The returned matrix consists of the subsequent states, where the last state is the first state of the corresponding attractor.
+The returned matrix consists of the subsequent states until an attractor is reached. Depending on the optional parameter \texttt{includeAttractorStates}, the sequence comprises all attractor states, only the first attractor state or none of the attractor states.
+
+A sequence can be visualized by plotting a table of state changes:
+<<eval=FALSE>>=
+plotSequence(sequence=path)
+@
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.6\linewidth]{sequence}
+\caption{Visualization of a sequence of states. The columns of the table represent consecutive states of the time series. The last state is the steady-state attractor of the network}
+\label{fig:sequence}
+\end{figure}
+
+The result is depicted in Figure~\ref{fig:sequence}. \texttt{plotSequence()} also includes a shortcut that calculates the sequence directly if a network and a start state are supplied. It also provides an alternative way of visualizing the sequence as a state transition by setting \texttt{mode="graph"}.
+
+The function
+<<eval=FALSE,results=hide>>=
+sequenceToLaTeX(sequence=path, file="sequence.tex")
+@
+creates a \LaTeX\ table similar to \texttt{plotSequence()} function document.
+
+In many cases, start states are defined by a set of active genes. Instead of supplying a full state vector, one can also supply only these active genes using the \texttt{generateState()} function.
+<<>>=
+startState <- generateState(cellcycle, specs=c("CycD"=1,"CycA"=1))
+stateTransition(cellcycle,startState)
+@
+calculates a state transition starting from a state where only the genes \emph{CycD} and \emph{CycA} are active, while all other genes are inactive (which is controlled by the \texttt{default} parameter of \texttt{generateState()}). 
 
 A random asynchronous transition is performed using
-<<eval=FALSE>>=
+<<echo=FALSE>>=
+set.seed(54321)
+@
+<<>>=
 stateTransition(cellcycle, rep(1,10), type="asynchronous")
 @
-\begin{verbatim}
- [1] 1 1 1 1 0 1 1 1 1 1
-\end{verbatim}
-In this case, the fifth gene, CycA, was chosen at uniformly at random and updated. We can also specify non-uniform probabilities for the genes, for example
+In this case, the fifth gene, CycA, was chosen at uniformly at random and updated. 
 
-\enlargethispage{0.5cm}
-<<eval=FALSE>>=
+\begin{samepage}
+We can also specify non-uniform probabilities for the genes, for example
+<<echo=FALSE>>=
+set.seed(4321)
+@
+<<>>=
 stateTransition(cellcycle, rep(1,10), type="asynchronous", 
 geneProbabilities=c(0.05,0.05,0.2,0.3,0.05,0.05,0.05,0.05,0.1,0.1))
 @
-\begin{verbatim}
- [1] 1 1 1 0 1 1 1 1 1 1
-\end{verbatim}
 This obviously increases probabilities for the genes 3 and 4 (E2F and CycE) to be chosen. In this case, CycE was chosen for the update.
+\end{samepage}
 
+\enlargethispage{0.5cm}
 Sometimes you do not want a random update at all, but would like to specify which gene should be chosen for the update. This is possible via
-
 <<>>=
 stateTransition(cellcycle, rep(1,10), type="asynchronous", 
-chosenGene="cyce")
+chosenGene="CycE")
 @
 
 
 In probabilistic Boolean networks, a state transition is performed by choosing one of the alternative functions for each gene and applying this set of functions to the current state. The following performs a state transition with a randomly chosen set of functions on the artificial probabilistic Boolean network taken from \cite{shmulevich02} with 3 genes, starting from state (0,1,1):
 <<echo=FALSE>>=
-data(examplePBN)
+set.seed(432)
 @
-<<eval=FALSE>>=
+<<>>=
 data(examplePBN)
 stateTransition(examplePBN, c(0,1,1), type="probabilistic")
 @
-\begin{verbatim}
-[1] 1 0 0
-\end{verbatim} 
 You may get a different result, as the functions are chosen randomly according to the probabilities stored in the network. If you would like to execute a specific set of transition functions, you can supply this in an additional parameter:
 <<>>=
 stateTransition(examplePBN, c(0,1,1), type="probabilistic", 
 chosenFunctions=c(2,1,2))
 @
 This call uses the second function for gene x1 and x3 and the first function for gene x2.  
- 
+
+\pagebreak[4]
 \subsection{Identification of attractors}
 
-Attractors are stable cycles of states in a Boolean network. As they comprise the states in which the network resides most of the time, attractors in models of gene-regulatory networks are expected to be linked to phenotypes \cite{kauffman93,li04}. Transitions from all states in a Boolean network eventually lead to an attractor, as the number of states in a network is finite. All states that lead to a certain attractor form its {\em basin of attraction}.
-
-\texttt{BoolNet} is able to identify attractors in synchronous and asynchronous Boolean networks. There are three types of attractors in these networks:
+Attractors are stable cycles of states in a Boolean network. As they comprise the states in which the network resides most of the time, attractors in models of gene-regulatory networks are expected to be linked to phenotypes \cite{kauffman93,li04}. Transitions from all states in a Boolean network eventually lead to an attractor, as the number of states in a network is finite. All states that lead to a certain attractor form its {\em basin of attraction}. \texttt{BoolNet} is able to identify attractors in synchronous and asynchronous Boolean networks. There are three types of attractors in these networks:
 \begin{description}
 \item[Simple attractors]{occur in synchronous Boolean networks and consist of a set of states whose synchronous transitions form a cycle.}
 \item[Complex or loose attractors]{are the counterpart of simple attractors in asynchronous networks. As there is usually more than one possible transition for each state in an asynchronous network, a complex attractor is formed by two or more overlapping loops. Precisely, a complex attractor is a set of states in which all asynchronous state transitions lead to another state in the set, and a state in the set can be reached from all other states in the set.}
@@ -355,6 +480,7 @@ Attractors are stable cycles of states in a Boolean network. As they comprise th
 The \texttt{getAttractors()} function incorporates several methods for the identification of attractors. We present these methods using the included mammalian cell cycle network as an example. This network has one steady-state attractor, one simple synchronous attractor consisting of 7 states, and one complex asynchronous attractor with 112 states (see \cite{faure06}).
 
 We first demonstrate the use of exhaustive synchronous search. This means that the software starts from all possible states of the network and performs synchronous state transitions until a simple or steady-state attractor is reached. 
+\enlargethispage{0.5cm}
 <<echo=FALSE>>=
 attr <- getAttractors(cellcycle)
 @
@@ -363,6 +489,7 @@ data(cellcycle)
 attr <- getAttractors(cellcycle)
 attr
 @
+\begin{samepage}
 \begin{verbatim}
 Attractor 1 is a simple attractor consisting of 1 state(s) 
 and has a basin of 512 state(s):
@@ -374,10 +501,11 @@ and has a basin of 512 state(s):
  V            |
  |-->---------|
 
-
-Genes are encoded in the following order: cycd rb e2f cyce 
-cyca p27 cdc20 cdh1 ubch10 cycb
-
+Genes are encoded in the following order: CycD Rb E2F CycE 
+CycA p27 Cdc20 Cdh1 UbcH10 CycB
+\end{verbatim}
+\end{samepage}
+\begin{verbatim}
 Attractor 2 is a simple attractor consisting of 7 state(s) 
 and has a basin of 512 state(s):
 
@@ -400,9 +528,8 @@ and has a basin of 512 state(s):
  V            |
  |-->---------|
 
-
-Genes are encoded in the following order: cycd rb e2f cyce 
-cyca p27 cdc20 cdh1 ubch10 cycb
+Genes are encoded in the following order: CycD Rb E2F CycE 
+CycA p27 Cdc20 Cdh1 UbcH10 CycB
 \end{verbatim}
 Typing \texttt{attr} calls a special print method that presents the attractor in a human-readable way. Here, a state in an attractor is represented by a binary vector, where each entry of the vector codes for one gene. An alternative is to print only the names of the active genes (i.e., the genes that are set to 1) instead of the full vector by calling the \texttt{print()} method explicitly with a changed parameter:
 <<eval=FALSE>>=
@@ -412,20 +539,27 @@ print(attr, activeOnly=TRUE)
 Attractor 1 is a simple attractor consisting of 1 state(s) 
 and has a basin of 512 state(s).
 Active genes in the attractor state(s):
-State 1: rb, p27, cdh1
+State 1: Rb, p27, Cdh1
 
 Attractor 2 is a simple attractor consisting of 7 state(s) 
 and has a basin of 512 state(s).
 Active genes in the attractor state(s):
-State 1: cycd, cyce, cyca
-State 2: cycd, cyca, ubch10, cycb
-State 3: cycd, cyca, cdc20, ubch10, cycb
-State 4: cycd, cdc20, cdh1, ubch10
-State 5: cycd, e2f, cdh1, ubch10
-State 6: cycd, e2f, cyce, cdh1
-State 7: cycd, e2f, cyce, cyca, cdh1
+State 1: CycD, CycE, CycA
+State 2: CycD, CycA, UbcH10, CycB
+State 3: CycD, CycA, Cdc20, UbcH10, CycB
+State 4: CycD, Cdc20, Cdh1, UbcH10
+State 5: CycD, E2F, Cdh1, UbcH10
+State 6: CycD, E2F, CycE, Cdh1
+State 7: CycD, E2F, CycE, CycA, Cdh1
 \end{verbatim}
 We can see that the search identified both synchronous attractors. 
+
+The \texttt{AttractorInfo} structure stores the attractors in an encoded form. The function \texttt{getAttractorSequence()} can be used to obtain the sequence of states that constitute a specific synchronous attractor as a table:
+<<>>=
+getAttractorSequence(attr, 2)
+@
+retrieves the states that make up the second (i.e., the 7-state attractor) as a data frame with the genes in the columns and the successive states in the rows.
+
 The advantage of the exhaustive search method is that the complete transition table is calculated and stored in the return value. This table stores information that is used by a number of analysis methods described below.
 
 You can extract the transition table in a data frame and print it out using
@@ -439,8 +573,8 @@ tt
 [...]
 1111111111 =>   1000001110            2                  1
 
-Genes are encoded in the following order: cycd rb e2f cyce 
-cyca p27 cdc20 cdh1 ubch10 cycb
+Genes are encoded in the following order: CycD Rb E2F CycE 
+CycA p27 Cdc20 Cdh1 UbcH10 CycB
 \end{verbatim}
 In the printed table, the first column denotes the initial state, the second column contains the state after the transition, the first column contains the number of the attractor that is finally reached from this state, and the fourth column lists the number of state transitions required to attain this attractor.
 
@@ -458,8 +592,8 @@ getStateSummary(attr, c(1,1,1,1,1,1,1,1,1,1))
      State      Next state  Attr. basin  # trans. to attr.
 1111111111 =>   1000001110            2                  1
 
-Genes are encoded in the following order: cycd rb e2f cyce 
-cyca p27 cdc20 cdh1 ubch10 cycb
+Genes are encoded in the following order: CycD Rb E2F CycE 
+CycA p27 Cdc20 Cdh1 UbcH10 CycB
 \end{verbatim}
 
 The visualization function \texttt{getStateGraph()} makes use of the transition table as well: It plots a transition graph in which the basins of attraction are drawn in different colors, and the attractors are highlighted.
@@ -469,7 +603,7 @@ plotStateGraph(attr)
 @
 is depicted in Figure~\ref{fig:stategraph}. The blue basin belongs to attractor 1, and the green basin belongs to attractor 2.
 
-\begin{figure}[h]
+\begin{figure}[p]
 \centering
 \includegraphics[width=0.75\linewidth]{stategraph}
 \caption{The state graph of the mammalian cell cycle network. Each node represents a state of the network, and each arrow is a state transition. The colors mark different basins of attraction. Attractors are highlighted using bold lines.}
@@ -483,9 +617,9 @@ plotStateGraph(attr, piecewise=TRUE)
 @
 is depicted in Figure~\ref{fig:piecewisestategraph}.
 
-\begin{figure}[h]
+\begin{figure}[p]
 \centering
-\includegraphics[width=0.75\linewidth]{piecewisestategraph}
+\includegraphics[width=0.65\linewidth]{piecewisestategraph}
 \caption{The state graph of the mammalian cell cycle network using a piecewise layout. Each node represents a state of the network, and each arrow is a state transition. The colors mark different basins of attraction. Attractors are highlighted using bold lines.}
 \label{fig:piecewisestategraph}
 \end{figure}
@@ -494,33 +628,33 @@ is depicted in Figure~\ref{fig:piecewisestategraph}.
 Exhaustive search consumes a high amount of time and memory with increasing size of the network, which makes it intractable for large networks (\texttt{BoolNet} currently supports networks with up to 29 genes for exhaustive search due to memory restrictions in {\em R}). Therefore, \texttt{BoolNet} also allows for heuristic search of attractors, which works for larger networks as well. Heuristic synchronous search starts from a predefined small set of states and identifies the attractors to which state transitions from these states lead. The start states can either be supplied, or they can be calculated randomly.
 
 <<eval=FALSE>>=
+attr <- getAttractors(cellcycle, method="random", startStates=100)
+@
+chooses 100 random start states for the heuristic search and usually identifies both attractors. 
+
+<<eval=FALSE>>=
 attr <- getAttractors(cellcycle, method="chosen", 
 startStates=list(rep(0,10),rep(1,10)))
 @
 starts from the states \texttt{(0,0,0,0,0,0,0,0,0,0)} and \texttt{(1,1,1,1,1,1,1,1,1,1)} and again identifies both synchronous attractors.
 
-<<eval=FALSE>>=
-attr <- getAttractors(cellcycle, method="random", startStates=100)
-@
-chooses 100 random start states for the heuristic search and usually identifies both attractors as well. 
-
 \begin{sloppypar}
-For these two calls, only the subset of the transition table traversed by the heuristic is returned. This means that there is no guarantee that, e.g. \texttt{getBasinOfAttraction()} returns the complete basin of attraction of an attractor in heuristic mode.
+For the previous calls, only the subset of the transition table traversed by the heuristic is returned. This means that there is no guarantee that, e.g. \texttt{getBasinOfAttraction()} returns the complete basin of attraction of an attractor in heuristic mode.
 \end{sloppypar}
 
 Synchronous attractors can be visualized by plotting a table of changes of gene values in the states of the attractor: 
 <<eval=FALSE>>=
-plotAttractors(attr,subset=2)
+plotAttractors(attr, subset=2)
 @
 plots the state changes of the simple attractor with 7 states, as depicted in Figure~\ref{fig:attractor1}. Similarly,
 <<eval=FALSE>>=
-attractorsToLaTeX(attr,subset=2,file="attractors.tex")
+attractorsToLaTeX(attr, subset=2, file="attractors.tex")
 @
 exports the same state table to a \LaTeX\ document.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.75\linewidth]{attractor1}
+\includegraphics[width=0.65\linewidth]{attractor1}
 \caption{Visualization of the state changes in an attractor. The columns of the table represent consecutive states of the attractor. On top, the percentage of states leading to the attractor is supplied.}
 \label{fig:attractor1}
 \end{figure}
@@ -534,7 +668,8 @@ method="random", startStates=500)
 @
 conducts an asynchronous search with 500 random start states on the mammalian cell cycle network.
 In this case, the algorithm has identified both the steady-state attractor and the complex attractor:
-\pagebreak
+
+\enlargethispage{0.5cm}
 <<eval=FALSE>>=
 attr
 @
@@ -548,9 +683,8 @@ Attractor 1 is a simple attractor consisting of 1 state(s):
  V            |
  |-->---------|
 
-
-Genes are encoded in the following order: cycd rb e2f cyce 
-cyca p27 cdc20 cdh1 ubch10 cycb
+Genes are encoded in the following order: CycD Rb E2F CycE 
+CycA p27 Cdc20 Cdh1 UbcH10 CycB
 
 Attractor 2 is a complex/loose attractor consisting of 112 state(s) 
 and 338 transition(s):
@@ -559,8 +693,8 @@ and 338 transition(s):
 [...]
 1000000000 => 1010000000
 
-Genes are encoded in the following order: cycd rb e2f cyce 
-cyca p27 cdc20 cdh1 ubch10 cycb
+Genes are encoded in the following order: CycD Rb E2F CycE 
+CycA p27 Cdc20 Cdh1 UbcH10 CycB
 \end{verbatim}
 
 For the complex attractor, the involved transitions are printed out. By default, the algorithm tries to avoid self-loops, i.e. transitions that lead to the same state again. This means that self-loop transitions are only allowed if there is no other transition that leads to a different state. If you would like to allow the algorithm to enter self-loops even if transitions to different states are possible, you can call
@@ -574,7 +708,7 @@ The asynchronous heuristic search does not return a transition table, such that 
 
 As there are multiple possible transitions for each state, complex attractors cannot be visualized as in Figure~\ref{fig:attractor1}. For this reason, \texttt{plotAttractors()} supports a graph mode that visualizes the transitions among the states in the attractor:
 <<eval=FALSE>>=
-plotAttractors(attr,subset=2,mode="graph",drawLabels=FALSE)
+plotAttractors(attr, subset=2, mode="graph", drawLabels=FALSE)
 @
 plots the 112-state attractor as depicted in Figure~\ref{fig:attractor2}. We omit the state labels (i.e. the gene values) due to the high number of states. This plot again requires the \texttt{igraph} package.
 
@@ -704,7 +838,7 @@ data(cellcycle)
 attrs <- getAttractors(cellcycle, canonical=TRUE)
 
 # create 1000 perturbed copies of the network and search for attractors
-perturbationResults <- sapply(1:1000,function(i)
+perturbationResults <- sapply(1:1000, function(i)
 {
   # perturb network and identify attractors
   perturbedNet <- perturbNetwork(cellcycle, perturb="functions", method="bitflip")
@@ -713,9 +847,9 @@ perturbationResults <- sapply(1:1000,function(i)
   # check whether the attractors in the original network exist in the perturbed network
   attractorIndices <- sapply(attrs$attractors,function(attractor1)
         {
-          index <- which(sapply(perturbedAttrs$attractors,function(attractor2)
+          index <- which(sapply(perturbedAttrs$attractors, function(attractor2)
             {
-              identical(attractor1,attractor2)
+              identical(attractor1, attractor2)
             }))
           if (length(index) == 0)
             NA

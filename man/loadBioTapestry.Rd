@@ -34,8 +34,6 @@ W. J. R. Longabaugh, E. H. Davidson, H. Bolour (2005), Computational representat
 \code{\link{loadNetwork}}
 }
 \examples{
-library(BoolNet)
-
 # import the example BioTapestry file
 # included in the package vignette
 exampleFile <- system.file("doc/example.btp",

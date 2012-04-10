@@ -1,5 +1,8 @@
 #include "common.h"
 #include <string.h>
+#include <stdio.h>
+
+AllocatedMemory * memoryMap = NULL;
 
 /**
  * Common utilities for the BoolNet package
@@ -10,6 +13,18 @@
  *
  * Contact christoph.muessel@uni-ulm.de
  */
+
+void freeAllMemory()
+{  
+  AllocatedMemory * m, * tmp;
+  HASH_ITER(hh, memoryMap, m, tmp) 
+  {
+    HASH_DEL(memoryMap, m);
+    free(m->ptr);
+    free(m);
+  }
+  //Rprintf("Freed all memory\n");
+}
 
 /**
  * Encode a vector of binary values in an integer.

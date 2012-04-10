@@ -15,7 +15,6 @@ The data consists of a variable \code{cellcycle} of class \code{BooleanNetwork} 
 A. Faure, A. Naldi, C. Chaouiya and D. Thieffry (2006), Dynamical analysis of a generic Boolean model for the control of the mammalian cell cycle. Bioinformatics 22(14):e124--e131.
 }
 \examples{
-library(BoolNet)
 data(cellcycle)
 
 # the network is stored in a variable called 'cellcycle'

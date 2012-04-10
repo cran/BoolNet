@@ -81,15 +81,15 @@ attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = lis
         separationPositions <- c()
     
       # output table header
-          cat("\\begin{table}[ht]\n",
-               "\\begin{center}\n",
-               "\\caption{",
-               title, "Attractors with ",len," state(s)}\n",
-               "\\begin{tabularx}{\\linewidth}{l", 
-             paste(rep(paste(rep(">{\\centering\\arraybackslash}X", 
-                  len), collapse = " "),length(intersect(which(attractorLengths == len),subset))),collapse="|"), 
-          "}\\hline\n",
-               sep="")
+      cat("\\begin{table}[ht]\n",
+           "\\begin{center}\n",
+           "\\caption{",
+           title, "Attractors with ",len," state(s)}\n",
+           "\\begin{tabularx}{\\linewidth}{l", 
+         paste(rep(paste(rep(">{\\centering\\arraybackslash}X", 
+              len), collapse = " "),length(intersect(which(attractorLengths == len),subset))),collapse="|"), 
+      "}\\hline\n",
+           sep="")
     
       cat("\t&\t",paste(paste("\\multicolumn{",len,"}{c}{Attr. ",intersect(which(attractorLengths == len),subset),"}",
             sep=""),collapse="\t&\t"),"\\\\\n")    

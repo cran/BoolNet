@@ -26,8 +26,6 @@ Constant genes are automatically fixed (e.g. knocked-out or over-expressed). Thi
 \code{\link{reconstructNetwork}}, \code{\link{loadNetwork}}
 }
 \examples{
-library(BoolNet)
-
 # load example data
 data(examplePBN)
 

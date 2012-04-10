@@ -24,8 +24,6 @@ Returns a data frame with the first \code{n} columns describing the values of th
 \code{\link{markovSimulation}}
 }
 \examples{
-library(BoolNet)
-
 # load example network
 data(examplePBN)
 

@@ -73,8 +73,6 @@ J. Glaz, J. Naus, S. Wallenstein (2001), Scan Statistics. New York: Springer.
 \code{\link{reconstructNetwork}}
 }
 \examples{
-library(BoolNet)
-
 # load test data
 data(yeastTimeSeries)
 			

@@ -50,8 +50,6 @@ This function uses the \code{\link[igraph:plot.graph]{plot.igraph}} function fro
 \code{\link{markovSimulation}}
 }
 \examples{
-library(BoolNet)
-
 # load example network
 data(examplePBN)
 

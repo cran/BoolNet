@@ -68,13 +68,13 @@ static inline FunctionListElement * addFunctionListElement(FunctionListElement *
 											 unsigned int * inputGenes,
 											 unsigned int * transitionFunction)
 {
-	FunctionListElement * el = calloc(1,sizeof(FunctionListElement));
+	FunctionListElement * el = CALLOC(1,sizeof(FunctionListElement));
 	el->k = k;
 
-	el->inputGenes = calloc(k,sizeof(unsigned int));
+	el->inputGenes = CALLOC(k,sizeof(unsigned int));
 	memcpy(el->inputGenes,inputGenes,sizeof(unsigned int) * k);
 
-	el->transitionFunction = calloc(transitionFunctionSize,sizeof(unsigned int));
+	el->transitionFunction = CALLOC(transitionFunctionSize,sizeof(unsigned int));
 	memcpy(el->transitionFunction,transitionFunction,sizeof(unsigned int) * transitionFunctionSize);
 
 	el->next = *root;
@@ -93,9 +93,9 @@ void freeFunctionList(FunctionListElement ** root)
 	do
 	{
 		FunctionListElement * next = current->next;
-		free(current->inputGenes);
-		free(current->transitionFunction);
-		free(current);
+		FREE(current->inputGenes);
+		FREE(current->transitionFunction);
+		FREE(current);
 		current = next;
 	}
 	while(current != NULL);
@@ -114,11 +114,11 @@ static inline FunctionStackElement * pushFunctionStackElement(FunctionStackEleme
 											 unsigned int transitionFunctionSize,
 											 unsigned int pos)
 {
-	FunctionStackElement * el = calloc(1,sizeof(FunctionStackElement));
+	FunctionStackElement * el = CALLOC(1,sizeof(FunctionStackElement));
 
 	el->pos = pos;
 
-	el->transitionFunction = calloc(transitionFunctionSize,sizeof(unsigned int));
+	el->transitionFunction = CALLOC(transitionFunctionSize,sizeof(unsigned int));
 	memcpy(el->transitionFunction,transitionFunction,sizeof(unsigned int) * transitionFunctionSize);
 
 	el->next = *stack;
@@ -133,8 +133,8 @@ static inline void deleteFunctionStackElement(FunctionStackElement ** stack)
 {
 	FunctionStackElement * el = *stack;
 	*stack = (*stack)->next;
-	free(el->transitionFunction);
-	free(el);
+	FREE(el->transitionFunction);
+	FREE(el);
 }
 
 
@@ -291,6 +291,8 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
 
 			do
 			{
+  			R_CheckUserInterrupt();
+			
 				memset(c_0,0,sizeof(unsigned int) * array_sz);
 				memset(c_1,0,sizeof(unsigned int) * array_sz);
 
@@ -357,6 +359,8 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
 					pushFunctionStackElement(&stack,f,numEltsFunc,0);
 					do
 					{
+					  R_CheckUserInterrupt();
+					  
 						// get top-level stack element
 						FunctionStackElement * el = stack;
 
@@ -559,7 +563,8 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
 
 			do
 			{
-
+        R_CheckUserInterrupt();
+        
 				// calculate entropy of input genes
 				unsigned int table_input[array_sz];
 				double entropy_input = entropy(inputStates, outputStates, numStates,
@@ -592,6 +597,8 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
 					pushFunctionStackElement(&stack,f,numEltsFunc,0);
 					do
 					{
+					  R_CheckUserInterrupt();
+					
 						// get top-level stack element
 						FunctionStackElement * el = stack;
 
@@ -699,8 +706,8 @@ SEXP reconstructNetwork_R(SEXP inputStates, SEXP outputStates, SEXP numberOfStat
 				(_outputStates[state*numGenes + gene] << (gene % BITS_PER_BLOCK_32));
 	}
 
-	FunctionListElement ** res = calloc(numGenes,sizeof(FunctionListElement *));
-	unsigned int * errors = calloc(numGenes,sizeof(unsigned int));
+	FunctionListElement ** res = CALLOC(numGenes,sizeof(FunctionListElement *));
+	unsigned int * errors = CALLOC(numGenes,sizeof(unsigned int));
 
 	if (_method == 0)
 		// perform Lähdesmäki's best-fit extension
@@ -806,8 +813,8 @@ SEXP reconstructNetwork_R(SEXP inputStates, SEXP outputStates, SEXP numberOfStat
 	// free resources
 	for (gene = 0; gene < numGenes; ++gene)
 		freeFunctionList(&res[gene]);
-	free(errors);
-	free(res);
+	FREE(errors);
+	FREE(res);
 
 	return resSXP;
 }

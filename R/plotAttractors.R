@@ -5,7 +5,7 @@
 # <onColor> and <offColor> specify the colors of ON/1 and OFF/0 states.
 plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","graph"),
                             grouping = list(), plotFixed = TRUE, onColor="green",offColor="red",
-                            layout=layout.circle, drawLabels=TRUE,...) 
+                            layout=layout.circle, drawLabels=TRUE, drawLegend=TRUE, ...) 
 {
   stopifnot(inherits(attractorInfo,"AttractorInfo"))
   numGenes <- length(attractorInfo$stateInfo$genes)
@@ -72,8 +72,7 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
            # reorder genes according to the supplied groups
           totalMatrix = totalMatrix[unlist(grouping$index),]
     
-        par(yaxt='s',las=2)
-            axis(2,(1:length(plotIndices))-0.5,rownames(totalMatrix))
+        axis(2,(1:length(plotIndices))-0.5,rownames(totalMatrix), yaxt='s', las=2)
 
         # plot active and inactive states
         for(i in 1:ncol(totalMatrix))
@@ -105,9 +104,15 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
           sepPos = cumsum(sapply(grouping$index,length))
           abline(h=sepPos[-length(sepPos)],col="black",lwd=3)
           text(ncol(totalMatrix)/2,sepPos-0.5,grouping$class,cex=0.9)
-              }
-
-          legend(x="bottomright",pch=c(15,15),col=c(onColor,offColor),legend = c("active","inactive"),cex=0.7,horiz=T)
+        }
+        
+        if (drawLegend)
+          legend(x="bottomright",
+                 pch=c(15,15),
+                 col=c(onColor,offColor),
+                 legend = c("active","inactive"),
+                 cex=0.7,
+                 horiz=T)
         totalMatrix
        }
     })
@@ -145,7 +150,8 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
     lapply(attractorInfo$attractors[subset],function(attractor)
     {
       nodes <- data.frame(apply(attractor$involvedStates,2,function(state)
-                          paste(dec2bin(state,numGenes),collapse="")))
+                          paste(dec2bin(state,numGenes),collapse="")),
+                          stringsAsFactors=FALSE)
     
       if (!is.null(attractor$initialStates))
       # asynchronous complex attractor

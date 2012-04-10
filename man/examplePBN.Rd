@@ -16,7 +16,6 @@ This artificial network is introduced by Shmulevich et al. for a step-by-step de
 I. Shmulevich, E. R. Dougherty, S. Kim, W. Zhang (2002), Probabilistic Boolean networks: a rule-based uncertainty model for gene regulatory networks. Bioinformatics 18(2):261--274.
 }
 \examples{
-library(BoolNet)
 data(examplePBN)
 
 # the network is stored in a variable called 'examplePBN'

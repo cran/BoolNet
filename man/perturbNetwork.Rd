@@ -54,8 +54,6 @@ Depending on the input, an object of class \code{BooleanNetwork} or \code{Probab
 \code{\link{loadNetwork}}, \code{\link{generateRandomNKNetwork}}, \code{\link{reconstructNetwork}}, \code{\link{simplifyNetwork}}}
 
 \examples{
-library(BoolNet)
-
 # load example data
 data(cellcycle)
 

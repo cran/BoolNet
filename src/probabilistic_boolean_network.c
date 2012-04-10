@@ -19,6 +19,8 @@
 #include <stdbool.h>
 #include <math.h>
 
+#define MATRIX_POOL_SIZE 1024
+
 typedef struct
 {
 	int * inputGenes;
@@ -77,6 +79,34 @@ typedef struct
 	UT_hash_handle hh;
 } MatrixEntry;
 
+/*
+ * Structure that maintains a sparse matrix
+ */
+typedef struct
+{
+  MatrixEntry ** matrix;  
+  
+  ArrayListElement * entryPool;
+  unsigned int poolArraySize;
+  unsigned int currentEntry;  
+} SparseMatrix;
+
+/*
+ * Initialize a matrix with <numCols> columns
+ * maintaining an entry pool with arrays of size
+ * <poolArraySize>
+ */
+inline SparseMatrix * allocSparseMatrix(unsigned int numCols, unsigned int poolArraySize)
+{
+  SparseMatrix * res = CALLOC(1, sizeof(SparseMatrix));
+  res->matrix = CALLOC(numCols, sizeof(MatrixEntry *));
+  memset(res->matrix,0,sizeof(MatrixEntry *) * numCols);
+  res->poolArraySize = poolArraySize;
+  res->currentEntry = 0;
+  res->entryPool = NULL;
+  return res;
+}
+
 
 /**
  * Calculate a transition table with one entry for each state. Each entry consists of
@@ -108,7 +138,7 @@ unsigned int * probabilisticTransitionTable(ProbabilisticBooleanNetwork * net,
 
 	// allocate truth table with 2^(non-fixed genes) elements
 	*tableSize = (1 << numNonFixed);
-	unsigned int * table = calloc(*tableSize * *numElements,sizeof(unsigned int));
+	unsigned int * table = CALLOC(*tableSize * *numElements,sizeof(unsigned int));
 	if (table == 0)
 	{
 		Rf_error("Too few memory available!");
@@ -119,6 +149,7 @@ unsigned int * probabilisticTransitionTable(ProbabilisticBooleanNetwork * net,
 	// calculate state transitions
 	for(initialState = 0; initialState < *tableSize; ++initialState)
 	{
+    R_CheckUserInterrupt();
 		//state is simply the binary encoding of the counter
 
 		//calculate transitions
@@ -202,18 +233,23 @@ static inline bool nextFunctionCombination(unsigned int * maxVals, unsigned int 
  * Add <value> to the element of <hash> whose start state is <state>,
  * or add the corresponding element to the hash table
  */
-static inline void addToMatrixEntry(MatrixEntry ** hash, unsigned int state, double value)
+static inline void addToMatrixEntry(SparseMatrix * matrix, unsigned int column, unsigned int state, double value)
 {
 	MatrixEntry * entry;
-	HASH_FIND_INT(*hash, &state, entry);
+	HASH_FIND_INT(matrix->matrix[column], &state, entry);
 
 	if (entry == NULL)
 	// add a new hash table entry
 	{
-		entry = calloc(1,sizeof(MatrixEntry));
+	  if (matrix->currentEntry % matrix->poolArraySize == 0)
+	    allocNewArray(&matrix->entryPool, matrix->poolArraySize, sizeof(MatrixEntry));
+	
+		entry = &(((MatrixEntry *)matrix->entryPool->array)[matrix->currentEntry % matrix->poolArraySize]);
+		++matrix->currentEntry;
+		
 		entry->probability = 0.0;
 		entry->state = state;
-		HASH_ADD_INT(*hash,state,entry);
+		HASH_ADD_INT(matrix->matrix[column],state,entry);
 	}
 
 	// increment probability
@@ -250,30 +286,34 @@ static inline unsigned int extractState(unsigned int * table, unsigned int numEl
 	return res;
 }
 
+
 /**
  * Free all hash tables in the matrix array <matrix>
  * and the array itself.
  * <size> is the number of columns of the matrix.
  */
-void freeMatrix(MatrixEntry ** matrix, unsigned int size)
+void freeMatrix(SparseMatrix * matrix)
 {
+	/*
 	unsigned int i;
 	for (i = 0; i < size; ++i)
 	{
 		MatrixEntry * entry;
 
-		// free hash table
+		// FREE hash table
 		while(matrix[i])
 		{
 		    entry = matrix[i];
 		    HASH_DEL(matrix[i],entry);
-		    free(entry);
+		    FREE(entry);
 		}
 
-	}
+	}*/
+	FREE(matrix->matrix);
+	freeArrayList(matrix->entryPool);
 
 	// free array
-	free(matrix);
+	FREE(matrix);
 }
 
 /**
@@ -283,7 +323,7 @@ void freeMatrix(MatrixEntry ** matrix, unsigned int size)
  * <startStates> is an optional vector with <numStartStates> encoded start states.
  */
 double * markovSimulation(ProbabilisticBooleanNetwork * net, unsigned int numIterations,
-						  unsigned int * outcomeSize, MatrixEntry *** stateProbabilities,
+						  unsigned int * outcomeSize, SparseMatrix ** stateProbabilities,
 						  unsigned int * startStates, unsigned int numStartStates)
 {
 	unsigned int tableSize = 0, numElements = 0, i, k;
@@ -291,10 +331,8 @@ double * markovSimulation(ProbabilisticBooleanNetwork * net, unsigned int numIte
 	// calculate combined transition table
 	unsigned int * table = probabilisticTransitionTable(net,&tableSize,&numElements);
 
-	MatrixEntry ** matrix = calloc(tableSize,sizeof(MatrixEntry *));
+	SparseMatrix * matrix = allocSparseMatrix(tableSize, MATRIX_POOL_SIZE);
 	*stateProbabilities = matrix;
-
-	memset(matrix,0,sizeof(MatrixEntry *) * tableSize);
 
 	unsigned int combination[net->numNonFixedGenes];
 	memset(combination,0,sizeof(unsigned int) * net->numNonFixedGenes);
@@ -316,7 +354,6 @@ double * markovSimulation(ProbabilisticBooleanNetwork * net, unsigned int numIte
 	do
 	// iterate over all possible function combinations
 	{
-
 		double probability = net->transitionFunctions[geneIndices[0]][combination[0]].probability;
 
 		for (i = 1; i < net->numNonFixedGenes; ++i)
@@ -325,15 +362,17 @@ double * markovSimulation(ProbabilisticBooleanNetwork * net, unsigned int numIte
 		for (i = 0; i < tableSize; ++i)
 		// add probabilities for all reached states in the transition table
 		{
+      R_CheckUserInterrupt();
 			unsigned int state = extractState(table,numElements,i,combination,net);
-			addToMatrixEntry(&matrix[state],i,probability);
+			addToMatrixEntry(matrix,state,i,probability);
 		}
 	}
 	while (nextFunctionCombination(maxCombination,combination,net->numNonFixedGenes));
 
-	free(table);
-
-	double * outcome = calloc(tableSize,sizeof(double));
+	FREE(table);
+	
+	double * outcome = CALLOC(tableSize,sizeof(double));
+	double * oldOutcome = CALLOC(tableSize,sizeof(double));	
 	*outcomeSize = tableSize;
 
 	if (numStartStates == 0)
@@ -356,7 +395,8 @@ double * markovSimulation(ProbabilisticBooleanNetwork * net, unsigned int numIte
 	for (k = 0; k < numIterations; ++k)
 	// perform <numIterations> matrix multiplications
 	{
-		double oldOutcome[tableSize];
+	  R_CheckUserInterrupt();
+	  
 		memcpy(oldOutcome,outcome,sizeof(double) * tableSize);
 
 		for (i = 0; i < tableSize; ++i)
@@ -364,13 +404,15 @@ double * markovSimulation(ProbabilisticBooleanNetwork * net, unsigned int numIte
 			MatrixEntry * entry;
 			outcome[i] = 0.0;
 
-			for(entry = matrix[i]; entry != NULL; entry=entry->hh.next)
+			for(entry = matrix->matrix[i]; entry != NULL; entry=entry->hh.next)
 			{
 				outcome[i] += oldOutcome[entry->state] * entry->probability;
 			}
 
 		}
 	}
+	
+	FREE(oldOutcome);
 
 	return outcome;
 }
@@ -431,9 +473,9 @@ SEXP markovSimulation_R(SEXP inputGenes,
 
 	network.numGenes = length(fixedGenes);
 
-	network.fixedGenes = calloc(network.numGenes,sizeof(int));
+	network.fixedGenes = CALLOC(network.numGenes,sizeof(int));
 	memcpy(network.fixedGenes,INTEGER(fixedGenes),sizeof(unsigned int) * network.numGenes);
-	network.nonFixedGeneBits = calloc(network.numGenes,sizeof(unsigned int));
+	network.nonFixedGeneBits = CALLOC(network.numGenes,sizeof(unsigned int));
 
 	// determine which genes are not fixed
 	network.numNonFixedGenes = 0;
@@ -445,8 +487,8 @@ SEXP markovSimulation_R(SEXP inputGenes,
 			}
 	}
 
-	network.numFunctionsPerGene = calloc(network.numGenes,sizeof(unsigned int));
-	network.transitionFunctions = calloc(network.numGenes,sizeof(PBNFunction *));
+	network.numFunctionsPerGene = CALLOC(network.numGenes,sizeof(unsigned int));
+	network.transitionFunctions = CALLOC(network.numGenes,sizeof(PBNFunction *));
 
 	// count number of functions per gene
 	for (i = 0; i < length(functionAssignment); ++i)
@@ -457,7 +499,7 @@ SEXP markovSimulation_R(SEXP inputGenes,
 	// allocate function vectors
 	for (i = 0; i < network.numGenes; ++i)
 	{
-		network.transitionFunctions[i] = calloc(network.numFunctionsPerGene[i],sizeof(PBNFunction));
+		network.transitionFunctions[i] = CALLOC(network.numFunctionsPerGene[i],sizeof(PBNFunction));
 	}
 
 	unsigned int functionCounter[network.numGenes];
@@ -473,12 +515,12 @@ SEXP markovSimulation_R(SEXP inputGenes,
 
 		unsigned int numInputs = _inputGenePositions[i+1] - _inputGenePositions[i];
 
-		current->inputGenes = calloc(numInputs,sizeof(int));
+		current->inputGenes = CALLOC(numInputs,sizeof(int));
 		memcpy(current->inputGenes,&_inputGenes[_inputGenePositions[i]],numInputs*sizeof(int));
 
 		current->numGenes = numInputs;
 
-		current->transitionFunction = calloc(1 << numInputs,sizeof(int));
+		current->transitionFunction = CALLOC(1 << numInputs,sizeof(int));
 		memcpy(current->transitionFunction,&_transitionFunctions[_transitionFunctionPositions[i]],
 			   (1 << numInputs)*sizeof(int));
 
@@ -531,12 +573,12 @@ SEXP markovSimulation_R(SEXP inputGenes,
 
 	unsigned int outcomeSize = 0;
 
-	MatrixEntry ** matrix;
+	SparseMatrix * matrix;
 
 	// perform simulation
 	double * outcome = markovSimulation(&network,_numSteps,&outcomeSize,&matrix,
 										decodedStartStates,numStartStates);
-
+										
 	// determine number of non-zero results
 	unsigned int nonZero = 0;
 	for (i = 0; i < outcomeSize; ++i)
@@ -558,6 +600,7 @@ SEXP markovSimulation_R(SEXP inputGenes,
 
 	int * states = INTEGER(stateSXP);
 	double * prob = REAL(probSXP);
+  //return R_NilValue;
 
 	for (i = 0, j = 0; i < outcomeSize; ++i)
 	// encode states with non-zero probability
@@ -593,12 +636,12 @@ SEXP markovSimulation_R(SEXP inputGenes,
 		{
 			MatrixEntry * entry;
 
-			for(entry = matrix[i]; entry != NULL; entry=entry->hh.next)
+			for(entry = matrix->matrix[i]; entry != NULL; entry=entry->hh.next)
 			{
 				++tableSize;
 			}
 		}
-
+		
 		SEXP initialStateSXP, nextStateSXP, transitionProbSXP;
 		PROTECT(initialStateSXP = allocVector(INTSXP,tableSize * startStateElements));
 		PROTECT(nextStateSXP = allocVector(INTSXP,tableSize * startStateElements));
@@ -614,7 +657,7 @@ SEXP markovSimulation_R(SEXP inputGenes,
 		{
 			MatrixEntry * entry;
 
-			for(entry = matrix[i]; entry != NULL; entry=entry->hh.next)
+			for(entry = matrix->matrix[i]; entry != NULL; entry=entry->hh.next)
 			{
 				initialStates[j * startStateElements] = entry->state;
 				insertFixedGenes(&initialStates[j*startStateElements],network.fixedGenes,network.numGenes);
@@ -635,8 +678,8 @@ SEXP markovSimulation_R(SEXP inputGenes,
 
 	UNPROTECT(3);
 
-	freeMatrix(matrix,outcomeSize);
-	free(outcome);
+	freeMatrix(matrix);
+	FREE(outcome);
 
 	return resSXP;
 }

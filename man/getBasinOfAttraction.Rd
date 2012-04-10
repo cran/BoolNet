@@ -30,8 +30,6 @@ The \code{TransitionTable} class supports pretty printing using the \code{\link{
 \code{\link{getStateSummary}}, \code{\link{getTransitionTable}}, \code{\link{getAttractors}}
 }
 \examples{
-library(BoolNet)
-
 # load example data
 data(cellcycle)
 

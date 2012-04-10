@@ -18,6 +18,7 @@
 #include <math.h>
 #include "random.h"
 #include "common.h"
+#include <time.h>
 
 /**
  * Identification of attractors
@@ -25,6 +26,7 @@
 
 #define SYNC_MODE 0
 #define ASYNC_MODE_RANDOM 1
+#define NODE_ARRAY_SIZE 1024
 
 /**
  * Internal structure describing a Boolean network
@@ -185,9 +187,23 @@ typedef struct STN
 
 } StateTreeNode;
 
-void stateTransition(unsigned int * currentState, unsigned int * nextState, BooleanNetwork * net);
+typedef struct
+{
+  StateTreeNode * root;
+  
+  unsigned int arraySize;
+  unsigned int nodeCount;
+  unsigned int numElements;
+  
+  unsigned int successorPos;
+  
+  ArrayListElement * nodeArrays;  
+  ArrayListElement * dataArrays;
+  
+  ArrayListElement * successorArrays;  
+} StateTree;
 
-unsigned int nodeCount = 0;
+void stateTransition(unsigned int * currentState, unsigned int * nextState, BooleanNetwork * net);
 
 
 /**
@@ -195,7 +211,7 @@ unsigned int nodeCount = 0;
  */
 pAttractorInfo allocAttractorInfo(unsigned long long tableSize, unsigned int numGenes)
 {
-	pAttractorInfo res = (pAttractorInfo)calloc(1,sizeof(AttractorInfo));
+	pAttractorInfo res = (pAttractorInfo)CALLOC(1,sizeof(AttractorInfo));
 	if ((numGenes % BITS_PER_BLOCK_32) == 0)
 		res->numElementsPerEntry = numGenes/BITS_PER_BLOCK_32;
 	else
@@ -203,9 +219,9 @@ pAttractorInfo allocAttractorInfo(unsigned long long tableSize, unsigned int num
 	res->table = NULL;
 	res->tableSize = tableSize;
 	res->initialStates = NULL;
-	res->table = (unsigned int*) calloc(tableSize * res->numElementsPerEntry,sizeof(unsigned int));
-	res->attractorAssignment = (unsigned int*) calloc(tableSize,sizeof(unsigned int));
-	res->stepsToAttractor = (unsigned int*) calloc(tableSize,sizeof(unsigned int));
+	res->table = (unsigned int*) CALLOC(tableSize * res->numElementsPerEntry,sizeof(unsigned int));
+	res->attractorAssignment = (unsigned int*) CALLOC(tableSize,sizeof(unsigned int));
+	res->stepsToAttractor = (unsigned int*) CALLOC(tableSize,sizeof(unsigned int));
 	return res;
 }
 
@@ -217,8 +233,9 @@ void freeAttractorList(pAttractor p)
 	do
 	{
 		pAttractor next = p->next;
-		free(p->involvedStates);
-		free(p);
+		if (p->involvedStates != NULL)
+  		FREE(p->involvedStates);
+		FREE(p);
 		p = next;
 	}
 	while(p != NULL);
@@ -231,12 +248,12 @@ void freeAttractorList(pAttractor p)
 void freeAttractorInfo(pAttractorInfo p)
 {
 	if (p->initialStates != 0)
-		free(p->initialStates);
-	free(p->table);
-	free(p->attractorAssignment);
-	free(p->stepsToAttractor);
+		FREE(p->initialStates);
+	FREE(p->table);
+	FREE(p->attractorAssignment);
+	FREE(p->stepsToAttractor);
 	freeAttractorList(p->attractorList);
-	free(p);
+	FREE(p);
 }
 
 /**
@@ -248,9 +265,9 @@ TransitionTableEntry * insertNewTransition(TransitionTableEntry ** table,
 										   unsigned int * nextState,
 										   unsigned int numElements)
 {
-	TransitionTableEntry * entry = (TransitionTableEntry *)calloc(1,sizeof(TransitionTableEntry));
-	entry->initialState = calloc(numElements,sizeof(unsigned int));
-	entry->nextState = calloc(numElements,sizeof(unsigned int));
+	TransitionTableEntry * entry = (TransitionTableEntry *)CALLOC(1,sizeof(TransitionTableEntry));
+	entry->initialState = CALLOC(numElements,sizeof(unsigned int));
+	entry->nextState = CALLOC(numElements,sizeof(unsigned int));
 	memcpy(entry->initialState,initialState,numElements*sizeof(unsigned int));
 	memcpy(entry->nextState,nextState,numElements*sizeof(unsigned int));
 	entry->next = *table;
@@ -266,12 +283,49 @@ void freeTransitionTableEntry(TransitionTableEntry * t)
 	do
 	{
 		TransitionTableEntry * next = t->next;
-		free(t->initialState);
-		free(t->nextState);
-		free(t);
+		FREE(t->initialState);
+		FREE(t->nextState);
+		FREE(t);
 		t = next;
 	}
 	while (t != NULL);
+}
+
+
+inline StateTree * allocStateTree(unsigned int numElements, unsigned int arraySize)
+{
+  StateTree * tree = CALLOC(1, sizeof(StateTree));
+  tree->root = NULL;
+  tree->arraySize = arraySize;
+  tree->successorPos = 0;
+  tree->nodeCount = 0;
+  tree->nodeArrays = NULL;
+  tree->dataArrays = NULL;
+  tree->successorArrays = NULL;
+  tree->numElements = numElements;
+  
+  return(tree);
+}
+
+inline void newNodeArray(StateTree * tree)
+{
+  allocNewArray(&tree->nodeArrays, tree->arraySize, sizeof(StateTreeNode));
+  allocNewArray(&tree->dataArrays, tree->arraySize * tree->numElements, sizeof(unsigned int));
+}
+
+inline void newSuccessorArray(StateTree * tree)
+{
+  allocNewArray(&tree->successorArrays, tree->arraySize, sizeof(StateTreeNode *));
+  tree->successorPos = 0;
+}
+
+inline void freeStateTree(StateTree * tree)
+{
+  freeArrayList(tree->nodeArrays);
+  freeArrayList(tree->dataArrays);
+  freeArrayList(tree->successorArrays);	
+	
+	FREE(tree);
 }
 
 /**
@@ -287,7 +341,8 @@ void freeTransitionTableEntry(TransitionTableEntry * t)
  *
  * Returns a state tree node with the supplied values.
  */
-StateTreeNode * allocTreeNode(StateTreeNode * leftChild,
+inline StateTreeNode * allocTreeNode(StateTree * tree,
+                StateTreeNode * leftChild,
 							  StateTreeNode * rightChild,
 							  StateTreeNode * successor,
 							  unsigned int * data,
@@ -295,23 +350,39 @@ StateTreeNode * allocTreeNode(StateTreeNode * leftChild,
 							  unsigned int attractorAssignment,
 							  unsigned int stepsToAttractor)
 {
-	StateTreeNode * res = calloc(1,sizeof(StateTreeNode));
+  if (tree->nodeCount % tree->arraySize == 0)
+      newNodeArray(tree);
+          
+	StateTreeNode * res = &(((StateTreeNode *)tree->nodeArrays->array)[tree->nodeCount % tree->arraySize]);
+	
 	res->leftChild = leftChild;
 	res->rightChild = rightChild;
 	res->type.sync.successor = successor;
-	res->data = calloc(numElements,sizeof(unsigned int));
+	res->data = &(((unsigned int *)tree->dataArrays->array)
+	             [(tree->nodeCount % tree->arraySize) * tree->numElements]);
+	             	
 	memcpy(res->data,data,numElements*sizeof(unsigned int));
 
 	res->type.sync.attractorAssignment = attractorAssignment;
 	res->type.sync.stepsToAttractor = stepsToAttractor;
-	++nodeCount;
+	++tree->nodeCount;
 	return res;
+}
+
+inline StateTreeNode ** reserveSuccessorArray(StateTree * tree, unsigned int numSuccessors)
+{
+  if (tree->successorArrays == NULL || tree->successorPos + numSuccessors >= tree->arraySize)
+    newSuccessorArray(tree);
+  
+  StateTreeNode ** res = &(((StateTreeNode **)tree->successorArrays->array)[tree->successorPos]);
+  tree->successorPos += numSuccessors;
+  return res;
 }
 
 /**
  * Recursive helper function for findNode()
  */
-StateTreeNode * findNodeRec(StateTreeNode * parent, unsigned int * data, unsigned int numElements, bool * found)
+StateTreeNode * findNodeRec(StateTree * tree, StateTreeNode * parent, unsigned int * data, unsigned int numElements, bool * found)
 {
 	unsigned int direction = 0;
 	int i;
@@ -336,21 +407,21 @@ StateTreeNode * findNodeRec(StateTreeNode * parent, unsigned int * data, unsigne
 		case 1:
 			if (parent->rightChild == 0)
 			{
-				parent->rightChild =  allocTreeNode(0,0,0,data,numElements,0,0);
+				parent->rightChild = allocTreeNode(tree, 0,0,0,data,numElements,0,0);
 				*found = false;
 				return parent->rightChild;
 			}
 			else
-				return findNodeRec(parent->rightChild,data,numElements,found);
+				return findNodeRec(tree, parent->rightChild,data,numElements,found);
 		case 2:
 			if (parent->leftChild == 0)
 			{
-				parent->leftChild =  allocTreeNode(0,0,0,data,numElements,0,0);
+				parent->leftChild = allocTreeNode(tree, 0,0,0,data,numElements,0,0);
 				*found = false;
 				return parent->leftChild;
 			}
 			else
-				return findNodeRec(parent->leftChild,data,numElements,found);
+				return findNodeRec(tree, parent->leftChild,data,numElements,found);
 	}
 	// should never be reached
 	return 0;
@@ -365,15 +436,15 @@ StateTreeNode * findNodeRec(StateTreeNode * parent, unsigned int * data, unsigne
  * Returns the (possibly newly created) node belonging to <data>. If the tree is empty,
  * <root> is set to this node.
  */
-StateTreeNode * findNode(StateTreeNode ** root, unsigned int * data, unsigned int numElements, bool * found)
+StateTreeNode * findNode(StateTree * tree, unsigned int * data, unsigned int numElements, bool * found)
 {
-	if (*root == 0)
+	if (tree->root == 0)
 	{
-		*root = allocTreeNode(0,0,0,data,numElements,0,0);
+		tree->root = allocTreeNode(tree, 0,0,0,data,numElements,0,0);
 		*found = false;
-		return *root;
+		return tree->root;
 	}
-	return findNodeRec(*root,data,numElements, found);
+	return findNodeRec(tree, tree->root,data,numElements, found);
 }
 
 /**
@@ -384,7 +455,7 @@ StateTreeNode * findNode(StateTreeNode ** root, unsigned int * data, unsigned in
  * <net> describes the network for which a state transition is performed.
  * <basinCounter> is a counter to be increased when a new state is identified
  */
-StateTreeNode * findSuccessor(StateTreeNode ** root, StateTreeNode * current,
+StateTreeNode * findSuccessor(StateTree * tree, StateTreeNode * current,
 							 unsigned int numElementsPerEntry, BooleanNetwork * net, unsigned int * basinCounter)
 {
 	bool found;
@@ -393,7 +464,7 @@ StateTreeNode * findSuccessor(StateTreeNode ** root, StateTreeNode * current,
 	{
 		unsigned int nextState[numElementsPerEntry];
 		stateTransition(current->data,nextState,net);
-		current->type.sync.successor = findNode(root,nextState,numElementsPerEntry, &found);
+		current->type.sync.successor = findNode(tree,nextState,numElementsPerEntry, &found);
  		++ *basinCounter;
 	}
 	return current->type.sync.successor;
@@ -415,6 +486,7 @@ void inOrderSerializeTree(StateTreeNode * root,
 						  unsigned int numElements,
 						  unsigned int * nodeNo)
 {
+ 	R_CheckUserInterrupt();
 	if (root->leftChild != 0)
 	// recursive descent of left subtree
 		inOrderSerializeTree(root->leftChild,initialStates,table,attractorAssignment,
@@ -437,6 +509,7 @@ void inOrderSerializeTree(StateTreeNode * root,
  * Free a state tree supplied by <node> recursively.
  * If <freeSuccessorArray>, <successors> is assumed to be an array and freed
  */
+/*
 void freeTreeNode(StateTreeNode * node, bool freeSuccessorArray)
 {
 	if (node->leftChild != 0)
@@ -444,11 +517,12 @@ void freeTreeNode(StateTreeNode * node, bool freeSuccessorArray)
 	if (node->rightChild != 0)
 		freeTreeNode(node->rightChild, freeSuccessorArray);
 	if (freeSuccessorArray)
-		free(node->type.async.successors);
-	free(node->data);
-	free(node);
+		FREE(node->type.async.successors);
+	FREE(node->data);
+	FREE(node);
 	--nodeCount;
 }
+*/
 
 /**
  * Make a transition from <currentState> to the next state.
@@ -546,7 +620,7 @@ unsigned long long * getTransitionTable(BooleanNetwork * net)
 
 	// allocate truth table with 2^(non-fixed genes) elements
 	unsigned long long numberOfElements = pow(2,numNonFixed);
-	unsigned long long * table = calloc(numberOfElements,sizeof(unsigned long long));
+	unsigned long long * table = CALLOC(numberOfElements,sizeof(unsigned long long));
 	if (table == 0)
 	{
 		Rf_error("Too few memory available!");
@@ -557,6 +631,7 @@ unsigned long long * getTransitionTable(BooleanNetwork * net)
 	// calculate state transitions
 	for(initialState = 0; initialState < numberOfElements; ++initialState)
 	{
+    R_CheckUserInterrupt();
 		//state is simply the binary encoding of the counter
 		//calculate transition
 		table[initialState] = 0;
@@ -594,11 +669,12 @@ pAttractorInfo getAttractors(unsigned long long * table, unsigned int numberOfSt
 	}
 
 	pAttractor attractorHead, attractorList,tmpList;
-	attractorHead = attractorList = (pAttractor) calloc(1,sizeof(Attractor));
+	attractorHead = attractorList = (pAttractor) CALLOC(1,sizeof(Attractor));
 	attractorList->next = NULL;
 
 	for(i = 0; i < numberOfStates; i++)
 	{
+  	R_CheckUserInterrupt();
 		if(!result->attractorAssignment[i])
 		// the current state has not yet been visited
 		{
@@ -643,7 +719,7 @@ pAttractorInfo getAttractors(unsigned long long * table, unsigned int numberOfSt
 
 				attractorList->length = steps - rec;
 
-				attractorList->involvedStates = (unsigned int *) calloc(attractorList->length * elementsPerEntry,sizeof(unsigned int));
+				attractorList->involvedStates = (unsigned int *) CALLOC(attractorList->length * elementsPerEntry,sizeof(unsigned int));
 				attractorList->numElementsPerEntry = elementsPerEntry;
 
 				int a=0;
@@ -658,7 +734,7 @@ pAttractorInfo getAttractors(unsigned long long * table, unsigned int numberOfSt
 				while(tmp != begin); /* set steps of attractors to 0; add attractor stub information */
 
 				//generate a next attractor space
-				attractorList->next = (pAttractor)calloc(1,sizeof(Attractor));
+				attractorList->next = (pAttractor)CALLOC(1,sizeof(Attractor));
 				attractorList = attractorList->next;
 				attractorList->next = NULL;
 			}
@@ -691,7 +767,7 @@ pAttractorInfo getAttractors(unsigned long long * table, unsigned int numberOfSt
 
 	result->attractorList = attractorHead;
 
-	free(table);
+	FREE(table);
 
 	return result;
 }
@@ -721,16 +797,16 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 	}
 	
 	// all states are stored in a tree for fast search
-	StateTreeNode * stateTree = 0;
+	StateTree * stateTree = allocStateTree(elementsPerEntry, NODE_ARRAY_SIZE);
 
 	pAttractor attractorHead, attractorList,tmpList;
-	attractorHead = attractorList = (pAttractor) calloc(1,sizeof(Attractor));
+	attractorHead = attractorList = (pAttractor) CALLOC(1,sizeof(Attractor));
 	attractorList->next = NULL;
 	
 	for(i = 0; i < numberOfStates; i++)
 	{
 	  // check whether the current state is already in the state tree, otherwise insert it
-		StateTreeNode * currentState = findNode(&stateTree,&selectedStates[i*elementsPerEntry],elementsPerEntry,&found);
+		StateTreeNode * currentState = findNode(stateTree,&selectedStates[i*elementsPerEntry],elementsPerEntry,&found);
 		if(!currentState->type.sync.attractorAssignment)
 		// the current state has not yet been visited
 		{
@@ -744,6 +820,7 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 			while(!currentState->type.sync.attractorAssignment)
 			// iterate while no attractor has been assigned
 			{
+		  	R_CheckUserInterrupt();
 				++steps;
 
 				// first simply count steps until attractor is reached
@@ -753,7 +830,7 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 				currentState->type.sync.attractorAssignment = current_attractor;
 
 				// perform a state transition
-				currentState = findSuccessor(&stateTree,currentState,elementsPerEntry,net,&basinSize);
+				currentState = findSuccessor(stateTree,currentState,elementsPerEntry,net,&basinSize);
 			}
 			if(current_attractor == currentState->type.sync.attractorAssignment)
 			//calculate length and basin size of new attractor
@@ -765,34 +842,36 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 				int maxstep = currentState->type.sync.stepsToAttractor;
 
 				int rec = 0;
-				StateTreeNode * tmp = findNode(&stateTree,&selectedStates[i*elementsPerEntry],elementsPerEntry,&found);
+				StateTreeNode * tmp = findNode(stateTree,&selectedStates[i*elementsPerEntry],elementsPerEntry,&found);
 
 				while(memcmp(tmp->data,currentState->data,elementsPerEntry*sizeof(unsigned int)))
 				{
+			  	R_CheckUserInterrupt();
 					rec++;
 					tmp->type.sync.stepsToAttractor = maxstep - tmp->type.sync.stepsToAttractor;
 
 					// perform a state transition
-					tmp = findSuccessor(&stateTree,tmp,elementsPerEntry,net,&basinSize);
+					tmp = findSuccessor(stateTree,tmp,elementsPerEntry,net,&basinSize);
 				}
 
 				attractorList->length = steps - rec;
 
-				attractorList->involvedStates = (unsigned int *) calloc(attractorList->length * elementsPerEntry,sizeof(unsigned int));
+				attractorList->involvedStates = (unsigned int *) CALLOC(attractorList->length * elementsPerEntry,sizeof(unsigned int));
 				attractorList->numElementsPerEntry = elementsPerEntry;
 
 				int a=0;
 				do
 				{
+			  	R_CheckUserInterrupt();
 					tmp->type.sync.stepsToAttractor = 0;
 					memcpy(&attractorList->involvedStates[a],tmp->data,elementsPerEntry*sizeof(unsigned int));
-					tmp = findSuccessor(&stateTree,tmp,elementsPerEntry,net,&basinSize);
+					tmp = findSuccessor(stateTree,tmp,elementsPerEntry,net,&basinSize);
 					a += elementsPerEntry;
 				}
 				while(memcmp(tmp->data,currentState->data,elementsPerEntry*sizeof(unsigned int)));
 
 				//generate a next attractor space
-				attractorList->next = (pAttractor)calloc(1,sizeof(Attractor));
+				attractorList->next = (pAttractor)CALLOC(1,sizeof(Attractor));
 				attractorList = attractorList->next;
 				attractorList->next = NULL;
 			}
@@ -804,16 +883,17 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 
 				// assign states to attractor basin, and
 				// correct the numbers of steps to the attractor
-				StateTreeNode * tmp = findNode(&stateTree,&selectedStates[i*elementsPerEntry],elementsPerEntry,&found);
+				StateTreeNode * tmp = findNode(stateTree,&selectedStates[i*elementsPerEntry],elementsPerEntry,&found);
 				int maxstp = currentState->type.sync.stepsToAttractor + steps;
 
 				while(memcmp(tmp->data,currentState->data,elementsPerEntry*sizeof(unsigned int)))
 				{
+			  	R_CheckUserInterrupt();
 					tmp->type.sync.attractorAssignment = currentState->type.sync.attractorAssignment;
 					tmp->type.sync.stepsToAttractor = maxstp - tmp->type.sync.stepsToAttractor + 1;
 
 					//perform a state transition
-					tmp = findSuccessor(&stateTree,tmp,elementsPerEntry,net,&basinSize);
+					tmp = findSuccessor(stateTree,tmp,elementsPerEntry,net,&basinSize);
 				}
 
 				// update basin size in attractor record
@@ -828,21 +908,21 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 		}
 	}
 
-	pAttractorInfo result = allocAttractorInfo(nodeCount,net->numGenes);
+	pAttractorInfo result = allocAttractorInfo(stateTree->nodeCount,net->numGenes);
 	result->attractorList = attractorHead;
-	result->initialStates = calloc(result->tableSize * elementsPerEntry,sizeof(unsigned int));
+	result->initialStates = CALLOC(result->tableSize * elementsPerEntry,sizeof(unsigned int));
 
 	unsigned int nodeNo = 0;
 
 	// build a series of arrays by in-order traversing the tree
-	inOrderSerializeTree(stateTree,
+	inOrderSerializeTree(stateTree->root,
 						 result->initialStates,
 						 result->table,
 						 result->attractorAssignment,
 						 result->stepsToAttractor,
 						 elementsPerEntry,
 						 &nodeNo);
-	freeTreeNode(stateTree,false);
+	freeStateTree(stateTree);
 	return result;
 }
 
@@ -865,10 +945,10 @@ static inline StateStackElement * pushStateStackElement(StateStackElement ** sta
 												 unsigned int * state,
 												 unsigned int numElements)
 {
-	StateStackElement * el = calloc(1,sizeof(StateStackElement));
+	StateStackElement * el = CALLOC(1,sizeof(StateStackElement));
 
 
-	el->state = calloc(numElements,sizeof(unsigned int));
+	el->state = CALLOC(numElements,sizeof(unsigned int));
 	memcpy(el->state,state,sizeof(unsigned int) * numElements);
 
 	el->next = *stack;
@@ -883,8 +963,9 @@ static inline void deleteStateStackElement(StateStackElement ** stack)
 {
 	StateStackElement * el = *stack;
 	*stack = (*stack)->next;
-	free(el->state);
-	free(el);
+  
+	FREE(el->state);
+	FREE(el);
 }
 
 
@@ -988,13 +1069,12 @@ static inline void asynchronousStateTransition(unsigned int * currentState, doub
  * <numElements> is the number of array elements used to represent one state.
  * If <avoidSelfLoops> is true, self loops are only considered if there are no other possible transitions.
  * <net> holds the network information.
- * <res> points to the root of the resulting state tree (set).
- * Returns the number of states in the set.
+ * Returns the resulting state tree (set)..
  */
-unsigned int buildAsynchronousStateSet(unsigned int * startState, unsigned int numElements,
-									   bool avoidSelfLoops, BooleanNetwork * net, StateTreeNode ** res)
+StateTree * buildAsynchronousStateSet(unsigned int * startState, unsigned int numElements,
+									   bool avoidSelfLoops, BooleanNetwork * net)
 {
-	unsigned int startNodeCount = nodeCount;
+  StateTree * res = allocStateTree(numElements, NODE_ARRAY_SIZE);
 	StateStackElement * stack = NULL;
 	unsigned int i;
 	bool found=false, newNodes=false;
@@ -1004,6 +1084,7 @@ unsigned int buildAsynchronousStateSet(unsigned int * startState, unsigned int n
 	do
 	// iterate while stack is not empty (depth-first search)
 	{
+  	R_CheckUserInterrupt();
 		unsigned int origstate[numElements];
 
 		memcpy(origstate,stack->state,sizeof(unsigned int) * numElements);
@@ -1044,7 +1125,7 @@ unsigned int buildAsynchronousStateSet(unsigned int * startState, unsigned int n
 			// all transitions are self loops
 			// => accept self loop
 			{
-				successors = calloc(1,sizeof(StateTreeNode * ));
+				successors = reserveSuccessorArray(res,1);
 				numSuccessors = 1;
 				successors[0] = findNode(res,successorStates,numElements,&found);
 				if (!found)
@@ -1054,7 +1135,7 @@ unsigned int buildAsynchronousStateSet(unsigned int * startState, unsigned int n
 			// there is at least one transition that is no self loop
 			// => do not accept self loops
 			{
-				successors = calloc(numNonSelfLoops,sizeof(StateTreeNode * ));
+				successors = reserveSuccessorArray(res, numNonSelfLoops);
 				numSuccessors = numNonSelfLoops;
 				unsigned int j;
 				for (i = 0, j = 0; i < net->numGenes; ++i)
@@ -1074,7 +1155,7 @@ unsigned int buildAsynchronousStateSet(unsigned int * startState, unsigned int n
 		// self loops are allowed
 		{
 			unsigned int state[numElements];
-			successors = calloc(net->numGenes,sizeof(StateTreeNode * ));
+			successors = reserveSuccessorArray(res,net->numGenes);
 			numSuccessors = net->numGenes;
 			for (i = 0; i < net->numGenes; ++i)
 			// calculate all successors
@@ -1094,7 +1175,7 @@ unsigned int buildAsynchronousStateSet(unsigned int * startState, unsigned int n
 	while (stack != NULL);
 
 	// return the number of elements in the state set
-	return (nodeCount - startNodeCount);
+	return res;
 }
 
 /**
@@ -1108,7 +1189,6 @@ void getStateSet(StateTreeNode * root,
 				 unsigned int numElements,
 				 unsigned int * nodeNo)
 {
-
 	if (root->leftChild != 0)
 	// recursive descent of left subtree
 		getStateSet(root->leftChild,states,numElements,nodeNo);
@@ -1186,20 +1266,18 @@ bool validateAttractor(unsigned int * attractor, unsigned int attractorLength,
 	for (i = 0; i < attractorLength; ++i)
 	// iterate over states
 	{
-		StateTreeNode * set = NULL;
-
-		// calculate forward reachable set of current state
-		unsigned int size_set = buildAsynchronousStateSet(&attractor[i*numElts],numElts,avoidSelfLoops,net,&set);
-		if (size_set != attractorLength)
+		StateTree * set = buildAsynchronousStateSet(&attractor[i*numElts],numElts,avoidSelfLoops,net);
+		if (set->nodeCount != attractorLength)
 		{
-			freeTreeNode(set,true);
+			freeStateTree(set);
 			return false;
 		}
 
+		unsigned int size_set = set->nodeCount;
 		unsigned int states_set[numElts * size_set];
 		unsigned int nodeNo = 0;
-		getStateSet(set,states_set,numElts,&nodeNo);
-		freeTreeNode(set,true);
+		getStateSet(set->root,states_set,numElts,&nodeNo);
+		freeStateTree(set);
 
 		// compare forward reachable set to original set
 		if (memcmp(states_set,attractor,sizeof(unsigned int) * numElts * size_set) != 0)
@@ -1222,7 +1300,7 @@ pAttractorInfo getLooseAttractors(unsigned int * selectedStates, unsigned int nu
 					    bool avoidSelfLoops, double * probabilities)
 {
 	// attractor list has empty dummy element at the end
-	pAttractor attractorList = calloc(1,sizeof(Attractor));
+	pAttractor attractorList = CALLOC(1,sizeof(Attractor));
 
 	unsigned int numElts, i, j;
 	if (net->numGenes % BITS_PER_BLOCK_32 == 0)
@@ -1265,20 +1343,16 @@ pAttractorInfo getLooseAttractors(unsigned int * selectedStates, unsigned int nu
 		// perform <randomSteps> random state transitions
 		// to reach a potential attractor
 		{
-
 			asynchronousStateTransition(currentState,pProbabilities,net);
-
 			++t;
 		}
 
 		// calculate forward reachable set of end state
-		StateTreeNode * set = NULL;
-		unsigned int size_set = buildAsynchronousStateSet(currentState,numElts,avoidSelfLoops,net,&set);
-		unsigned int states_set[numElts * size_set];
+		StateTree * set = buildAsynchronousStateSet(currentState,numElts,avoidSelfLoops,net);
+		unsigned int states_set[numElts * set->nodeCount];
 
 		unsigned int nodeNo = 0;
-		getStateSet(set,states_set,numElts,&nodeNo);
-
+		getStateSet(set->root,states_set,numElts,&nodeNo);
 
 		// search for the current potential attractor in the attractor list
 		bool found = false;
@@ -1286,36 +1360,35 @@ pAttractorInfo getLooseAttractors(unsigned int * selectedStates, unsigned int nu
 
 		while (current != NULL && !found)
 		{
-			found = ((size_set == current->length)
-					&& (memcmp(states_set,current->involvedStates,sizeof(unsigned int) * numElts * size_set) == 0));
+			found = ((set->nodeCount == current->length)
+					&& (memcmp(states_set,current->involvedStates,sizeof(unsigned int) * numElts * set->nodeCount) == 0));
 			current = current->next;
 		}
-
 
 		if (!found)
 		// the potential attractor does not yet exist in the result list
 		{
-			if (validateAttractor(states_set,size_set,avoidSelfLoops,net))
+			if (validateAttractor(states_set,set->nodeCount,avoidSelfLoops,net))
 			// check whether this is a true attractor
 			{
-				pAttractor attractor = calloc(1,sizeof(Attractor));
+				pAttractor attractor = CALLOC(1,sizeof(Attractor));
 
 				attractor->numElementsPerEntry = numElts;
-				attractor->length = size_set;
-				attractor->involvedStates = calloc(numElts * size_set,sizeof(unsigned int));
-				memcpy(attractor->involvedStates,states_set,sizeof(unsigned int) * numElts * size_set);
+				attractor->length = set->nodeCount;
+				attractor->involvedStates = CALLOC(numElts * set->nodeCount,sizeof(unsigned int));
+				memcpy(attractor->involvedStates,states_set,sizeof(unsigned int) * numElts * set->nodeCount);
 
 				attractor->transitionTableSize = 0;
 
-				if (size_set != 1)
+				if (set->nodeCount != 1)
 				// if this is a steady-state attractor, no need to store transition table!
-					getLooseAttractorTransitionTable(set,&attractor->table,numElts,&(attractor->transitionTableSize));
+					getLooseAttractorTransitionTable(set->root,&attractor->table,numElts,&(attractor->transitionTableSize));
 
 				attractor->next = attractorList;
 				attractorList = attractor;
 			}
 		}
-		freeTreeNode(set,true);
+		freeStateTree(set);
 	}
 	pAttractorInfo res = allocAttractorInfo(0,net->numGenes);
 	res->attractorList = attractorList;
@@ -1367,7 +1440,7 @@ SEXP getAttractors_R(SEXP inputGenes,
 	network.transitionFunctions = INTEGER(transitionFunctions);
 	network.transitionFunctionPositions = INTEGER(transitionFunctionPositions);
 	network.fixedGenes = INTEGER(fixedGenes);
-	network.nonFixedGeneBits = calloc(network.numGenes,sizeof(unsigned int));
+	network.nonFixedGeneBits = CALLOC(network.numGenes,sizeof(unsigned int));
 
 	int _networkType = *INTEGER(networkType);
 	int _randomSteps = *INTEGER(randomSteps);
@@ -1608,7 +1681,8 @@ SEXP getAttractors_R(SEXP inputGenes,
 
 	// free resources
 	freeAttractorInfo(res);
-	free(network.nonFixedGeneBits);
+	
+	FREE(network.nonFixedGeneBits);
 
 	return(resSXP);
 }

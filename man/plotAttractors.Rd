@@ -19,6 +19,7 @@ plotAttractors(attractorInfo,
                offColor = "red",
                layout = layout.circle, 
                drawLabels = TRUE,
+               drawLegend = TRUE,
                ...) 
 }
 \arguments{
@@ -37,8 +38,9 @@ plotAttractors(attractorInfo,
   \item{grouping}{This optional parameter is only used if \code{mode="table"} and specifies a structure to form groups of genes in the plot. This is a list with the following elements: 
  \describe{
   	\item{class}{A vector of names for the groups. These names will be printed in the region belonging to the group in the plot.}  	
-  	\item{index}{A list with the same length as \code{class}. Each element is a vector of gene indices belonging to the group.}}
+  	\item{index}{A list with the same length as \code{class}. Each element is a vector of gene names or gene indices belonging to the group.}}
 }
+
   \item{plotFixed}{This optional parameter is only used if \code{mode="table"}.
 	If this is true, genes with fixed values are included in the plot. Otherwise, these genes are not drawn.
 }
@@ -52,6 +54,10 @@ plotAttractors(attractorInfo,
 
   \item{drawLabels}{This parameter is only relevant if \code{mode="graph"}. It determines whether the nodes of the graph are annotated with the corresponding values of the genes in the attractor states.
 }
+
+  \item{drawLegend}{Specifies whether a color key for the ON/OFF states is drawn if \code{mode="table"}. Defaults to \code{TRUE}.
+} 
+ 
     \item{\dots}{
 Further graphical parameters to be passed to \code{\link[igraph:plot.graph]{plot.igraph}} if \code{mode="graph"}.
 }
@@ -71,11 +77,9 @@ If \code{mode="table"}, a list of matrices corresponding to the tables is return
 If \code{mode="graph"}, a list of objects of class \code{igraph} is returned. Each of these objects describes the graph for one attractor.
 }
 \seealso{
-\code{\link{getAttractors}}, \code{\link{attractorsToLaTeX}}
+\code{\link{getAttractors}}, \code{\link{attractorsToLaTeX}}, \code{\link{plotSequence}}, \code{\link{sequenceToLaTeX}}
 }
 \examples{
-library(BoolNet)
-
 # load example data
 data(cellcycle)
 
