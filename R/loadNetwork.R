@@ -8,6 +8,8 @@ loadNetwork <- function(file, bodySeparator=",", lowercaseGenes=FALSE)
 
   func <- readLines(file,-1)[-1]
   
+  func <- func[sapply(func, function(str)substr(str,1,1) != "#")]
+  
   if (lowercaseGenes)
     func <- tolower(func)
   

@@ -1118,7 +1118,10 @@ Figure~\ref{fig:pajek} shows a plot of the cell cycle network with the Kamada-Ka
 This section provides a full language description for the network file format of \texttt{BoolNet}. The language is described in Extended Backus-Naur Form (EBNF).
 
 \begin{verbatim}
+Network = Header Newline {Rule Newline | Comment Newline};
+Header = "targets" Separator "factors";
 Rule = GeneName Separator BooleanExpression [Separator Probability];
+Comment = "#" String;
 BooleanExpression = GeneName 
                     | "!" BooleanExpression 
                     | "(" BooleanExpression ")" 
@@ -1127,6 +1130,8 @@ BooleanExpression = GeneName
 GeneName = ? A gene name from the list of involved genes ?;
 Separator = ",";
 Probability = ? A floating-point number ?;
+String = ? Any sequence of characters (except a line break) ?;
+Newline = ? A line break character ?;
 \end{verbatim}
 
 \end{document}

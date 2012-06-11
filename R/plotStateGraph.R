@@ -19,13 +19,18 @@ plotStateGraph <- function(attractorInfo,highlightAttractors=TRUE,colorBasins=TR
   if (!require(igraph))
     stop("Please install the igraph package before using this function!")
 
+  if (installed.packages()["igraph","Version"] < package_version("0.6"))
+    bias <- 1
+  else
+    bias <- 0
+    
   if (is.null(attractorInfo$stateInfo$table))
     stop(paste("This AttractorInfo structure does not contain transition table information.",
            "Please re-run getAttractors() with a synchronous search and returnTable=TRUE!"))
   
   graphStruct <- getStateGraphStructure(attractorInfo)
   
-  res <-   graph.edgelist(el=graphStruct$edges - 1)
+  res <-   graph.edgelist(el=graphStruct$edges - bias)
   
   res <- set.vertex.attribute(res,"name",value=graphStruct$vertices)
   
@@ -33,7 +38,7 @@ plotStateGraph <- function(attractorInfo,highlightAttractors=TRUE,colorBasins=TR
   attractorIndices <- which(attractorInfo$stateInfo$stepsToAttractor == 0)
   
   attractorEdgeIndices <- which(apply(graphStruct$edges,1,
-             function(edge)((edge[1] %in% attractorIndices) & (edge[2] %in% attractorIndices)))) - 1
+             function(edge)((edge[1] %in% attractorIndices) & (edge[2] %in% attractorIndices)))) - bias
 
   # set default edge width and line type
   res <- set.edge.attribute(res,"width",value=0.9)
@@ -78,14 +83,14 @@ plotStateGraph <- function(attractorInfo,highlightAttractors=TRUE,colorBasins=TR
       basinIndices <- which(attractorInfo$stateInfo$attractorAssignment == attractor)
       
       # change vertex color
-      res <- set.vertex.attribute(res,"color",basinIndices - 1,
+      res <- set.vertex.attribute(res,"color",basinIndices - bias,
                 value=colorSet[(attractor-1) %% length(colorSet) + 1])
       if (drawLabels)
-        res <- set.vertex.attribute(res,"label.color",basinIndices - 1,
+        res <- set.vertex.attribute(res,"label.color",basinIndices - bias,
             value=colorSet[(attractor-1) %% length(colorSet) + 1])
       basinEdgeIndices <- which(apply(graphStruct$edges,1,
                  function(edge)((edge[1] %in% basinIndices) 
-                         & (edge[2] %in% basinIndices)))) - 1
+                         & (edge[2] %in% basinIndices)))) - bias
       
       # change edge color
       res <- set.edge.attribute(res,"color",index=basinEdgeIndices,

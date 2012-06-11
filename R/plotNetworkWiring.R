@@ -9,6 +9,11 @@ plotNetworkWiring <- function(network,layout=layout.fruchterman.reingold,plotIt=
   
   if (!require(igraph))
     stop("Please install the igraph package before using this function!")
+  
+  if (installed.packages()["igraph","Version"] < package_version("0.6"))
+    bias <- 1
+  else
+    bias <- 0 
     
   edgeList <- c()
   
@@ -47,7 +52,7 @@ plotNetworkWiring <- function(network,layout=layout.fruchterman.reingold,plotIt=
   }
 
   # build graph from edge list
-  res <- graph.data.frame(edgeList-1,directed=TRUE,vertices=as.data.frame(0:(length(network$genes)-1)))
+  res <- graph.data.frame(edgeList-bias,directed=TRUE,vertices=as.data.frame((1:length(network$genes)) - bias))
   res <- set.vertex.attribute(res,"name",value=network$genes)
   
   args <- list(...)

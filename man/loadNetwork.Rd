@@ -29,18 +29,26 @@ loadNetwork(file,
 }
 \details{
 The routine supports a description language based on the Boolean operators AND (&), or (|), and NOT (!). 
-The first line contains a header. In case of a Boolean network with only one function per gene, the header is "targets, functions"; in a probabilistic network, there is an optional third column "probabilities". All subsequent lines contain Boolean rules.
-A rule consists of a target gene, a separator, a Boolean expression to calculate a transition step for the target gene, and an optional probability for the rule (for probabilistic Boolean networks only -- see below). The EBNF description of the rule format is as follows:
+The first line contains a header. In case of a Boolean network with only one function per gene, the header is "targets, functions"; in a probabilistic network, there is an optional third column "probabilities". All subsequent lines contain Boolean rules or comment lines that are omitted by the parser.
+A rule consists of a target gene, a separator, a Boolean expression to calculate a transition step for the target gene, and an optional probability for the rule (for probabilistic Boolean networks only -- see below). 
 
-\preformatted{Rule = GeneName Separator BooleanExpression [Separator Probability];
+The EBNF description of the network file format is as follows:
+
+\preformatted{
+Network = Header Newline {Rule Newline | Comment Newline};
+Header = "targets" Separator "factors";
+Rule = GeneName Separator BooleanExpression [Separator Probability];
+Comment = "#" String;
 BooleanExpression = GeneName 
                     | "!" BooleanExpression 
                     | "(" BooleanExpression ")" 
                     | BooleanExpression " & " BooleanExpression  
                     | BooleanExpression " | " BooleanExpression;
 GeneName = ? A gene name from the list of involved genes ?;
-Separator = ? The field <bodySeparator>, usually "," ?;
+Separator = ",";
 Probability = ? A floating-point number ?;
+String = ? Any sequence of characters (except a line break) ?;
+Newline = ? A line break character ?;
 }
 
 If there is exactly one rule for each gene, a Boolean network of class \code{BooleanNetwork} is created. In these networks, constant genes are automatically fixed (e.g. knocked-out or over-expressed). This means that they are always set to the constant value, and states with the complementary value are not considered in transition tables etc. If you would like to change this behaviour, use \code{\link{fixGenes}} to reset the fixing.

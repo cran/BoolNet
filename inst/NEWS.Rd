@@ -1,6 +1,19 @@
 \name{NEWS}
 \title{NEWS file for the BoolNet package}
 
+\section{Changes in version 1.51}{
+
+\subsection{Modified functions}{
+\itemize{
+
+\item{BoolNet now supports the modified interface of \pkg{igraph} 0.6 in all plotting functions, but is still compatible with older versions of \pkg{igraph}.}
+
+\item{\code{loadNetwork()} supports comment lines in the network files.}
+
+}
+}
+}
+
 \section{Changes in version 1.50}{
 
 \subsection{New functions}{
