@@ -1465,7 +1465,7 @@ SEXP getAttractors_R(SEXP inputGenes,
 			network.nonFixedGeneBits[i] = numNonFixed++;
 		}
 	}
-
+	
 	pAttractorInfo res;
 
 	if (isNull(startStates) || length(startStates) == 0)

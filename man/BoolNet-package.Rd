@@ -9,8 +9,8 @@
 \tabular{ll}{
 Package: \tab BoolNet\cr
 Type: \tab Package\cr
-Version: \tab 1.51\cr
-Date: \tab 2012-06-11\cr
+Version: \tab 1.60\cr
+Date: \tab 2012-12-04\cr
 License: \tab Artistic-2.0\cr
 LazyLoad: \tab yes\cr
 }
@@ -25,7 +25,8 @@ This package provides useful methods for the construction and generation of Bool
 }
 
 Networks can be assembled in several ways using \pkg{BoolNet}: The \code{\link{reconstructNetwork}} function infers Boolean networks from time series of measurements using several popular reconstruction algorithms. \code{\link{binarizeTimeSeries}} provides a means of binarizing real-valued time series for these reconstruction algorithms.
-Boolean networks (synchronous, asynchronous, and probabilistic networks) can also be expressed in a description language and loaded from files using \code{\link{loadNetwork}}. Furthermore, networks can be imported from BioTapestry using \code{\link{loadBioTapestry}}.
+Boolean networks (synchronous, asynchronous, and probabilistic networks) can also be expressed in a description language and loaded from files using \code{\link{loadNetwork}} or stored to files using \code{\link{saveNetwork}}. Furthermore, networks can be imported from BioTapestry using \code{\link{loadBioTapestry}} and from SBML with the \code{sbml-qual} package using \code{\link{loadSBML}}. The package also includes an export to SBML (see \code{\link{toSBML}}).
+
 Via \code{\link{generateRandomNKNetwork}} and \code{\link{perturbNetwork}}, the package supports various methods of generating random networks and perturbing existing networks for robustness analysis.
 
 The \code{\link{getAttractors}} function identifies attractor cycles in a synchronous or asynchronous Boolean network. Attractors can be identified by exhaustive search or heuristic methods.
@@ -33,7 +34,7 @@ The \code{\link{getAttractors}} function identifies attractor cycles in a synchr
 The \code{\link{markovSimulation}} function identifies relevant states in probabilistic Boolean networks by performing a Markov chain simulation.
 
 The package also provides methods to visualize state transitions and basins of attraction \if{latex}{\cr}
-(\code{\link{plotPBNTransitions}}, \code{\link{plotStateGraph}}), to plot the wiring of a network \if{latex}{\cr}(\code{\link{plotNetworkWiring}}), to plot attractor state tables (\code{\link{plotAttractors}}) and sequences of states (\code{\link{plotSequence}}), and to export them to LaTeX (\code{\link{attractorsToLaTeX}} and \code{\link{sequenceToLaTeX}}) and Pajek (\code{\link{toPajek}}).
+(\code{\link{plotPBNTransitions}}, \code{\link{plotStateGraph}}), to plot the wiring of a network \if{latex}{\cr}(\code{\link{plotNetworkWiring}}), to plot attractor state tables (\code{\link{plotAttractors}}) and sequences of states (\code{\link{plotSequence}}), and to export them to LaTeX (\code{\link{attractorsToLaTeX}} and \code{\link{sequenceToLaTeX}}) and Pajek (\code{\link{toPajek}}). 
 
 Transition tables of the network can be analyzed using \code{\link{getTransitionTable}}. Paths from start states to their corresponding attractors are identified using \code{\link{getPathToAttractor}}.
 }

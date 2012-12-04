@@ -26,7 +26,7 @@ toPajek(attractorInfo, file = "boolean.net", includeLabels=FALSE)
 This function has no return value.
 }
 \seealso{
-\code{\link{loadNetwork}}
+\code{\link{getAttractors}}, \code{\link{toSBML}}
 }
 \examples{
 # load example data

@@ -145,7 +145,7 @@ CycB, ! Cdc20 & ! Cdh1
 \end{footnotesize}
 
 Now save this description to a file ``cellcycle.txt'' in your R working directory. The network can be loaded via
-<<>>=
+<<eval=FALSE>>=
 cellcycle <- loadNetwork("cellcycle.txt")
 @
 
@@ -988,6 +988,43 @@ By writing custom test functions, you can extend the test facility to perform a 
 \clearpage
 \section{Import and export}\label{sec:importexport}
 
+\subsection{Saving networks in the \texttt{BoolNet} file format}
+
+Corresponding to the \texttt{loadNetwork()} command, a network can be saved using \texttt{saveNetwork()}. This stores the network in the network file format described in Section~\ref{sec:appendix}. For example, the cell cycle network can be saved using
+<<>>=
+saveNetwork(cellcycle, file="cellcycle.txt")
+@
+\begin{sloppypar}
+The function stores the expressions that describe the transition functions. In some cases, there may not always be a valid symbolic description of the networks (e.g. for networks returned by \texttt{generateRandomNKNetwork()} when the \texttt{readableFunctions} parameter was not set). In this case, \texttt{saveNetwork()} can generate symbolic representations of the transition functions in Disjunctive Normal Form (DNF):
+\end{sloppypar}
+<<>>=
+net <- generateRandomNKNetwork(n=10, k=3, readableFunctions=FALSE)
+saveNetwork(net, file="randomnet.txt", generateDNF=TRUE)
+@
+The \texttt{generateDNF} parameter can also be used to detail which type of DNF formulae should be exported: \texttt{generateDNF="canonical"} exports canonical DNF formulae. \texttt{generateDNF="short"} minimizes the canonical functions by joining terms. By simply setting \texttt{generateDNF=TRUE}, formulae with up to 12 inputs are minimized, and formulae with more than 12 inputs are exported in a canonical form, as a minization is very time-consuming in this case.
+
+\subsection{Import from and export to SBML}
+
+\begin{sloppypar}
+\texttt{BoolNet} provides an interface to the widely used Systems Biology Markup Language (SBML) via the import function \texttt{loadSBML()} and the export function \texttt{saveSBML()}. As the core SBML does not fully support Boolean models, import and export of SBML models is based on the \texttt{sbml-qual} package which extends SBML by several qualitative modeling approaches, such as general logical models and Petri nets. For a full description of \texttt{sbml-qual}, refer to \href{http://sbml.org/Community/Wiki/SBML_Level_3_Proposals/Qualitative_Models}{http://sbml.org/Community/Wiki/SBML\_Level\_3\_Proposals/Qualitative\_Models}.
+\end{sloppypar}
+
+\texttt{BoolNet} only supports a subset of \texttt{sbml-qual}. It can read and write logical models with two possible values for each state, which are equivalent to Boolean networks. Logical models with more than two values for a gene or Petri nets cannot currently be handled by \texttt{BoolNet}.
+
+An export to SBML is usually not associated with any loss of information. For example, we can write the cell cycle network to a file and re-import it into \texttt{BoolNet}:
+
+\begin{footnotesize}
+<<>>=
+toSBML(cellcycle, file="cellcycle.sbml")
+sbml_cellcycle <- loadSBML("cellcycle.sbml")
+sbml_cellcycle
+@
+\end{footnotesize}
+
+Apart from some additional brackets, the re-imported network coincides with the original network. 
+
+Similar to the \texttt{saveNetwork()} function, \texttt{toSBML()} exports a symbolic representation of the network transition functionss, which may not always be available. As for \texttt{saveNetwork()}, there is a parameter \texttt{generateDNF} that can be set to generate a symbolic representation in Disjunctive Normal Form from the truth tables.
+
 \subsection{Importing networks from BioTapestry}
 
 BioTapestry is a widely-used application for visual modeling of gene-regulatory networks \cite{longabaugh05}. It can be freely accessed at \url{http://www.biotapestry.org}. Although its primary purpose is visualization, the software supports specifying logical functions for the genes. \texttt{BoolNet} can read in the top-level (``Full genome'') plot of a BioTapestry file (*.btp) and convert it into a Boolean network.
@@ -1038,7 +1075,6 @@ net <- loadBioTapestry("example.btp")
 to import the network. Alternatively, replace the file name by the command on page~\pageref{cmd:example.btp} to use the file in the package if you do not want to create the file yourself.
 
 The imported network looks like this:
-\enlargethispage{0.2cm}
 <<eval=FALSE>>=
 net
 @
@@ -1047,7 +1083,9 @@ Boolean network with 5 genes
 
 Involved genes:
 Input 1 Input 2 Gene 1 Gene 2 Gene 3
-
+\end{verbatim}
+\pagebreak[4]
+\begin{verbatim}
 Transition functions:
 Input 1 = 1
 Input 2 = Input 2
@@ -1060,16 +1098,15 @@ Knocked-out and over-expressed genes:
 Input 1 = 1
 \end{verbatim}
 
-
 We can see that Input~1 is specified as an over-expressed constant gene. Input~2 is modeled as depending only on itself, i.e. it keeps its initial value. Gene~1 is a representation of the XOR function in Disjunctive Normal Form (DNF), using only logical ANDs, logical ORs, and negations. Gene~2 and Gene~3 consist of conjunctions and disjunctions of their inputs respectively. In addition to this textual description, we can visually verify the network by plotting its wiring:
 <<eval=FALSE>>=
 plotNetworkWiring(net)
 @
 The resulting plot is shown in Figure~\ref{fig:wiring_biotap}.
-
+\enlargethispage{1cm}
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.75\linewidth]{wiring_biotap}
+\includegraphics[width=0.6\linewidth]{wiring_biotap}
 \caption{The wiring graph of the imported network specified in BioTapestry.}
 \label{fig:wiring_biotap}
 \end{figure}
@@ -1077,9 +1114,10 @@ The resulting plot is shown in Figure~\ref{fig:wiring_biotap}.
 You can now use the imported network just like any other network in \texttt{BoolNet}.
 
 \clearpage
-\subsection{Exporting networks to Pajek}
 
-For further analysis, networks can be exported to Pajek, a Windows application that provides visualization and analysis methods for graph structures \cite{batagelij98}. For more information on Pajek, please refer to \url{http://pajek.imfm.si/doku.php}.
+\subsection{Exporting network simulations to Pajek}
+
+For further analysis, network simulations can be exported to Pajek, a Windows application that provides visualization and analysis methods for graph structures \cite{batagelij98}. For more information on Pajek, please refer to \url{http://pajek.imfm.si/doku.php}.
 
 The export function writes the state transition graph to a Pajek file (*.net). This requires a synchronous exhaustive attractor search in \texttt{BoolNet} to build the full transition table. 
 
@@ -1119,7 +1157,7 @@ This section provides a full language description for the network file format of
 
 \begin{verbatim}
 Network = Header Newline {Rule Newline | Comment Newline};
-Header = "targets" Separator "factors";
+Header = "targets" Separator "factors" [Separator "probabilities"];
 Rule = GeneName Separator BooleanExpression [Separator Probability];
 Comment = "#" String;
 BooleanExpression = GeneName 

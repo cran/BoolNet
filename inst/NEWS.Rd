@@ -1,12 +1,34 @@
 \name{NEWS}
-\title{NEWS file for the BoolNet package}
+\title{NEWS file for the \pkg{BoolNet} package}
+
+\section{Changes in version 1.60}{
+
+\subsection{New functions}{
+
+\itemize{
+
+\item{Support for SBML: \code{loadSBML()} and \code{toSBML()} import from and export to SBML documents with the \code{sbml-qual} extension package.}
+
+\item{\code{saveNetwork()} stores networks in the \pkg{BoolNet} file format.}
+
+}
+}
+
+\subsection{Modified functions}{
+\itemize{
+
+\item{The DNF generator employed by \code{generateRandomNKNetwork()} and \code{simplifyNetwork()} (as well as by the new functions \code{saveNetwork()} and \code{toSBML()}) now supports minimizing the canonical DNFs.}
+
+}
+}
+}
 
 \section{Changes in version 1.51}{
 
 \subsection{Modified functions}{
 \itemize{
 
-\item{BoolNet now supports the modified interface of \pkg{igraph} 0.6 in all plotting functions, but is still compatible with older versions of \pkg{igraph}.}
+\item{\pkg{BoolNet} now supports the modified interface of \pkg{igraph} 0.6 in all plotting functions, but is still compatible with older versions of \pkg{igraph}.}
 
 \item{\code{loadNetwork()} supports comment lines in the network files.}
 

@@ -7,13 +7,11 @@ simplifyNetwork <- function(network,readableFunctions=FALSE)
   
   if (inherits(network,"BooleanNetwork"))
   {
-    j <- 0
-    network$interactions <- lapply(network$interactions,function(interaction)
+    network$interactions <- mapply(function(interaction, j)
           {
             if (interaction$input[1] != 0)
             # no constant gene
             {
-              j <<- j + 1
         
               table <- allcombn(2,length(interaction$input)) - 1
         
@@ -51,7 +49,7 @@ simplifyNetwork <- function(network,readableFunctions=FALSE)
               }
             }
             interaction
-          })
+          }, network$interactions, seq_along(network$interactions), SIMPLIFY=FALSE)
   }
   else
   {

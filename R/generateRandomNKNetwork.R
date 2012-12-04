@@ -26,7 +26,7 @@ generateRandomNKNetwork <- function(n,k,topology=c("fixed","homogeneous","scale_
   if ((zeroBias == 0 | zeroBias == 1) & noIrrelevantGenes & any(k_i_vec > 0))
     stop("If setting 'zeroBias' to 0 or 1, you must set 'noIrrelevantGenes' to FALSE!")
   
-  geneNames <- paste("Gene",1:n)
+  geneNames <- paste("Gene",1:n,sep="")
   
   if (!missing(validationFunction))
     validationFunction <- match.fun(validationFunction)
@@ -35,7 +35,6 @@ generateRandomNKNetwork <- function(n,k,topology=c("fixed","homogeneous","scale_
       
   interactions <- mapply(function(i,k_i)
       {
-        table <- allcombn(2,k_i) - 1
         if (k_i == 0)
         {
           genes <- 0
@@ -43,6 +42,7 @@ generateRandomNKNetwork <- function(n,k,topology=c("fixed","homogeneous","scale_
         }
         else
         {
+          table <- allcombn(2,k_i) - 1
           genes <- switch(match.arg(linkage,c("uniform","lattice")),
             uniform = sample(1:n,k_i,replace=FALSE),
             lattice = {
@@ -99,7 +99,10 @@ generateRandomNKNetwork <- function(n,k,topology=c("fixed","homogeneous","scale_
         else
           -1
       })
+
   names(fixed) <- geneNames
+  names(interactions) <- geneNames
+  
   net <- list(genes=geneNames,interactions=interactions,fixed=fixed)
   class(net) <- "BooleanNetwork"
   if (simplify)

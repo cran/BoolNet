@@ -1,15 +1,3 @@
-
-# Find a child node named <name>
-# of <node>, or return NULL if such a node
-# does not exist 
-xmlFindNode <- function(node,name)
-{
-    indices <- which(xmlSApply(node, xmlName) ==  name)
-    if (length(indices) == 0)
-        return(NULL)
-    return(xmlChildren(node)[indices])
-}
-
 # Parse all nodes in <rootNode> 
 # (i.e., all nodes of a certain type),
 # and write them to a list
@@ -27,7 +15,7 @@ parseGeneAttrs <- function(rootNode)
             
             # find the "simulationLogic" node, which contains
             # the necessary logic information
-            logic <- xmlFindNode(child,"simulationLogic")[[1]]
+            logic <- xmlFindNode(child,"simulationLogic")
             
             initVal <- NULL
             if (is.null(logic))
@@ -38,6 +26,7 @@ parseGeneAttrs <- function(rootNode)
             else
             {
               # try to find initial values in the simulation parameters
+              logic <- logic[[1]]
               params <- xmlFindNode(logic,"simParameters")
               if (!is.null(params))
               {
@@ -109,16 +98,16 @@ loadBioTapestry <- function(file)
     doc <- xmlRoot(xmlTreeParse(file))
     
     # detect the "genome" XML node which holds the nodes and links of the network
-    genome <- xmlFindNode(doc,"genome")[[1]]
+    genome <- xmlFindNode(doc,"genome",throwError=TRUE)[[1]]
     
     # find the "nodes" node that contains all genes/inputs/etc
-    nodes <- xmlFindNode(genome,"nodes")[[1]]
+    nodes <- xmlFindNode(genome,"nodes",throwError=TRUE)[[1]]
     
     # read in genes
     geneList <- parseAllGenes(nodes)
     
     # find the "links" node that contains the links/dependencies
-    links <- xmlFindNode(genome,"links")[[1]]
+    links <- xmlFindNode(genome,"links",throwError=TRUE)[[1]]
     
     # add links to gene list
     geneList <- parseAllLinks(links,geneList)

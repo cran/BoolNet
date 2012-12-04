@@ -1,8 +1,18 @@
 useDynLib(BoolNet)
 
+S3method(print, AttractorInfo)
+S3method(print, BooleanNetwork)
+S3method(print, BooleanNetworkCollection)
+S3method(print, ProbabilisticBooleanNetwork)
+S3method(print, BooleanStateInfo)
+S3method(print, TransitionTable)
+S3method(print, MarkovSimulation)
+
 export(
 loadNetwork,
 loadBioTapestry,
+loadSBML,
+saveNetwork,
 getAttractors,
 plotAttractors,
 plotSequence,
@@ -19,6 +29,7 @@ getBasinOfAttraction,
 getPathToAttractor,
 getTransitionProbabilities,
 toPajek,
+toSBML,
 generateRandomNKNetwork,
 generateState,
 generateTimeSeries,
@@ -31,11 +42,5 @@ binarizeTimeSeries,
 markovSimulation,
 testNetworkProperties,
 testAttractorRobustness,
-testIndegree,
-print.AttractorInfo,
-print.BooleanNetwork,
-print.BooleanNetworkCollection,
-print.BooleanStateInfo,
-print.TransitionTable,
-print.MarkovSimulation)
+testIndegree)
 

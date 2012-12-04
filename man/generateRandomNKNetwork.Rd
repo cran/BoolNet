@@ -35,7 +35,7 @@ generateRandomNKNetwork(n, k,
   \item{linkage}{
 	If this parameter is "uniform", the actual input genes are drawn uniformly at random from the total \code{k} genes.
 	
-	If set to "lattice", only genes from the neighbourhood \code{(i - d_lattice * k_i):(i + d_lattice * k_i)} are taken, which means that all genes are dependent from other genes in the direct neighbourhood.
+	If set to "lattice", only genes from the neighbourhood \if{latex}{\cr}\code{(i - d_lattice * k_i):(i + d_lattice * k_i)} are taken, which means that all genes are dependent from other genes in the direct neighbourhood.
 }
   \item{functionGeneration}{
 	If set to "uniform", the truth table result column of the function is filled uniformly at random with 0 and 1. If set to "biased", a bias is introduced, where the probability of drawing a 0 is determined by the parameter \code{zeroBias}.
@@ -57,8 +57,9 @@ The maximum number of iterations the generator tries to generate a function that
 }
 
   \item{readableFunctions}{
-	If this is true, readable DNF representations of the truth tables of the functions are generated. These DNF are displayed when the network is printed. The DNF representations are not minimized and can thus be very long. If set to FALSE, the truth table result column is displayed.
+This parameter specifies if readable DNF representations of the transition function truth tables are generated and displayed when the network is printed. If set to FALSE, the truth table result column is displayed. If set to "canonical", a canonical Disjunctive Normal Form is generated from each truth table. If set to "short", the canonical DNF is minimized by joining terms (which can be time-consuming for functions with many inputs). If set to TRUE, a short DNF is generated for functions with up to 12 inputs, and a canonical DNF is generated for functions with more than 12 inputs.
 }
+
   \item{d_lattice}{
 	The dimension parameter for the lattice if \code{linkage="lattice"}. Defaults to 1.
 }

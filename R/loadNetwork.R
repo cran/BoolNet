@@ -64,21 +64,7 @@ loadNetwork <- function(file, bodySeparator=",", lowercaseGenes=FALSE)
     if(suppressWarnings(is.na(as.integer(inputGenes[1]))))
     # the input is not a number
     {
-      inputIndices <- match(inputGenes,genes)
-      exp <- as.matrix(allcombn(2,length(inputIndices)) - 1)
-      for(j in 1:length(inputIndices))
-      {
-        # create variables in R and assign a truth table column
-        tmp1 <- paste(exp[,j],collapse=",")        
-         eval(parse(text = paste(inputGenes[j],"=c(",tmp1,")",sep="")))
-      }
-      tryCatch(
-        interaction <- list(input = inputIndices,
-                         func = as.numeric(eval(parse(text=factors[i]))),
-                         expression = factors[i]),
-        error = function(err)
-                stop(paste("An error was detected in expression \"",factors[i],"\": \n",
-                    err,sep="")))                         
+      interaction <- generateInteraction(factors[i], inputGenes, genes) 
     }
     else
     # this is a constant gene
@@ -104,6 +90,8 @@ loadNetwork <- function(file, bodySeparator=",", lowercaseGenes=FALSE)
   {
     for(gene in onlyInputs)
     {
+      warning(paste("There is no transition function for gene \"",
+                     gene,"\"! Assuming an input!",sep=""))
       if (isProbabilistic)
         interactions[[gene]][[1]] = list(list(input = length(interactions)+1,func=c(0,1),
         									  expression = gene))

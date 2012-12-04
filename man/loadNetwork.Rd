@@ -78,7 +78,7 @@ If there is at least one gene with two or more alternative transition functions,
   \item{fixed}{A vector specifying which genes are knocked-out or over-expressed. For each gene, there is one element which is set to 0 if the gene is knocked-out, to 1 if the gene is over-expressed, and to -1 if the gene is not fixed at all, i. e. can change its value according to the supplied transition function. You can knock-out and over-express genes using \code{\link{fixGenes}}.}
 }
 \seealso{
-\code{\link{getAttractors}}, \code{\link{markovSimulation}}, \code{\link{toPajek}}, \code{\link{stateTransition}}, \code{\link{fixGenes}}
+\code{\link{getAttractors}}, \code{\link{markovSimulation}}, \code{\link{stateTransition}}, \code{\link{fixGenes}}, \code{\link{loadSBML}}
 }
 \examples{
 # write example network to file

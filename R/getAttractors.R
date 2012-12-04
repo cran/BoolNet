@@ -142,7 +142,9 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
                                   isTRUE(all(state[fixedGenes] == network$fixed[fixedGenes]))
                                 })
       startStates <- startStates[statesValid]
-          if (!isTRUE(all(statesValid)))
+          if (!any(statesValid))
+            stop("None of the supplied start states matched the restrictions of the fixed genes!")
+          if (!all(statesValid))
             warning("Some of the supplied start states did not match the restrictions of the fixed genes and were removed!")    
             
         startStates

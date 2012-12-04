@@ -31,7 +31,7 @@ W. J. R. Longabaugh, E. H. Davidson, H. Bolour (2005), Computational representat
 }
 
 \seealso{
-\code{\link{loadNetwork}}
+\code{\link{loadNetwork}}, \code{\link{loadSBML}}
 }
 \examples{
 # import the example BioTapestry file
