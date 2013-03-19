@@ -292,7 +292,7 @@ void freeTransitionTableEntry(TransitionTableEntry * t)
 }
 
 
-inline StateTree * allocStateTree(unsigned int numElements, unsigned int arraySize)
+static inline StateTree * allocStateTree(unsigned int numElements, unsigned int arraySize)
 {
   StateTree * tree = CALLOC(1, sizeof(StateTree));
   tree->root = NULL;
@@ -307,19 +307,19 @@ inline StateTree * allocStateTree(unsigned int numElements, unsigned int arraySi
   return(tree);
 }
 
-inline void newNodeArray(StateTree * tree)
+static inline void newNodeArray(StateTree * tree)
 {
   allocNewArray(&tree->nodeArrays, tree->arraySize, sizeof(StateTreeNode));
   allocNewArray(&tree->dataArrays, tree->arraySize * tree->numElements, sizeof(unsigned int));
 }
 
-inline void newSuccessorArray(StateTree * tree)
+static inline void newSuccessorArray(StateTree * tree)
 {
   allocNewArray(&tree->successorArrays, tree->arraySize, sizeof(StateTreeNode *));
   tree->successorPos = 0;
 }
 
-inline void freeStateTree(StateTree * tree)
+static inline void freeStateTree(StateTree * tree)
 {
   freeArrayList(tree->nodeArrays);
   freeArrayList(tree->dataArrays);
@@ -341,7 +341,7 @@ inline void freeStateTree(StateTree * tree)
  *
  * Returns a state tree node with the supplied values.
  */
-inline StateTreeNode * allocTreeNode(StateTree * tree,
+static inline StateTreeNode * allocTreeNode(StateTree * tree,
                 StateTreeNode * leftChild,
 							  StateTreeNode * rightChild,
 							  StateTreeNode * successor,
@@ -369,7 +369,7 @@ inline StateTreeNode * allocTreeNode(StateTree * tree,
 	return res;
 }
 
-inline StateTreeNode ** reserveSuccessorArray(StateTree * tree, unsigned int numSuccessors)
+static inline StateTreeNode ** reserveSuccessorArray(StateTree * tree, unsigned int numSuccessors)
 {
   if (tree->successorArrays == NULL || tree->successorPos + numSuccessors >= tree->arraySize)
     newSuccessorArray(tree);

@@ -40,7 +40,7 @@ extern AllocatedMemory * memoryMap;
  * Custom function to allocate memory that stores
  * the pointers in the global map.
  */
-inline void* CALLOC(unsigned int n, unsigned int sz) 
+static inline void* CALLOC(unsigned int n, unsigned int sz) 
 {
   void * ptr = calloc(n, sz); 
   AllocatedMemory * m = calloc(1, sizeof(AllocatedMemory)); 
@@ -53,7 +53,7 @@ inline void* CALLOC(unsigned int n, unsigned int sz)
  * Custom function to free memory that was
  * allocated using CALLOC().
  */
-inline void FREE(void * ptr) 
+static inline void FREE(void * ptr) 
 {
   AllocatedMemory * m; 
   HASH_FIND_PTR(memoryMap, &ptr, m); 
@@ -80,7 +80,7 @@ typedef struct ALE
 } ArrayListElement;
 
 
-inline void allocNewArray(ArrayListElement ** head, unsigned int numElements, unsigned int elementSize)
+static inline void allocNewArray(ArrayListElement ** head, unsigned int numElements, unsigned int elementSize)
 {
   ArrayListElement * el = CALLOC(1, sizeof(ArrayListElement));
   el->array = CALLOC(numElements, elementSize);
@@ -91,7 +91,7 @@ inline void allocNewArray(ArrayListElement ** head, unsigned int numElements, un
 /*
  * Free an array list <head>.
  */
-inline void freeArrayList(ArrayListElement * head)
+static inline void freeArrayList(ArrayListElement * head)
 {
   ArrayListElement * current = head;
   while (current != NULL)

@@ -25,7 +25,7 @@ plotSequence <- function(network, startState,
       else
         plotIndices <- (1:numGenes)[-whichFixed]
         
-      sequence <- sequence[,plotIndices]
+      sequence <- sequence[,plotIndices,drop=FALSE]
     }
   }
   else
@@ -37,19 +37,19 @@ plotSequence <- function(network, startState,
   switch(match.arg(mode,c("table","graph")),
   table =
   {
-    # initialize with empty plot
-      plot(c(),c(),xlim=c(0,nrow(sequence)),ylim=c(-2,ncol(sequence)),xlab="",ylab="",
-           axes=FALSE, ...)
-  
+ 
       # build accumulated matrix
       totalMatrix <- t(sequence)
       
       if(length(grouping)>0)
            # reorder genes according to the supplied groups
-          totalMatrix = totalMatrix[unlist(grouping$index),]
+          totalMatrix = totalMatrix[unlist(grouping$index),,drop=FALSE]
       
       colnames(totalMatrix) <- 1:ncol(totalMatrix)
-    
+
+      # initialize with empty plot
+      plot(c(),c(),xlim=c(0,ncol(totalMatrix)),ylim=c(-2,nrow(totalMatrix)),xlab="",ylab="",
+           axes=FALSE, ...)    
       axis(3,c(0,(1:ncol(totalMatrix))-0.5),c("t=",colnames(totalMatrix)), 
            lty="blank", yaxt='s', xaxt='s', xaxs="i")
       axis(2,(1:nrow(totalMatrix))-0.5,rownames(totalMatrix),

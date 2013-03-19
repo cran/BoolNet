@@ -96,7 +96,7 @@ typedef struct
  * maintaining an entry pool with arrays of size
  * <poolArraySize>
  */
-inline SparseMatrix * allocSparseMatrix(unsigned int numCols, unsigned int poolArraySize)
+static inline SparseMatrix * allocSparseMatrix(unsigned int numCols, unsigned int poolArraySize)
 {
   SparseMatrix * res = CALLOC(1, sizeof(SparseMatrix));
   res->matrix = CALLOC(numCols, sizeof(MatrixEntry *));

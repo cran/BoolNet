@@ -55,10 +55,6 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
       {
         cnt <- lengthTable[i]
 
-        # initialize with empty plot
-        plot(c(),c(),xlim=c(0,len*cnt),ylim=c(-2,length(plotIndices)+1),xlab="",ylab="",
-             axes=FALSE,main=paste(title, "Attractors with ",len," state(s)",sep=""))
-    
         # build accumulated matrix     
         totalMatrix <- c()
         for (mat in binMatrices[intersect(which(attractorLengths == len),subset)])
@@ -70,9 +66,12 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
     
         if(length(grouping)>0)
            # reorder genes according to the supplied groups
-          totalMatrix = totalMatrix[unlist(grouping$index),]
-    
-        axis(2,(1:length(plotIndices))-0.5,rownames(totalMatrix), yaxt='s', las=2)
+          totalMatrix = totalMatrix[unlist(grouping$index),,drop=FALSE]
+
+        # initialize with empty plot
+        plot(c(),c(),xlim=c(0,len*cnt),ylim=c(-2,nrow(totalMatrix)+1),xlab="",ylab="",
+             axes=FALSE,main=paste(title, "Attractors with ",len," state(s)",sep=""))    
+        axis(2,(1:nrow(totalMatrix))-0.5,rownames(totalMatrix), yaxt='s', las=2)
 
         # plot active and inactive states
         for(i in 1:ncol(totalMatrix))

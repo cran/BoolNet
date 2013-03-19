@@ -6,7 +6,7 @@ Plot a sequence of states
 \description{
 Visualizes sequences of states in synchronous Boolean networks, either by drawing a table of the involved states in two colors, or by drawing a graph of transitions between the successive states.
 }
-\synopsis{
+\usage{
 plotSequence(network, 
              startState, 
              includeAttractorStates = c("all","first","none"), 
@@ -20,32 +20,6 @@ plotSequence(network,
              drawLabels=TRUE, 
              drawLegend=TRUE, 
              ...)
-}
-\usage{
-plotSequence(network, 
-             startState, 
-             includeAttractorStates = c("all","first","none"), 
-             title = "", 
-             mode=c("table","graph"),
-             plotFixed = TRUE, grouping = list(),
-             onColor="green",
-             offColor="red",
-             layout, 
-             drawLabels=TRUE, 
-             drawLegend=TRUE, 
-             ...)
-
-plotSequence(sequence,
-             title = "", 
-             mode=c("table","graph"),
-             plotFixed = TRUE, grouping = list(),
-             onColor="green",
-             offColor="red",
-             layout, 
-             drawLabels=TRUE, 
-             drawLegend=TRUE, 
-             ...)
-                               
 }
 
 \arguments{

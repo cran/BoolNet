@@ -1,6 +1,18 @@
 \name{NEWS}
 \title{NEWS file for the \pkg{BoolNet} package}
 
+\section{Changes in version 1.61}{
+\subsection{Modified functions}{
+\itemize{
+
+\item{Bugfixes in \code{plotAttractors()} and \code{plotSequence()}.}
+
+\item{Fixed compatibility issues with R 3.0 alpha.}
+
+}
+}
+}
+
 \section{Changes in version 1.60}{
 
 \subsection{New functions}{
