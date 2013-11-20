@@ -65,7 +65,7 @@ void dec2bin(int *bin, int *dec, int *numBits)
 	unsigned int * unsigned_dec = (unsigned int *) dec;
 
 	for(i = 0; i < *numBits; ++i)
-		if( (unsigned_dec[i / BITS_PER_BLOCK_32] & (1 << (i % BITS_PER_BLOCK_32))) != 0)
+		if( (unsigned_dec[i / BITS_PER_BLOCK_32] & ((unsigned int)1 << (i % BITS_PER_BLOCK_32))) != 0)
 			bin[i] = 1;
 		else
 			bin[i] = 0;
@@ -96,7 +96,7 @@ void insertFixedGenes(unsigned int * value, int* fixedGenes, unsigned int numGen
 		else
 		// not a fixed gene => take value from original state
 		{
-			tmp[i] = ((value[j / BITS_PER_BLOCK_32] & (1 << (j % BITS_PER_BLOCK_32))) != 0) ? 1 : 0;
+			tmp[i] = ((value[j / BITS_PER_BLOCK_32] & ((unsigned int)1 << (j % BITS_PER_BLOCK_32))) != 0) ? 1 : 0;
 			++j;
 		}
 	}
@@ -125,7 +125,7 @@ void removeFixedGenes(unsigned int * value, int* fixedGenes, unsigned int numGen
 	{
 		if (fixedGenes[i] == -1)
 		{
-			tmp[j] = ((value[i / BITS_PER_BLOCK_32] & (1 << (i % BITS_PER_BLOCK_32))) != 0) ? 1 : 0;
+			tmp[j] = ((value[i / BITS_PER_BLOCK_32] & ((unsigned int)1 << (i % BITS_PER_BLOCK_32))) != 0) ? 1 : 0;
 			++j;
 		}
 	}

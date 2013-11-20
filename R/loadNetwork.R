@@ -93,8 +93,9 @@ loadNetwork <- function(file, bodySeparator=",", lowercaseGenes=FALSE)
       warning(paste("There is no transition function for gene \"",
                      gene,"\"! Assuming an input!",sep=""))
       if (isProbabilistic)
-        interactions[[gene]][[1]] = list(list(input = length(interactions)+1,func=c(0,1),
-        									  expression = gene))
+        interactions[[gene]][[1]] = list(input = length(interactions)+1,func=c(0,1),
+                     									  expression = gene, probability=1.0)
+
       else
         interactions[[gene]] = list(input = length(interactions)+1,func=c(0,1),
         							expression = gene)

@@ -74,8 +74,9 @@ data(cellcycle)
 attractors <- getAttractors(cellcycle)
 
 # plot state graph
+\dontrun{
 plotStateGraph(attractors, main="Cell cycle network")
-
+}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

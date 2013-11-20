@@ -1029,11 +1029,7 @@ static inline void applySingleFunction(unsigned int * currentState, unsigned int
 static inline void asynchronousStateTransition(unsigned int * currentState, double * probabilities,
 										BooleanNetwork * net)
 {
-	unsigned int numElts, i;
-	if (net->numGenes % BITS_PER_BLOCK_32 == 0)
-		numElts = net->numGenes / BITS_PER_BLOCK_32;
-	else
-		numElts = net->numGenes / BITS_PER_BLOCK_32 + 1;
+	unsigned int i;
 
 	if (probabilities == NULL)
 	// uniform gene selection

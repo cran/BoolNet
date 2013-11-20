@@ -1,6 +1,19 @@
 \name{NEWS}
 \title{NEWS file for the \pkg{BoolNet} package}
 
+\section{Changes in version 1.62}{
+\subsection{Modified functions}{
+
+\itemize{
+
+\item{Minor bugfixes in \code{loadNetwork()}.}
+
+\item{Fixed undefined behaviour warnings for GCC 4.9.}
+}
+}
+}
+
+
 \section{Changes in version 1.61}{
 \subsection{Modified functions}{
 \itemize{

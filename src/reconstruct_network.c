@@ -279,7 +279,7 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
 
 			// calculate the number of array elements needed
 			// to represent the output of a function
-			unsigned int array_sz = 1 << k;
+			unsigned int array_sz = (unsigned int)1 << k;
 			unsigned int numEltsFunc;
 			if (array_sz % BITS_PER_BLOCK_32 == 0)
 				numEltsFunc = array_sz / BITS_PER_BLOCK_32;
@@ -383,7 +383,7 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
 							// create a new element on the stack with the <pos>-th bit set to 1
 							FunctionStackElement * new = pushFunctionStackElement(&stack,el->transitionFunction,
 																				  numEltsFunc,el->pos+1);
-							new->transitionFunction[el->pos / BITS_PER_BLOCK_32] |= 1 << (el->pos % BITS_PER_BLOCK_32);
+							new->transitionFunction[el->pos / BITS_PER_BLOCK_32] |= (unsigned int)1 << (el->pos % BITS_PER_BLOCK_32);
 
 							// increment the position of the old element, which remains on the stack
 							// with the <pos>-th bit set to 0 (due to initialization)
@@ -395,7 +395,7 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
 						{
 							// set the <pos>-th bit of the top-level stack element to 1,
 							// and increment the position to be examined
-							el->transitionFunction[el->pos / BITS_PER_BLOCK_32] |= 1 << (el->pos % BITS_PER_BLOCK_32);
+							el->transitionFunction[el->pos / BITS_PER_BLOCK_32] |= (unsigned int)1 << (el->pos % BITS_PER_BLOCK_32);
 							++el->pos;
 						}
 						else
@@ -435,7 +435,7 @@ static inline double entropy(unsigned int * inputStates, unsigned int * outputSt
 				      unsigned int numChosenIndices,
 				      unsigned int * table)
 {
-	unsigned int numEntries = 1 << numChosenIndices;
+	unsigned int numEntries = (unsigned int)1 << numChosenIndices;
 
 	// reset table to 0
 	memset(table,0,sizeof(unsigned int) * numEntries);
@@ -553,7 +553,7 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
 
 			// calculate the number of array elements needed
 			// to represent the output of a function
-			unsigned int array_sz = 1 << k;
+			unsigned int array_sz = (unsigned int)1 << k;
 			unsigned int numEltsFunc;
 			if (array_sz % BITS_PER_BLOCK_32 == 0)
 				numEltsFunc = array_sz / BITS_PER_BLOCK_32;
@@ -574,7 +574,7 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
 				unsigned int comb_output[k+1];
 				memcpy(comb_output,comb,sizeof(unsigned int) * k);
 				comb_output[k] = numGenes + i;
-				unsigned int table_output[1 << (k+1)];
+				unsigned int table_output[(unsigned int)1 << (k+1)];
 
 				double entropy_all = entropy(inputStates, outputStates, numStates,
 											 numElts, numGenes, comb_output, k+1, table_output);
@@ -613,7 +613,7 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
 							deleteFunctionStackElement(&stack);
 						}
 						else
-						if (table_input[el->pos] == 0 || table_output[el->pos | (1 << k)] == table_output[el->pos])
+						if (table_input[el->pos] == 0 || table_output[el->pos | ((unsigned int)1 << k)] == table_output[el->pos])
 						// no information is available if the <pos>-th bit must be set to one or zero
 						// => create two solution branches, one with the <pos>-th bit set to 1
 						// and one with the <pos>-th bit set to 0
@@ -621,19 +621,19 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
 							// create a new element on the stack with the <pos>-th bit set to 1
 							FunctionStackElement * new = pushFunctionStackElement(&stack,el->transitionFunction,
 																				  numEltsFunc,el->pos+1);
-							new->transitionFunction[el->pos / BITS_PER_BLOCK_32] |= 1 << (el->pos % BITS_PER_BLOCK_32);
+							new->transitionFunction[el->pos / BITS_PER_BLOCK_32] |= (unsigned int)1 << (el->pos % BITS_PER_BLOCK_32);
 
 							// increment the position of the old element, which remains on the stack
 							// with the <pos>-th bit set to 0 (due to initialization)
 							++el->pos;
 						}
 						else
-						if (table_output[el->pos | (1 << k)] > table_output[el->pos])
+						if (table_output[el->pos | ((unsigned int)1 << k)] > table_output[el->pos])
 						// the <pos>-th bit must be set to 1
 						{
 							// set the <pos>-th bit of the top-level stack element to 1,
 							// and increment the position to be examined
-							el->transitionFunction[el->pos / BITS_PER_BLOCK_32] |= 1 << (el->pos % BITS_PER_BLOCK_32);
+							el->transitionFunction[el->pos / BITS_PER_BLOCK_32] |= (unsigned int)1 << (el->pos % BITS_PER_BLOCK_32);
 							++el->pos;
 						}
 						else
@@ -778,7 +778,7 @@ SEXP reconstructNetwork_R(SEXP inputStates, SEXP outputStates, SEXP numberOfStat
 			}
 			else
 			{
-				numBits = 1 << cur->k;
+				numBits = (unsigned int)1 << cur->k;
 				for (j = 0; j < cur->k; j++)
 					array[j] = cur->inputGenes[cur->k - j - 1] + 1;
 			}

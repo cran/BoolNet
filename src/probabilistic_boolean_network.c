@@ -137,7 +137,7 @@ unsigned int * probabilisticTransitionTable(ProbabilisticBooleanNetwork * net,
 		*numElements = totalFunctionCount / BITS_PER_BLOCK_32 + 1;
 
 	// allocate truth table with 2^(non-fixed genes) elements
-	*tableSize = (1 << numNonFixed);
+	*tableSize = ((unsigned int)1 << numNonFixed);
 	unsigned int * table = CALLOC(*tableSize * *numElements,sizeof(unsigned int));
 	if (table == 0)
 	{
@@ -520,9 +520,9 @@ SEXP markovSimulation_R(SEXP inputGenes,
 
 		current->numGenes = numInputs;
 
-		current->transitionFunction = CALLOC(1 << numInputs,sizeof(int));
+		current->transitionFunction = CALLOC((unsigned int)1 << numInputs,sizeof(int));
 		memcpy(current->transitionFunction,&_transitionFunctions[_transitionFunctionPositions[i]],
-			   (1 << numInputs)*sizeof(int));
+			   ((unsigned int)1 << numInputs)*sizeof(int));
 
 		current->probability = _probabilities[i];
 

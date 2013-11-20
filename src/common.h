@@ -12,16 +12,16 @@
 #define BITS_PER_BLOCK_32 (sizeof(unsigned int) * 8)
 
 // Retrieve the <i>-th bit in <x>
-#define GET_BIT(x,i) (((x) & (1 << (i))) != 0)
+#define GET_BIT(x,i) (((x) & ((unsigned int)1 << (i))) != 0)
 
 // Set the <i>-th bit in <x> to 1
-#define SET_BIT(x,i) ((x) | (1 << (i)))
+#define SET_BIT(x,i) ((x) | ((unsigned int)1 << (i)))
 
 // Set the <i>-th bit in <x> to 0
-#define CLEAR_BIT(x,i) ((x) & (~(1 << (i))))
+#define CLEAR_BIT(x,i) ((x) & (~((unsigned int)1 << (i))))
 
 // Set the <i>-th bit in <x> to <v>
-#define SET_BIT_TO_VAL(x,i,v) (((x) & (~(1 << (i)))) | ((v) << (i)))
+#define SET_BIT_TO_VAL(x,i,v) (((x) & (~((unsigned int)1 << (i)))) | ((v) << (i)))
 
 typedef struct
 {
