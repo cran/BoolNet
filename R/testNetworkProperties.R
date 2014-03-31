@@ -3,7 +3,7 @@ Gini <- function(x)
 {
     n <- length(x)
     x <- sort(x)
-    1/(n-1)*(n+1-2*(sum((n+1-(1:n))*x)/sum(x)))
+    1/(n-1)*(n+1-2*(sum((n+1-seq_len(n))*x)/sum(x)))
 }
 
 # Test attractor robustness by searching the original attractor
@@ -53,7 +53,7 @@ testAttractorRobustness <- function(network,accumulate=TRUE,params=list())
   else
     copies <- params$copies
   
-  perturbationResults <- unlist(sapply(1:copies,function(copy)
+  perturbationResults <- unlist(sapply(seq_len(copies),function(copy)
     {
       # get attractors of perturbed network
       perturbedAttrs <- getAttractors(perturbNetwork(network,
@@ -165,7 +165,7 @@ testNetworkProperties <- function(network, numRandomNets=100, testFunction="test
   numGenes <- length(network$interactions)
   inputGenes <- sapply(network$interactions,function(interaction)length(interaction$input))
       
-  randomResults <- lapply(1:numRandomNets,function(i)
+  randomResults <- lapply(seq_len(numRandomNets),function(i)
                    {      
                       randomNet <- generateRandomNKNetwork(n=numGenes,k=inputGenes,topology="fixed",
                                                            linkage=linkage,

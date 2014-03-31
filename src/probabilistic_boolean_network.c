@@ -89,6 +89,7 @@ typedef struct
   ArrayListElement * entryPool;
   unsigned int poolArraySize;
   unsigned int currentEntry;  
+  unsigned int numCols;
 } SparseMatrix;
 
 /*
@@ -104,6 +105,7 @@ static inline SparseMatrix * allocSparseMatrix(unsigned int numCols, unsigned in
   res->poolArraySize = poolArraySize;
   res->currentEntry = 0;
   res->entryPool = NULL;
+  res->numCols = numCols;
   return res;
 }
 
@@ -294,21 +296,14 @@ static inline unsigned int extractState(unsigned int * table, unsigned int numEl
  */
 void freeMatrix(SparseMatrix * matrix)
 {
-	/*
+	
 	unsigned int i;
-	for (i = 0; i < size; ++i)
+	for (i = 0; i < matrix->numCols; ++i)
 	{
-		MatrixEntry * entry;
-
-		// FREE hash table
-		while(matrix[i])
-		{
-		    entry = matrix[i];
-		    HASH_DEL(matrix[i],entry);
-		    FREE(entry);
-		}
-
-	}*/
+		// free hash table
+    HASH_CLEAR(hh,matrix->matrix[i]);
+	}
+	//
 	FREE(matrix->matrix);
 	freeArrayList(matrix->entryPool);
 

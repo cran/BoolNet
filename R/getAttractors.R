@@ -119,7 +119,7 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
           cat("Using initial states:\n")
           
           # print states and form a list
-          res <- lapply(1:nrow(mat),function(i)
+          res <- lapply(seq_len(nrow(mat)),function(i)
             {
               cat(paste(mat[i,],collapse=""),"\n",sep="")
               mat[i,]
@@ -205,7 +205,7 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
       result$stateInfo$initialStates <- matrix(result$stateInfo$initialStates,nrow=numElementsPerEntry)
   }
   
-  for (i in 1:length(result$attractors))
+  for (i in seq_len(length(result$attractors)))
   {
     result$attractors[[i]]$involvedStates <- matrix(result$attractors[[i]]$involvedStates,nrow=numElementsPerEntry)
     if (canonical)
@@ -228,7 +228,7 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
   
   if (!is.null(result$stateInfo))
   {
-    inverseOrder <- sapply(1:length(reordering),function(x)which(reordering == x))    
+    inverseOrder <- sapply(seq_along(reordering),function(x)which(reordering == x))    
     result$stateInfo$attractorAssignment <- inverseOrder[result$stateInfo$attractorAssignment]
   }
   

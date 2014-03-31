@@ -29,7 +29,7 @@ typedef struct FLE
 	unsigned int k;
 
 	// the indices of the input genes
-	unsigned int * inputGenes;
+	int * inputGenes;
 
 	// a bit vector containing the transition function
 	unsigned int * transitionFunction;
@@ -65,14 +65,14 @@ typedef struct FSE
 static inline FunctionListElement * addFunctionListElement(FunctionListElement ** root,
 											 unsigned int k,
 											 unsigned int transitionFunctionSize,
-											 unsigned int * inputGenes,
+											 int * inputGenes,
 											 unsigned int * transitionFunction)
 {
 	FunctionListElement * el = CALLOC(1,sizeof(FunctionListElement));
 	el->k = k;
 
-	el->inputGenes = CALLOC(k,sizeof(unsigned int));
-	memcpy(el->inputGenes,inputGenes,sizeof(unsigned int) * k);
+	el->inputGenes = CALLOC(k,sizeof(int));
+	memcpy(el->inputGenes,inputGenes,sizeof(int) * k);
 
 	el->transitionFunction = CALLOC(transitionFunctionSize,sizeof(unsigned int));
 	memcpy(el->transitionFunction,transitionFunction,sizeof(unsigned int) * transitionFunctionSize);
@@ -147,13 +147,14 @@ static inline void deleteFunctionStackElement(FunctionStackElement ** stack)
  * After each call, <comb> contains the next combination. If all combinations have been
  * listed, the function returns false, otherwise true.
  */
-static inline bool nextCombination(unsigned int * comb, unsigned int * pos, unsigned int k, unsigned int n)
+static inline bool nextCombination(int * comb, unsigned int * pos, unsigned int k, unsigned int n)
 {
 	bool posChanged = false;
 
 	// find the first position that has not been set
 	// to its maximum number
-	while(comb[*pos] == n - *pos - 1 && *pos < k)
+	
+	while(*pos < k && comb[*pos] == n - *pos - 1)
 	{
 		++ *pos;
 		posChanged = true;
@@ -238,7 +239,7 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
 		if (isConst)
 		// gene is constant => simplest function already found!
 		{
-			unsigned int inputGenes = -1;
+			int inputGenes = -1;
 			addFunctionListElement(&result[i],1,1,&inputGenes,&geneVal);
 			errors[i] = 0;
 			bestLength[i] = 0;
@@ -247,7 +248,7 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
 		{
 			if (const0Err <= const1Err)
 			{
-				unsigned int inputGenes = -1;
+				int inputGenes = -1;
 				unsigned int val = 0;
 				addFunctionListElement(&result[i],1,1,&inputGenes,&val);
 				errors[i] = const0Err;
@@ -256,7 +257,7 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
 
 			if (const1Err <= const0Err)
 			{
-				unsigned int inputGenes = -1;
+				int inputGenes = -1;
 				unsigned int val = 1;
 				addFunctionListElement(&result[i],1,1,&inputGenes,&val);
 				errors[i] = const1Err;
@@ -271,7 +272,7 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
 				break;
 
 			// initialize gene combination vector
-			unsigned int comb[k];
+			int comb[k];
 			unsigned int j;
 			for (j = 0; j < k; ++j)
 				comb[j] = k - j - 1;
@@ -431,7 +432,7 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
  */
 static inline double entropy(unsigned int * inputStates, unsigned int * outputStates,
 				      unsigned int numStates, unsigned int elementsPerEntry,
-				      unsigned int numGenes, unsigned int * chosenIndices,
+				      unsigned int numGenes, int * chosenIndices,
 				      unsigned int numChosenIndices,
 				      unsigned int * table)
 {
@@ -451,7 +452,7 @@ static inline double entropy(unsigned int * inputStates, unsigned int * outputSt
 			if (chosenIndices[geneIndex] < numGenes)
 			// this is a gene in the input states
 			{
-				unsigned int chosenIndex = chosenIndices[geneIndex];
+				int chosenIndex = chosenIndices[geneIndex];
 				tableIndex |= (GET_BIT(inputStates[state * elementsPerEntry
 								  + chosenIndex/BITS_PER_BLOCK_32],chosenIndex % BITS_PER_BLOCK_32))
 								  << geneIndex;
@@ -460,7 +461,7 @@ static inline double entropy(unsigned int * inputStates, unsigned int * outputSt
 			// this is a gene in the output states
 			{
 
-				unsigned int chosenIndex = chosenIndices[geneIndex]  - numGenes;
+				int chosenIndex = chosenIndices[geneIndex]  - numGenes;
 				tableIndex |= (GET_BIT(outputStates[state * elementsPerEntry
 							  + chosenIndex/BITS_PER_BLOCK_32],chosenIndex % BITS_PER_BLOCK_32))
 							  << geneIndex;
@@ -533,7 +534,7 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
 		if (isConst)
 		// gene is constant => simplest function already found!
 		{
-			unsigned int inputGenes = -1;
+			int inputGenes = -1;
 			addFunctionListElement(&result[i],1,1,&inputGenes,&geneVal);
 			errors[i] = 0;
 		}
@@ -545,7 +546,7 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
 				break;
 
 			// initialize gene combination vector
-			unsigned int comb[k];
+			int comb[k];
 			unsigned int j;
 			for (j = 0; j < k; ++j)
 				comb[j] = k - j - 1;
@@ -571,7 +572,7 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
 											   numElts, numGenes, comb, k, table_input);
 
 				// calculate entropy of the combination of input genes and output value
-				unsigned int comb_output[k+1];
+				int comb_output[k+1];
 				memcpy(comb_output,comb,sizeof(unsigned int) * k);
 				comb_output[k] = numGenes + i;
 				unsigned int table_output[(unsigned int)1 << (k+1)];

@@ -26,7 +26,7 @@ stateTransition <- function(network,state,type=c("synchronous","asynchronous","p
                                   distr <- c(0,cumsum(sapply(gene,function(func)func$probability)))
                                   r <- runif(n=1)
                                   idx <- 0
-                                  for (i in 1:length(gene))
+                                  for (i in seq_along(gene))
                                   {
                                     if (r > distr[i] & r <= distr[i+1])
                                     {
@@ -81,7 +81,7 @@ stateTransition <- function(network,state,type=c("synchronous","asynchronous","p
             distr <- c(0,cumsum(geneProbabilities))
             r <- runif(n=1)
             idx <- 0
-            for (i in 1:length(network$genes))
+            for (i in seq_along(network$genes))
             {
               if (r > distr[i] & r <= distr[i+1])
               {

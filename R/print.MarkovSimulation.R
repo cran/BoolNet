@@ -7,7 +7,7 @@ print.MarkovSimulation <- function(x, activeOnly = FALSE, ...)
   cat("States reached at the end of the simulation:\n")
   if (activeOnly)
   {
-    reachedStates <- data.frame(apply(x$reachedStates[,1:numGenes],1,function(state)
+    reachedStates <- data.frame(apply(x$reachedStates[,seq_len(numGenes)],1,function(state)
                          {
                             r <- paste(genes[which(state == 1)],collapse=", ")
                             if (r == "")

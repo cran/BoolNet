@@ -77,7 +77,7 @@ plotStateGraph <- function(attractorInfo,highlightAttractors=TRUE,colorBasins=TR
   
   if (colorBasins)
   {  
-    for (attractor in 1:length(attractorInfo$attractors))
+    for (attractor in seq_along(attractorInfo$attractors))
     {
       # determine nodes and edges belonging to the basin of <attractor>
       basinIndices <- which(attractorInfo$stateInfo$attractorAssignment == attractor)
@@ -114,7 +114,7 @@ plotStateGraph <- function(attractorInfo,highlightAttractors=TRUE,colorBasins=TR
     if (colorBasins & drawLegend)
       legend(x="bottomleft",pch=15,ncol=1,
              col=colorSet[0:(length(attractorInfo$attractors) - 1) %% length(colorSet) + 1],
-             legend = paste("Attractor",1:length(attractorInfo$attractors)),
+             legend = paste("Attractor",seq_along(attractorInfo$attractors)),
              cex=0.5)
   }
   return(invisible(res))

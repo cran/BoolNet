@@ -25,12 +25,12 @@ perturbNetwork <- function(network,perturb=c("functions","states"),method=c("bit
           {
             # choose the function to be perturbed
             if (length(fixedGenes) > 0 & excludeFixed)
-              functionIdx <- sample((1:length(network$interactions))[-fixedGenes],size=1)
+              functionIdx <- sample((seq_along(network$interactions))[-fixedGenes],size=1)
             else
-              functionIdx <- sample(1:length(network$interactions),size=1)
+              functionIdx <- sample(seq_along(network$interactions),size=1)
           
             # choose the indices of the truth table to be flipped  
-            flipIndices <- sample(1:length(network$interactions[[functionIdx]]$func),
+            flipIndices <- sample(seq_along(network$interactions[[functionIdx]]$func),
                                   size=runif(n=1,min=1,
                                   max=min(maxNumBits,
                                   length(network$interactions[[functionIdx]]$func))),
@@ -47,12 +47,12 @@ perturbNetwork <- function(network,perturb=c("functions","states"),method=c("bit
           {
             # choose the function to be perturbed
             if (length(fixedGenes) > 0 & excludeFixed)
-              functionIdx <- sample((1:length(network$interactions))[-fixedGenes],size=1)
+              functionIdx <- sample((seq_along(network$interactions))[-fixedGenes],size=1)
             else
-              functionIdx <- sample(1:length(network$interactions),size=1)
+              functionIdx <- sample(seq_along(network$interactions),size=1)
 
             # draw a random permutation of bit positions
-            flipIndices <- sample(1:length(network$interactions[[functionIdx]]$func),
+            flipIndices <- sample(seq_along(network$interactions[[functionIdx]]$func),
                   size=length(network$interactions[[functionIdx]]$func),
                   replace=FALSE)
                 
@@ -79,12 +79,12 @@ perturbNetwork <- function(network,perturb=c("functions","states"),method=c("bit
         table <- t(sapply(getAttractors(network)$stateInfo$table,dec2bin,length(network$genes)))
       
         # determine the states to be perturbed
-        statesToChange <- sample(1:nrow(table),min(numStates,nrow(table)),replace=FALSE)
+        statesToChange <- sample(seq_len(nrow(table)),min(numStates,nrow(table)),replace=FALSE)
       
         lapply(statesToChange,function(state)
           {
             # choose the indices of the states that are allowed to be changed
-            flipIndices <- 1:length(network$genes)
+            flipIndices <- seq_along(network$genes)
             if (length(fixedGenes) > 0 & excludeFixed)
               flipIndices <- flipIndices[-fixedGenes]
             
@@ -121,7 +121,7 @@ perturbNetwork <- function(network,perturb=c("functions","states"),method=c("bit
         # restore network by assigning the columns of the state table to the corresponding genes
         network$interactions <- apply(table,2,function(gene)
                 {
-                  input = 1:length(network$genes)
+                  input = seq_along(network$genes)
                 
                   # encoding is reversed in the transition table
                   input <- input[length(input):1]
@@ -150,14 +150,14 @@ perturbNetwork <- function(network,perturb=c("functions","states"),method=c("bit
           # choose the gene and the function to be perturbed
       
           if (length(fixedGenes) > 0 & excludeFixed)
-            geneIdx <- sample((1:length(network$interactions))[-fixedGenes],size=1)
+            geneIdx <- sample((seq_along(network$interactions))[-fixedGenes],size=1)
           else
-            geneIdx <- sample(1:length(network$interactions),size=1)
+            geneIdx <- sample(seq_along(network$interactions),size=1)
                 
-          functionIdx <- sample(1:length(network$interactions[[geneIdx]]),size=1)
+          functionIdx <- sample(seq_along(network$interactions[[geneIdx]]),size=1)
 
           # choose the indices of the truth table to be flipped  
-          flipIndices <- sample(1:length(network$interactions[[geneIdx]][[functionIdx]]$func),
+          flipIndices <- sample(seq_along(network$interactions[[geneIdx]][[functionIdx]]$func),
                               size=runif(n=1,min=1,
                               max=min(maxNumBits,
                               length(network$interactions[[geneIdx]][[functionIdx]]$func))),
@@ -174,15 +174,15 @@ perturbNetwork <- function(network,perturb=c("functions","states"),method=c("bit
         {
           # choose the function to be perturbed
           if (length(fixedGenes) > 0 & excludeFixed)
-            geneIdx <- sample((1:length(network$interactions))[-fixedGenes],size=1)
+            geneIdx <- sample((seq_along(network$interactions))[-fixedGenes],size=1)
           else
-            geneIdx <- sample(1:length(network$interactions),size=1)
+            geneIdx <- sample(seq_along(network$interactions),size=1)
                 
-          functionIdx <- sample(1:length(network$interactions[[geneIdx]]),size=1)
+          functionIdx <- sample(seq_along(network$interactions[[geneIdx]]),size=1)
 
 
           # draw a random permutation of bit positions
-          flipIndices <- sample(1:length(network$interactions[[geneIdx]][[functionIdx]]$func),
+          flipIndices <- sample(seq_along(network$interactions[[geneIdx]][[functionIdx]]$func),
                                 size=length(network$interactions[[geneIdx]][[functionIdx]]$func),
                                 replace=FALSE)
                 

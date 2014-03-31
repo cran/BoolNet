@@ -4,7 +4,7 @@ print.AttractorInfo <- function(x, activeOnly = FALSE, ...)
   numGenes <- length(x$stateInfo$genes)
   attractors <- x$attractors
   
-  lapply(1:length(attractors),function(i)
+  lapply(seq_along(attractors),function(i)
   {
     if (is.null(attractors[[i]]$initialStates))
     # simple attractor
@@ -70,12 +70,12 @@ print.AttractorInfo <- function(x, activeOnly = FALSE, ...)
 
           apply(binMatrix,1,function(row)
           {
-            state1 <- paste(x$stateInfo$genes[which(row[1:numGenes] == 1)],collapse=", ")
+            state1 <- paste(x$stateInfo$genes[which(row[seq_len(numGenes)] == 1)],collapse=", ")
             
             if (state1 == "")
               state1 <- "--"
             
-            state2 <- paste(x$stateInfo$genes[which(row[(numGenes+1):length(row)] == 1)],collapse=", ")
+            state2 <- paste(x$stateInfo$genes[which(row[seq_len(numGenes) + numGenes] == 1)],collapse=", ")
             
             if (state2 == "")
               state2 <- "--"

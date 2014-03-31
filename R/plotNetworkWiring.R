@@ -22,7 +22,7 @@ plotNetworkWiring <- function(network,layout=layout.fruchterman.reingold,plotIt=
   if (inherits(network,"BooleanNetwork"))
   # deterministic network
   {
-    for (i in 1:length(network$genes))
+    for (i in seq_along(network$genes))
     {
       if (network$interactions[[i]]$input[1] != 0)
       # no edges for constant genes
@@ -36,9 +36,9 @@ plotNetworkWiring <- function(network,layout=layout.fruchterman.reingold,plotIt=
   else
   # probabilistic network
   {
-    for (i in 1:length(network$genes))
+    for (i in seq_along(network$genes))
     {
-      for (j in 1:length(network$interactions[[i]]))
+      for (j in seq_along(network$interactions[[i]]))
       {
         if (network$interactions[[i]][[j]]$input[1] != 0)
         # no edges for constant genes
@@ -52,7 +52,7 @@ plotNetworkWiring <- function(network,layout=layout.fruchterman.reingold,plotIt=
   }
 
   # build graph from edge list
-  res <- graph.data.frame(edgeList-bias,directed=TRUE,vertices=as.data.frame((1:length(network$genes)) - bias))
+  res <- graph.data.frame(edgeList-bias,directed=TRUE,vertices=as.data.frame((seq_along(network$genes)) - bias))
   res <- set.vertex.attribute(res,"name",value=network$genes)
   
   args <- list(...)

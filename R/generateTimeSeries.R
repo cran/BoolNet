@@ -14,7 +14,7 @@ generateTimeSeries <- function(network, numSeries, numMeasurements,
   if (missing(geneProbabilities))
     geneProbabilities <- NULL
     
-  ts <- lapply(1:numSeries, function(i)
+  ts <- lapply(seq_len(numSeries), function(i)
   {
     startState <- round(runif(length(network$genes)))
     res <- startState
@@ -33,7 +33,7 @@ generateTimeSeries <- function(network, numSeries, numMeasurements,
     }
     
     rownames(res) <- network$genes
-    colnames(res) <- 1:ncol(res)
+    colnames(res) <- seq_len(ncol(res))
     return(res)
   })
   return(ts)

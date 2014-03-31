@@ -160,7 +160,7 @@ loadBioTapestry <- function(file)
                             apply(tt,1,function(assignment)
                             {
                                 res <- 1
-                                for (i in 1:length(assignment))
+                                for (i in seq_along(assignment))
                                 {
                                     if (inputSigns[i] == "+")
                                     res <- res & assignment[i]
@@ -177,7 +177,7 @@ loadBioTapestry <- function(file)
                             apply(tt,1,function(assignment)
                             {
                                 res <- 0
-                                for (i in 1:length(assignment))
+                                for (i in seq_along(assignment))
                                 {
                                     if (inputSigns[i] == "+")
                                     res <- res | assignment[i]

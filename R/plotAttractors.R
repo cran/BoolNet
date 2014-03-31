@@ -11,7 +11,7 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
   numGenes <- length(attractorInfo$stateInfo$genes)
   
   if (missing(subset))
-      subset <- 1:length(attractorInfo$attractors)
+      subset <- seq_along(attractorInfo$attractors)
   else
     if (any(subset > length(attractorInfo$attractors)))
       stop("You specified an attractor index that is greater than the total number of attractors in 'subset'!")
@@ -23,9 +23,9 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
     # determine list of genes to be plotted
     whichFixed <- which(attractorInfo$stateInfo$fixedGenes != -1)
     if (plotFixed | (length(whichFixed) == 0))
-      plotIndices <- 1:numGenes
+      plotIndices <- seq_len(numGenes)
     else
-      plotIndices <- (1:numGenes)[-whichFixed]
+      plotIndices <- seq_len(numGenes)[-whichFixed]
   
     # convert decimal state numbers to binary state matrices (one for each attractor)
     binMatrices <- lapply(attractorInfo$attractors,function(attractor)
@@ -47,7 +47,7 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
     lengthTable <- table(attractorLengths)
     lengthTable <- lengthTable[as.integer(names(lengthTable)) != -1]
   
-    res <- lapply(1:length(lengthTable),function(i)
+    res <- lapply(seq_along(lengthTable),function(i)
     # accumulate all attractors with equal length in one matrix and plot them
     {
       len <- as.integer(names(lengthTable)[i])
@@ -62,7 +62,7 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
           totalMatrix <- cbind(totalMatrix,mat)
         }
         rownames(totalMatrix) <- attractorInfo$stateInfo$genes[plotIndices]
-        colnames(totalMatrix) <- sapply(intersect(which(attractorLengths == len),subset),function(i)paste("Attr",i,".",1:len,sep=""))
+        colnames(totalMatrix) <- sapply(intersect(which(attractorLengths == len),subset),function(i)paste("Attr",i,".",seq_len(len),sep=""))
     
         if(length(grouping)>0)
            # reorder genes according to the supplied groups
@@ -71,11 +71,11 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
         # initialize with empty plot
         plot(c(),c(),xlim=c(0,len*cnt),ylim=c(-2,nrow(totalMatrix)+1),xlab="",ylab="",
              axes=FALSE,main=paste(title, "Attractors with ",len," state(s)",sep=""))    
-        axis(2,(1:nrow(totalMatrix))-0.5,rownames(totalMatrix), yaxt='s', las=2)
+        axis(2,seq_len(nrow(totalMatrix))-0.5,rownames(totalMatrix), yaxt='s', las=2)
 
         # plot active and inactive states
-        for(i in 1:ncol(totalMatrix))
-          for(j in 1:nrow(totalMatrix))
+        for(i in seq_len(ncol(totalMatrix)))
+          for(j in seq_len(nrow(totalMatrix)))
           {
             if(totalMatrix[j,i] == 1)
               rect(i-1,j-1,i,j,col=onColor,border="gold")
@@ -93,7 +93,7 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
 
         if (!isTRUE(all(is.na(freq))))
         {
-          text(sep[1:(length(sep)-1)] + len/2, rep(0.4+nrow(totalMatrix),ncol(totalMatrix)),
+          text(sep[seq_along(sep)-1] + len/2, rep(0.4+nrow(totalMatrix),ncol(totalMatrix)),
             paste(freq,"%",sep=""),cex=.75,font=3)
         }
       

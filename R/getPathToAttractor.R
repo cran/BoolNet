@@ -17,7 +17,7 @@ getPathToAttractor <- function(network, state, includeAttractorStates=c("all","f
   includeAttractorStates <- match.arg(includeAttractorStates, c("all","first","none"))
   
   numGenes <- (ncol(table) - 2) / 2
-  initialStates <- apply(table[,1:numGenes,drop=FALSE],1,function(x)paste(x,collapse=""))
+  initialStates <- apply(table[,seq_len(numGenes),drop=FALSE],1,function(x)paste(x,collapse=""))
   
   currentState <- state
   
@@ -50,7 +50,7 @@ getPathToAttractor <- function(network, state, includeAttractorStates=c("all","f
     res <- data.frame(matrix(nrow=0,ncol=numGenes))
   }
 
-  colnames(res) <- sapply(colnames(table)[1:numGenes],function(n)strsplit(n,".",fixed=TRUE)[[1]][2])
+  colnames(res) <- sapply(colnames(table)[seq_len(numGenes)],function(n)strsplit(n,".",fixed=TRUE)[[1]][2])
   
   rownames(res) <- NULL
   return(res)

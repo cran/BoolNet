@@ -13,7 +13,7 @@ toPajek <- function (attractorInfo, file="boolean.net", includeLabels=FALSE)
   cat("*Vertices ", length(graphStruct$vertices), "\r\n", sep = "")
   if (includeLabels)
   {
-    lapply(1:length(graphStruct$vertices),function(i)
+    lapply(seq_along(graphStruct$vertices),function(i)
       cat(i," \"",graphStruct$vertices[i],"\"\r\n",sep=""))
   }
   cat("*Arcs\r\n")

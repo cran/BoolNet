@@ -33,7 +33,7 @@ simplifyNetwork <- function(network,readableFunctions=FALSE)
               {
                 # update network
                 network$fixed[j] <<- -1
-                dropFunctionIndices <- unlist(sapply(1:length(dropGenes),function(i)
+                dropFunctionIndices <- unlist(sapply(seq_along(dropGenes),function(i)
                       {
                         if(dropGenes[i])
                           which(table[,i] == 0)
@@ -78,7 +78,7 @@ simplifyNetwork <- function(network,readableFunctions=FALSE)
           if (sum(dropGenes) > 0)
           {
             # update network
-            dropFunctionIndices <- unlist(sapply(1:length(dropGenes),function(i)
+            dropFunctionIndices <- unlist(sapply(seq_along(dropGenes),function(i)
                   {
                     if(dropGenes[i])
                       which(table[,i] == 0)

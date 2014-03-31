@@ -526,6 +526,7 @@ void freeTreeNode(StateTreeNode * node, bool freeSuccessorArray)
 
 /**
  * Make a transition from <currentState> to the next state.
+ * States are encoded as arrays of ints and can thus contain an arbitrary number of genes.
  * <currentState> is a binary-coded integer with <numberOfGenes> used bits.
  * <fixedGenes> is an array of values specifying whether gene <i> is fixed (0 or 1) or not (-1).
  * <inputGenes> provides the input genes for all transition functions and can be split up
@@ -598,6 +599,66 @@ void stateTransition(unsigned int * currentState, unsigned int * nextState, Bool
 }
 
 /**
+ * Make a transition from <currentState> to the next state for a bit vector encoded
+ * as a single integer (max. 64 genes).
+ * <currentState> is a binary-coded integer with <numberOfGenes> used bits.
+ * <fixedGenes> is an array of values specifying whether gene <i> is fixed (0 or 1) or not (-1).
+ * <inputGenes> provides the input genes for all transition functions and can be split up
+ * for a single function according to <inputGenePositions>.
+ * <transitionFunctions> provides the truth tables for all transition functions and can be split up
+ * for a single function according to <transitionFunctionPositions>.
+ *
+ * The return value is the next state, encoded in a single integer.
+ */
+unsigned long long stateTransition_singleInt(unsigned long long currentState, BooleanNetwork * net)
+{
+	unsigned int i = 0, k = 0, idx = 0;
+
+  unsigned long long nextState = 0;
+
+	for (i = 1; i <= net->numGenes; ++i)
+	{
+		if (net->fixedGenes[i-1] == -1)
+		// the gene is not fixed
+		{
+			unsigned long long inputdec = 0;
+
+			for (k = net->inputGenePositions[i-1]; k < net->inputGenePositions[i]; k++)
+			{
+				if (net->inputGenes[k])
+				// if the input of the function is not 0 (constant gene), take input bit
+				{
+					unsigned int gene = net->inputGenes[k] - 1;
+					unsigned int bit;
+
+					if (net->fixedGenes[gene] == -1)
+						bit = (GET_BIT(currentState,
+							     net->nonFixedGeneBits[gene]));
+					else
+						// fixed genes are not encoded in the states
+						// => take them from fixedGenes vector
+						bit = net->fixedGenes[gene];
+					inputdec |= bit	<< (net->inputGenePositions[i] - k - 1);
+				}
+			}
+			// determine transition function
+			int transition = net->transitionFunctions[net->transitionFunctionPositions[i-1] + inputdec];
+
+			if(transition != -1)
+				// apply transition function
+				nextState |= (transition << idx);
+			else
+				// this is a dummy function for a constant gene
+				// => value does not change
+				nextState |= (GET_BIT(currentState,
+															idx) << idx);
+			++idx;
+		}
+	}
+	return nextState;
+}
+
+/**
  * Retrieves the result column of the state transition table.
  * <numberOfGenes> specifies the total number of genes.
  * <fixedGenes> is an array of values specifying whether gene <i> is fixed (0 or 1) or not (-1).
@@ -609,6 +670,7 @@ void stateTransition(unsigned int * currentState, unsigned int * nextState, Bool
 unsigned long long * getTransitionTable(BooleanNetwork * net)
 {
 	unsigned long long i = 0;
+	unsigned int j;
 
 	// determine number of fixed genes
 	int numFixed = 0;
@@ -634,10 +696,7 @@ unsigned long long * getTransitionTable(BooleanNetwork * net)
     R_CheckUserInterrupt();
 		//state is simply the binary encoding of the counter
 		//calculate transition
-		table[initialState] = 0;
-		stateTransition((unsigned int *)&initialState,
-						(unsigned int *)&table[initialState],
-						net);
+	  table[initialState] = stateTransition_singleInt(initialState, net);			
 	}
 	return table;
 }
@@ -665,7 +724,11 @@ pAttractorInfo getAttractors(unsigned long long * table, unsigned int numberOfSt
 
 	for (i = 0; i < numberOfStates; ++i)
 	{
-		memcpy(&result->table[i],&table[i],sizeof(unsigned int) * elementsPerEntry);
+		//memcpy(&result->table[i],&table[i],sizeof(unsigned int) * elementsPerEntry);
+		result->table[i*elementsPerEntry] = table[i] & 0xFFFFFFFF;
+		
+  	if (elementsPerEntry == 2)
+  					result->table[i*elementsPerEntry + 1] = (table[i] & 0xFFFFFFFF00000000) >> 32;
 	}
 
 	pAttractor attractorHead, attractorList,tmpList;
@@ -678,7 +741,6 @@ pAttractorInfo getAttractors(unsigned long long * table, unsigned int numberOfSt
 		if(!result->attractorAssignment[i])
 		// the current state has not yet been visited
 		{
-
 			// first attractor has number 1
 			current_attractor++;
 
@@ -695,7 +757,6 @@ pAttractorInfo getAttractors(unsigned long long * table, unsigned int numberOfSt
 				// later subtracted from the maximum distance
 				result->stepsToAttractor[begin] = steps;
 				result->attractorAssignment[begin] = current_attractor;
-
 				// perform a state transition
 				begin = table[begin];
 			}
@@ -727,7 +788,14 @@ pAttractorInfo getAttractors(unsigned long long * table, unsigned int numberOfSt
 				{
 					result->stepsToAttractor[tmp] = 0;
 					//attractorList->involvedStates[a++] = tmp;
-					memcpy(&attractorList->involvedStates[a],&tmp,elementsPerEntry*sizeof(unsigned int));
+					//memcpy(&attractorList->involvedStates[a],&tmp,elementsPerEntry*sizeof(unsigned int));
+				
+					// get low-order and high-order longs in a platform-independent manner
+ 					attractorList->involvedStates[a] = tmp & 0xFFFFFFFF;
+				
+					if (elementsPerEntry == 2)
+  					attractorList->involvedStates[a+1] = (tmp & 0xFFFFFFFF00000000) >> 32;
+					
 					tmp = table[tmp];
 					a += elementsPerEntry;
 				}
@@ -1461,7 +1529,6 @@ SEXP getAttractors_R(SEXP inputGenes,
 			network.nonFixedGeneBits[i] = numNonFixed++;
 		}
 	}
-	
 	pAttractorInfo res;
 
 	if (isNull(startStates) || length(startStates) == 0)
@@ -1477,7 +1544,6 @@ SEXP getAttractors_R(SEXP inputGenes,
     }
 
 		unsigned long long numStates = pow(2,numNonFixed);
-
 		// find attractors
 		res = getAttractors(table, numStates, network.numGenes);
 	}

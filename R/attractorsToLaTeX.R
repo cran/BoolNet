@@ -10,7 +10,7 @@ attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = lis
   stopifnot(inherits(attractorInfo,"AttractorInfo"))
   
   if (missing(subset))
-      subset <- 1:length(attractorInfo$attractors)
+      subset <- seq_along(attractorInfo$attractors)
   else
     if (any(subset > length(attractorInfo$attractors)))
       stop("You specified an attractor index that is greater than the total number of attractors in 'subset'!")
@@ -24,9 +24,9 @@ attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = lis
   # determine list of genes to be plotted
   whichFixed <- which(attractorInfo$stateInfo$fixedGenes != -1)
   if (plotFixed | (length(whichFixed) == 0))
-    plotIndices <- 1:numGenes
+    plotIndices <- seq_len(numGenes)
   else
-    plotIndices <- (1:numGenes)[-whichFixed]
+    plotIndices <- (seq_len(numGenes))[-whichFixed]
   
       # convert decimal state numbers to binary state matrices (one for each attractor)
   binMatrices <- lapply(attractorInfo$attractors,function(attractor)
@@ -53,7 +53,7 @@ attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = lis
   cat("% Please include packages tabularx and colortbl in your master document:\n",
       "% \\usepackage{tabularx,colortbl}\n\n\n",sep="")
       
-  res <- lapply(1:length(lengthTable),function(i)
+  res <- lapply(seq_along(lengthTable),function(i)
   # accumulate all attractors with equal length in one matrix and plot them
   {
     len <- as.integer(names(lengthTable)[i])
@@ -69,7 +69,7 @@ attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = lis
         totalMatrix <- cbind(totalMatrix,mat)
       }
       rownames(totalMatrix) <- attractorInfo$stateInfo$genes[plotIndices]
-      colnames(totalMatrix) <- sapply(intersect(which(attractorLengths == len),subset),function(i)paste("Attr",i,".",1:len,sep=""))
+      colnames(totalMatrix) <- sapply(intersect(which(attractorLengths == len),subset),function(i)paste("Attr",i,".",seq_len(len),sep=""))
     
       if(length(grouping)>0)
       {
@@ -95,7 +95,7 @@ attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = lis
             sep=""),collapse="\t&\t"),"\\\\\n")    
     
       # output active and inactive states
-      for(j in 1:nrow(totalMatrix))
+      for(j in seq_len(nrow(totalMatrix)))
       {
         separator <- which(separationPositions==j)
         if (length(separator) != 0)
@@ -103,7 +103,7 @@ attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = lis
           cat("\\hline \\multicolumn{",ncol(totalMatrix) + 1,"}{c}{",grouping$class[separator],"}\\\\ \\hline \n",sep="")
         }
         cat("\\textbf{",rownames(totalMatrix)[j],"}\t&\t",sep="")
-        for(i in 1:ncol(totalMatrix))
+        for(i in seq_len(ncol(totalMatrix)))
         {
           if(totalMatrix[j,i] == 1)
             cat("\\cellcolor",onColor,"1",sep="")

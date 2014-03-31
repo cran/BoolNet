@@ -74,7 +74,7 @@ scanStatistic <- function(vect, w=0.25, sign.level=0.1)
 	
 	# shift a fixed window over the data
 	# the window is moved from point to point
-	for(i in 1:length(vect))
+	for(i in seq_along(vect))
 	{	
 		start <- vsort[i]
 		stop <- vsort[i] + windowsize
@@ -112,7 +112,7 @@ scanStatistic <- function(vect, w=0.25, sign.level=0.1)
     			
 			}
 		
-			for(i in 1:length(vect))
+			for(i in seq_along(vect))
 			{
 				start <- vsort[i]
 				stop <- vsort[i] + windowsize
@@ -152,7 +152,7 @@ scanStatistic <- function(vect, w=0.25, sign.level=0.1)
 	# this window is used for the binarization
 	min=1000
 	ind=0
-	for(i in 1:length(res))
+	for(i in seq_along(res))
 	{
 		if(res[[i]][3]<min)
 		{
@@ -175,7 +175,7 @@ scanStatistic <- function(vect, w=0.25, sign.level=0.1)
 		
 		thres<-(big+small)/2
 		
-		for(i in 1:length(vect))
+		for(i in seq_along(vect))
 		{
 			if(vect[i]<=threshold)
 			{
@@ -197,7 +197,7 @@ scanStatistic <- function(vect, w=0.25, sign.level=0.1)
 		
 		thres<-(big+small)/2
 		
-		for(i in 1:length(vect))
+		for(i in seq_along(vect))
 		{
 			if(vect[i]>=threshold)
 			{

@@ -1,6 +1,21 @@
 \name{NEWS}
 \title{NEWS file for the \pkg{BoolNet} package}
 
+\section{Changes in version 1.63}{
+\subsection{Modified functions}{
+
+\itemize{
+
+\item{Fixed issues preventing the use of BoolNet on Big Endian systems.}
+
+\item{Eliminated some bad style code.}
+
+\item{Fixed some valgrind notes.}
+
+}
+}
+}
+
 \section{Changes in version 1.62}{
 \subsection{Modified functions}{
 

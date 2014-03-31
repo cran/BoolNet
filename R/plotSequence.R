@@ -21,9 +21,9 @@ plotSequence <- function(network, startState,
     {                                       
       whichFixed <- which(network$fixed != -1)
       if (plotFixed | (length(whichFixed) == 0))
-        plotIndices <- 1:numGenes
+        plotIndices <- seq_len(numGenes)
       else
-        plotIndices <- (1:numGenes)[-whichFixed]
+        plotIndices <- seq_len(numGenes)[-whichFixed]
         
       sequence <- sequence[,plotIndices,drop=FALSE]
     }
@@ -45,19 +45,19 @@ plotSequence <- function(network, startState,
            # reorder genes according to the supplied groups
           totalMatrix = totalMatrix[unlist(grouping$index),,drop=FALSE]
       
-      colnames(totalMatrix) <- 1:ncol(totalMatrix)
+      colnames(totalMatrix) <- seq_len(ncol(totalMatrix))
 
       # initialize with empty plot
       plot(c(),c(),xlim=c(0,ncol(totalMatrix)),ylim=c(-2,nrow(totalMatrix)),xlab="",ylab="",
            axes=FALSE, ...)    
-      axis(3,c(0,(1:ncol(totalMatrix))-0.5),c("t=",colnames(totalMatrix)), 
+      axis(3,c(0,seq_len(ncol(totalMatrix))-0.5),c("t=",colnames(totalMatrix)), 
            lty="blank", yaxt='s', xaxt='s', xaxs="i")
-      axis(2,(1:nrow(totalMatrix))-0.5,rownames(totalMatrix),
+      axis(2,seq_len(nrow(totalMatrix))-0.5,rownames(totalMatrix),
            yaxt='s', xaxt='s', xaxs="i", las=2)
 
         # plot active and inactive states
-      for(i in 1:ncol(totalMatrix))
-        for(j in 1:nrow(totalMatrix))
+      for(i in seq_len(ncol(totalMatrix)))
+        for(j in seq_len(nrow(totalMatrix)))
         {
           if(totalMatrix[j,i] == 1)
             rect(i-1,j-1,i,j,col=onColor,border="gold")

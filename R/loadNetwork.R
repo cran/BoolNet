@@ -56,7 +56,7 @@ loadNetwork <- function(file, bodySeparator=",", lowercaseGenes=FALSE)
 
   interactions <- list()
 
-  for(i in 1:length(targets))
+  for(i in seq_along(targets))
   {
     target <- targets[i]
     inputGenes <- factors.tmp[[i]]

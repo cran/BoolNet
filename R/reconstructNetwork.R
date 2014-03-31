@@ -28,13 +28,13 @@ reconstructNetwork <- function(measurements,method=c("bestfit","reveal"),maxK=5,
       on.exit(.C("freeAllMemory", PACKAGE = "BoolNet"))
     # call C code
     res <- .Call("reconstructNetwork_R",
-          as.integer(t(as.matrix(measurements[,1:numGenes]))),
-          as.integer(t(as.matrix(measurements[,(numGenes+1):(2*numGenes)]))),
+          as.integer(t(as.matrix(measurements[,seq_len(numGenes)]))),
+          as.integer(t(as.matrix(measurements[,seq_len(numGenes) + numGenes]))),
           as.integer(nrow(measurements)),
           as.integer(maxK),
           as.integer(meth),
           as.integer(allSolutions))
-    genenames <- sapply(colnames(measurements)[1:numGenes],function(x)strsplit(x,".",fixed=TRUE)[[1]][2])
+    genenames <- sapply(colnames(measurements)[seq_len(numGenes)],function(x)strsplit(x,".",fixed=TRUE)[[1]][2])
   }
   else
   # the measurements are time series
@@ -54,7 +54,7 @@ reconstructNetwork <- function(measurements,method=c("bestfit","reveal"),maxK=5,
     
     genenames <- rownames(measurements[[1]])
     if (is.null(genenames))
-      genenames <- paste("Gene",1:numGenes)
+      genenames <- paste("Gene",seq_len(numGenes))
     inputStates <- c()
     outputStates <- c()
     
@@ -63,8 +63,8 @@ reconstructNetwork <- function(measurements,method=c("bestfit","reveal"),maxK=5,
     {
       if (numGenes != nrow(measurement))
         stop("All measurement matrices must contain the same genes!")
-      inputStates <- c(inputStates,as.integer(as.matrix(measurement[,1:(ncol(measurement)-1)])))
-      outputStates <- c(outputStates,as.integer(as.matrix(measurement[,2:ncol(measurement)])))
+      inputStates <- c(inputStates,as.integer(as.matrix(measurement[,seq_len(ncol(measurement)-1)])))
+      outputStates <- c(outputStates,as.integer(as.matrix(measurement[,seq_len(ncol(measurement)-1) + 1])))
       
     }
     

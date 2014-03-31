@@ -6,7 +6,7 @@ print.TransitionTable <- function(x, activeOnly=FALSE, ...)
   colIndices <- c(1,numGenes,numGenes + 1, 2*numGenes, 
       2*numGenes + 1, 2*numGenes + 2)
       
-  genes <- sapply(colnames(x)[1:numGenes],function(n)strsplit(n,".",fixed=TRUE)[[1]][2])
+  genes <- sapply(colnames(x)[seq_len(numGenes)],function(n)strsplit(n,".",fixed=TRUE)[[1]][2])
   
   if(activeOnly)
   {

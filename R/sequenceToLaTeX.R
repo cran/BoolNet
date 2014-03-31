@@ -16,9 +16,9 @@ sequenceToLaTeX <- function(network, startState, includeAttractorStates = c("all
     numGenes <- length(network$genes)                                   
     whichFixed <- which(network$fixed != -1)
     if (plotFixed | (length(whichFixed) == 0))
-      plotIndices <- 1:numGenes
+      plotIndices <- seq_len(numGenes)
     else
-      plotIndices <- (1:numGenes)[-whichFixed]
+      plotIndices <- seq_len(numGenes)[-whichFixed]
       
     sequence <- sequence[,plotIndices]                                   
   }
@@ -39,7 +39,7 @@ sequenceToLaTeX <- function(network, startState, includeAttractorStates = c("all
       "% \\usepackage{tabularx,colortbl}\n\n\n",sep="")
       
   totalMatrix <- t(sequence)
-  colnames(totalMatrix) <- 1:ncol(totalMatrix)
+  colnames(totalMatrix) <- seq_len(ncol(totalMatrix))
   
   if(length(grouping)>0)
   {
@@ -59,7 +59,7 @@ sequenceToLaTeX <- function(network, startState, includeAttractorStates = c("all
           ncol(totalMatrix), collapse = " "))),collapse=""), 
   "}\\hline\n", sep="")
        
-  cat("\\textbf{Time}\t&\t",paste(1:ncol(totalMatrix),collapse="\t&\t"),"\\\\")
+  cat("\\textbf{Time}\t&\t",paste(seq_len(ncol(totalMatrix)),collapse="\t&\t"),"\\\\")
   
    if(length(grouping) == 0)
      cat("\\hline\n")
@@ -67,7 +67,7 @@ sequenceToLaTeX <- function(network, startState, includeAttractorStates = c("all
      cat("\n")  
 
   # output active and inactive states
-  for(j in 1:nrow(totalMatrix))
+  for(j in seq_len(nrow(totalMatrix)))
   {
     separator <- which(separationPositions==j)
     if (length(separator) != 0)
@@ -75,7 +75,7 @@ sequenceToLaTeX <- function(network, startState, includeAttractorStates = c("all
       cat("\\hline \\multicolumn{",ncol(totalMatrix) + 1,"}{c}{",grouping$class[separator],"}\\\\ \\hline \n",sep="")
     }
     cat("\\textbf{",rownames(totalMatrix)[j],"}\t&\t",sep="")
-    for(i in 1:ncol(totalMatrix))
+    for(i in seq_len(ncol(totalMatrix)))
     {
       if(totalMatrix[j,i] == 1)
         cat("\\cellcolor",onColor,"1",sep="")

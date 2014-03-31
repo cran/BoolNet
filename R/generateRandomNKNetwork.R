@@ -26,7 +26,7 @@ generateRandomNKNetwork <- function(n,k,topology=c("fixed","homogeneous","scale_
   if ((zeroBias == 0 | zeroBias == 1) & noIrrelevantGenes & any(k_i_vec > 0))
     stop("If setting 'zeroBias' to 0 or 1, you must set 'noIrrelevantGenes' to FALSE!")
   
-  geneNames <- paste("Gene",1:n,sep="")
+  geneNames <- paste("Gene",seq_len(n),sep="")
   
   if (!missing(validationFunction))
     validationFunction <- match.fun(validationFunction)
@@ -44,7 +44,7 @@ generateRandomNKNetwork <- function(n,k,topology=c("fixed","homogeneous","scale_
         {
           table <- allcombn(2,k_i) - 1
           genes <- switch(match.arg(linkage,c("uniform","lattice")),
-            uniform = sample(1:n,k_i,replace=FALSE),
+            uniform = sample(seq_len(n),k_i,replace=FALSE),
             lattice = {
                 region <- c(max(1,round(i - k_i*d_lattice)):max(1,i-1),
                       min(n,i+1):min(n,round(i + k_i*d_lattice)))
@@ -91,7 +91,7 @@ generateRandomNKNetwork <- function(n,k,topology=c("fixed","homogeneous","scale_
         return(list(input=genes,func=func,
           expression=getInteractionString(readableFunctions,
                          func,geneNames[genes])))
-      },1:length(k_i_vec),k_i_vec,SIMPLIFY=FALSE)
+      },seq_len(length(k_i_vec)),k_i_vec,SIMPLIFY=FALSE)
   fixed <- sapply(interactions,function(i)
       {
         if (i$input[1] == 0)

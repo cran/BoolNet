@@ -12,7 +12,7 @@ edgeDetector <- function(vector,scaling=1,edge=c("firstEdge","maxEdge"))
   sortedvector<-sort(vector)
   
   #distance calculation
-  for(i in 1:(length(vector)-1))
+  for(i in seq_len(length(vector)-1))
   {
     distance[i]<-sortedvector[i+1]-sortedvector[i]  
   }
@@ -23,7 +23,7 @@ edgeDetector <- function(vector,scaling=1,edge=c("firstEdge","maxEdge"))
       {
         threshold<-scaling*((sortedvector[length(vector)]-sortedvector[1])/((length(vector)-1)))
         index <- 0
-        for(i in 1:(length(vector)-1))
+        for(i in seq_len(length(vector)-1))
         {  
           if(distance[i]>threshold)
           {
@@ -44,7 +44,7 @@ edgeDetector <- function(vector,scaling=1,edge=c("firstEdge","maxEdge"))
   #based on the edge index, the binarization is performed  
   if(index!=0)
   {
-    for(i in 1:(length(vector)))
+    for(i in seq_len(length(vector)))
     {  
       if(vector[i]>=sortedvector[index+1])
         binarizeddata[i]<-1

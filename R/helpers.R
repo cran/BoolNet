@@ -28,7 +28,7 @@ allcombn <- function(N,n)
   rownum = N^n
   sapply(n:1,function(i)
     {
-            rep(1:N,each=N^(i-1),len=rownum)
+            rep(seq_len(N),each=N^(i-1),len=rownum)
           })
 }
 
@@ -181,7 +181,7 @@ getStateGraphStructure <- function(attractorInfo)
   inputStates <- apply(inputStates,1,function(state)paste(state,collapse=""))
   
   # build "hash table" of state numbers
-  stateHash <- 1:length(inputStates)
+  stateHash <- seq_len(length(inputStates))
   names(stateHash) <- inputStates
   
   
@@ -190,7 +190,7 @@ getStateGraphStructure <- function(attractorInfo)
         {
           bin <- paste(dec2bin(state,length(attractorInfo$stateInfo$genes)),collapse="")
         })
-  return(list(vertices=inputStates,edges=cbind(1:length(inputStates),
+  return(list(vertices=inputStates,edges=cbind(seq_along(inputStates),
       sapply(outputStates,function(state)stateHash[state]))))
 }
 
@@ -201,10 +201,10 @@ canonicalStateOrder <- function(stateMatrix)
 {
   smallestIndex <- -1
   smallestVal <- rep(Inf,nrow(stateMatrix))
-  for (i in 1:ncol(stateMatrix))
+  for (i in seq_len(ncol(stateMatrix)))
   # iterate over states
   {
-    for (j in 1:nrow(stateMatrix))
+    for (j in seq_len(nrow(stateMatrix)))
     # iterate over elements of encoded state
     {
       if (stateMatrix[j,i] < smallestVal[j])
@@ -224,7 +224,7 @@ canonicalStateOrder <- function(stateMatrix)
   if (smallestIndex != 1)
     # rearrange matrix
     return(cbind(stateMatrix[,smallestIndex:ncol(stateMatrix),drop=FALSE],
-           stateMatrix[,(1:(smallestIndex-1)),drop=FALSE]))
+           stateMatrix[,seq_len(smallestIndex-1),drop=FALSE]))
   else
     return(stateMatrix)
 }
