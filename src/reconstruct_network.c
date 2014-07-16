@@ -1,7 +1,7 @@
 /**
  * C code for the reconstruction of Boolean networks
  *
- * This is part of the BooleanNetwork R package.
+ * This is part of the BoolNet R package.
  *
  * Copyright 2009/2010 by Christoph Müssel
  *
@@ -31,7 +31,12 @@ typedef struct FLE
 	// the indices of the input genes
 	int * inputGenes;
 
-	// a bit vector containing the transition function
+  // The transition function.
+  // ATTENTION:
+  // If all functions are built (returnPBN = true), this
+	// is a bit vector containing the transition function
+	// If "don't care" values are allowed (returnPBN = false),
+	// each integer element encodes one bit
 	unsigned int * transitionFunction;
 
 	// the next element in the list
@@ -55,6 +60,20 @@ typedef struct FSE
 	struct FSE * next;
 } FunctionStackElement;
 
+
+typedef struct 
+{
+  unsigned int pos;
+  unsigned int numFixed;
+  unsigned int numAvailable;
+  unsigned int k;
+  unsigned int n;
+  unsigned int * indexMapping;
+  int * comb;
+  int * intComb;
+} InputCombination;
+
+
 /**
  * Add a new element to the function list specified by <root>.
  * Set the corresponding values <k>,<inputGenes> and <transitionFunction>
@@ -71,8 +90,8 @@ static inline FunctionListElement * addFunctionListElement(FunctionListElement *
 	FunctionListElement * el = CALLOC(1,sizeof(FunctionListElement));
 	el->k = k;
 
-	el->inputGenes = CALLOC(k,sizeof(int));
-	memcpy(el->inputGenes,inputGenes,sizeof(int) * k);
+	el->inputGenes = CALLOC(k,sizeof(unsigned int));
+	memcpy(el->inputGenes,inputGenes,sizeof(unsigned int) * k);
 
 	el->transitionFunction = CALLOC(transitionFunctionSize,sizeof(unsigned int));
 	memcpy(el->transitionFunction,transitionFunction,sizeof(unsigned int) * transitionFunctionSize);
@@ -147,56 +166,134 @@ static inline void deleteFunctionStackElement(FunctionStackElement ** stack)
  * After each call, <comb> contains the next combination. If all combinations have been
  * listed, the function returns false, otherwise true.
  */
-static inline bool nextCombination(int * comb, unsigned int * pos, unsigned int k, unsigned int n)
+static inline bool nextCombination(InputCombination * comb)
 {
 	bool posChanged = false;
 
 	// find the first position that has not been set
 	// to its maximum number
-	
-	while(*pos < k && comb[*pos] == n - *pos - 1)
+	while(comb->pos < comb->k - comb->numFixed && 
+	      comb->intComb[comb->pos] == comb->numAvailable - comb->pos - 1)
 	{
-		++ *pos;
+		++ (comb->pos);
 		posChanged = true;
 	}
-	if (*pos == k)
+	if (comb->pos == comb->k - comb->numFixed)
+	{
 		// all elements have been listed
 		return false;
-
+  }
 	if (posChanged)
 	// reset lower-order positions, and increase
 	// the position found previously
 	{
 		unsigned int i;
-		++comb[*pos];
-		for (i = *pos; i > 0; --i)
-			comb[i-1] = comb[i] + 1;
-		*pos = 0;
+		++comb->intComb[comb->pos];
+		for (i = comb->pos; i > 0; --i)
+			comb->intComb[i-1] = comb->intComb[i] + 1;
+		comb->pos = 0;
 	}
 	else
 	// the current position has not been set to its maximum value
 	// => increase it
-		++comb[*pos];
+		++comb->intComb[comb->pos];
+	
+	unsigned int j;	
+	for (j = 0; j < comb->k - comb->numFixed; ++j)
+	{
+		comb->comb[comb->numFixed + j] = comb->indexMapping[comb->intComb[j]];
+  }
+  
+  //for (j = 0; j < comb->k; ++j)
+  //  Rprintf("%d ",comb->comb[j]);
+  //Rprintf("\n");  
+    
+	
 	return true;
 }
 
+static inline InputCombination * initCombination(int * requiredDependencies, 
+                                                 int * excludedDependencies, 
+                                                 unsigned int k, unsigned int n)
+{
+  InputCombination * res = CALLOC(1,sizeof(InputCombination));
+  res->comb = CALLOC(k,sizeof(int));
+  res->indexMapping = CALLOC(n,sizeof(int));
+  
+  res->k = k;
+  res->n = n;
+  res->numFixed = 0;
+  res->numAvailable = 0;
+  
+  unsigned int j;
+  
+  for (j = 0; j < n; ++j)
+  {
+    if (requiredDependencies != NULL && requiredDependencies[j] != 0)
+    {
+      res->comb[res->numFixed] = j;
+      ++(res->numFixed);
+    }
+    else
+    if (excludedDependencies == NULL || excludedDependencies[j] == 0)
+    {
+      res->indexMapping[res->numAvailable] = j;
+      ++(res->numAvailable);
+    }
+  }
+  
+  res->intComb = CALLOC(res->numAvailable,sizeof(unsigned int));
+	for (j = 0; j < res->k - res->numFixed; ++j)
+	{
+	  res->intComb[j] = k - res->numFixed - j - 1;
+		res->comb[res->numFixed + j] = res->indexMapping[res->intComb[j]];
+  }
+  return res;
+}
+
+static inline void freeInputCombination(InputCombination * comb)
+{
+  FREE(comb->comb);
+  FREE(comb->intComb);  
+  FREE(comb->indexMapping);
+  FREE(comb);
+}
 
 /**
  * Lähdesmäki's best-fit extension algorithm to infer Boolean networks
  * from time series.
- * <states> is an array of time series. Here, <ceil(numGenes / 32)>
- * consecutive array entries describe one state, thus
- * the array size is <ceil(numGenes / 32) * numberOfStates>.
+ * <inputStates> and <outputStates> represent state transitions. 
+ * Here, <ceil(numGenes / 32)> consecutive array entries describe one state, 
+ * thus the array size is <ceil(numGenes / 32) * numberOfStates>.
+ * <perturbations> is an array of the same length as <inputStates> specifying
+ * whether inputs were normally regulated (-1), overexpressed (1), or knocked out (0).
  * <numGenes> is the number of genes in the time series.
  * <maxK> is the maximum number of inputs a function can have.
+ * <requiredDependencies> is a flattened Boolean matrix specifying dependencies
+ * that *must* occur in the reconstructed networks.
+ * Similarly, <excludedDependencies> specifies dependencies
+ * that *must not* occur in the reconstructed networks. 
  * <result> receives one list of possible functions for each gene, and
  * <errors> stores the error of these functions on the time series.
+ * <allSolutions> specifies whether the algorithm stops as soon as a perfect solution
+ * is found (false) or not (true).
+ * <returnPBN> specifies whether incomplete functions (with "don't care" values)
+ * are expanded recursively (true) or returned as-is (false).
  */
-void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
-					  unsigned int numStates, unsigned int numGenes, unsigned int maxK,
-					  FunctionListElement ** result, unsigned int * errors, bool allSolutions)
+void bestFitExtension(unsigned int * inputStates, 
+            unsigned int * outputStates,
+            unsigned int * perturbations,
+					  unsigned int numStates, 
+					  unsigned int numGenes, 
+            int * requiredDependencies, 
+            int * excludedDependencies,					  
+					  unsigned int maxK,
+					  FunctionListElement ** result, 
+					  unsigned int * errors, 
+					  bool allSolutions,
+					  bool returnPBN)
 {
-	unsigned int i;
+	unsigned int i, j;
 	unsigned int numElts;
 
 	// calculate block size in time series array
@@ -213,71 +310,99 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
 	for (i = 0; i < numGenes; ++i)
 	// iterate over genes
 	{
+		unsigned int currentMaxK = maxK, minK = 0, excludedCount = 0;
+    
+    if (requiredDependencies != NULL)
+      for (j = 0; j < numGenes; ++j)
+        if (requiredDependencies[i*numGenes + j] != 0)
+          ++minK;
+    
+   if (excludedDependencies != NULL)
+      for (j = 0; j < numGenes; ++j)
+        if (excludedDependencies[i*numGenes + j] != 0)
+          ++excludedCount;
+
+    if (currentMaxK < minK)
+      currentMaxK = minK;
+      
+    if (currentMaxK > numGenes - excludedCount)
+      currentMaxK =  numGenes - excludedCount;
+	
 		// set error to maximum
 		errors[i] = ~0;
 		unsigned int k, s;
 
-		// check for constant genes
-		unsigned int geneVal = GET_BIT(outputStates[i/BITS_PER_BLOCK_32],i % BITS_PER_BLOCK_32);
-		bool isConst = true;
+    if (minK == 0)
+    {
+		  // check for constant genes
+		  unsigned int geneVal = GET_BIT(outputStates[i/BITS_PER_BLOCK_32],i % BITS_PER_BLOCK_32);
+		  bool isConst = true;
 
-		unsigned int const0Err = (geneVal > 0), const1Err = (geneVal == 0);
+		  unsigned int const0Err = (geneVal > 0), const1Err = (geneVal == 0);
 
-		for (s = 1; s < numStates; ++s)
-		{
-			unsigned int nextBit = GET_BIT(outputStates[s*numElts + i/BITS_PER_BLOCK_32],i % BITS_PER_BLOCK_32);
-			if (nextBit	!= geneVal)
-			{
-				isConst = false;
-			}
-			if (nextBit)
-				++const0Err;
-			else
-				++const1Err;
-		}
+		  for (s = 1; s < numStates; ++s)
+		  {
+    		if (perturbations != NULL && perturbations[s * numGenes + i] != -1)
+    		// ignore this state if the current gene is perturbed
+    		  continue;
+    		  
+			  unsigned int nextBit = GET_BIT(outputStates[s*numElts + i/BITS_PER_BLOCK_32],i % BITS_PER_BLOCK_32);
+			  if (nextBit	!= geneVal)
+			  {
+				  isConst = false;
+			  }
+			  if (nextBit)
+				  ++const0Err;
+			  else
+				  ++const1Err;
+		  }
 
-		if (isConst)
-		// gene is constant => simplest function already found!
-		{
-			int inputGenes = -1;
-			addFunctionListElement(&result[i],1,1,&inputGenes,&geneVal);
-			errors[i] = 0;
-			bestLength[i] = 0;
-		}
-		else
-		{
-			if (const0Err <= const1Err)
-			{
-				int inputGenes = -1;
-				unsigned int val = 0;
-				addFunctionListElement(&result[i],1,1,&inputGenes,&val);
-				errors[i] = const0Err;
-				bestLength[i] = 0;
-			}
+		  if (isConst)
+		  // gene is constant => simplest function already found!
+		  {
+			  int inputGenes = -1;
+			  addFunctionListElement(&result[i],1,1,&inputGenes,&geneVal);
+			  errors[i] = 0;
+			  bestLength[i] = 0;
+		  }
+		  else
+		  {
+			  if (const0Err <= const1Err)
+			  {
+				  int inputGenes = -1;
+				  unsigned int val = 0;
+				  addFunctionListElement(&result[i],1,1,&inputGenes,&val);
+				  errors[i] = const0Err;
+				  bestLength[i] = 0;
+			  }
 
-			if (const1Err <= const0Err)
-			{
-				int inputGenes = -1;
-				unsigned int val = 1;
-				addFunctionListElement(&result[i],1,1,&inputGenes,&val);
-				errors[i] = const1Err;
-				bestLength[i] = 0;
-			}
-		}
-
-		for (k = 1; k <= maxK; ++k)
+			  if (const1Err <= const0Err)
+			  {
+				  int inputGenes = -1;
+				  unsigned int val = 1;
+				  addFunctionListElement(&result[i],1,1,&inputGenes,&val);
+				  errors[i] = const1Err;
+				  bestLength[i] = 0;
+			  }
+		  }
+    }
+    
+		for (k = (minK > 1? minK : 1); k <= currentMaxK; ++k)
 		// iterate over possible numbers of inputs
 		{
 			if (errors[i] == 0 && !allSolutions)
 				break;
 
 			// initialize gene combination vector
-			int comb[k];
-			unsigned int j;
-			for (j = 0; j < k; ++j)
-				comb[j] = k - j - 1;
-			unsigned int pos = 0;
-
+			
+			InputCombination * comb = initCombination((requiredDependencies == NULL? 
+			                                            NULL : 
+			                                            &requiredDependencies[i*numGenes]), 
+                                                (excludedDependencies == NULL?
+                                                  NULL :
+                                                  &excludedDependencies[i*numGenes]), 
+                                                k, numGenes);
+			
 			// calculate the number of array elements needed
 			// to represent the output of a function
 			unsigned int array_sz = (unsigned int)1 << k;
@@ -300,6 +425,11 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
 				for (s = 0; s < numStates; ++s)
 				// iterate over states and count errors
 				{
+					if (perturbations != NULL && perturbations[s * numGenes + i] != -1)
+				  // the current gene is perturbed in this state 
+				  // => ignore the state for inference of this gene					
+    		    continue;
+				
 					unsigned int input = 0, bit;
 					for (bit = 0; bit <  k; ++bit)
 					// build input by transferring the bits of the input genes
@@ -307,7 +437,8 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
 					{
 
 						input |= (GET_BIT(inputStates[s * numElts
-										   + comb[bit]/BITS_PER_BLOCK_32],comb[bit] % BITS_PER_BLOCK_32))
+										   + comb->comb[bit]/BITS_PER_BLOCK_32],
+										   comb->comb[bit] % BITS_PER_BLOCK_32))
 								  << bit;
 					}
 
@@ -347,74 +478,104 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
 				if (error <= errors[i] && (bestLength[i] >= k || allSolutions))
 				{
 
-					// create a stack of possible functions to be able
-					// to split up if the 0-error and the 1-error at a certain position
-					// are equal
-					FunctionStackElement * stack =  NULL;
+          if (!returnPBN)
+          // encode a function with "don't care" value
+          // note: in contrast to the code below, 
+          // each entry of f corresponds to a single bit here          
+          {
+   					unsigned int f[array_sz];
+  					memset(f,0,sizeof(unsigned int) * array_sz);
+					  for (unsigned int l = 0; l < array_sz; ++l)
+					  {
+      				if (c_1[l] < c_0[l])
+      				{
+      				  f[l] = 1;
+      				}
+      				else
+      				if (c_1[l] > c_0[l])
+      				{
+      				  f[l] = 0;
+      				}
+      				else
+      				{
+      				  f[l] = -1;
+      				}
+					  }					
+					  addFunctionListElement(&result[i],k,array_sz,comb->comb,f);
+          }
+          else
+          {
+            // recursively determine all functions by filling "don't care" values.
+            // note: here, the elements of f are used as bit vectors
+            // to save memory
 
-					// start with an element initialized to zero,
-					// and first examine the 0-th position
-					unsigned int f[numEltsFunc];
-					memset(f,0,sizeof(unsigned int) * numEltsFunc);
+					  // start with an element initialized to zero,
+					  // and first examine the 0-th position
 
-					pushFunctionStackElement(&stack,f,numEltsFunc,0);
-					do
-					{
-					  R_CheckUserInterrupt();
-					  
-						// get top-level stack element
-						FunctionStackElement * el = stack;
+	  				unsigned int f[numEltsFunc];
+  					memset(f,0,sizeof(unsigned int) * numEltsFunc);
+   					FunctionStackElement * stack =  NULL;
+					  pushFunctionStackElement(&stack,f,numEltsFunc,0);
+					  do
+					  {
+					    R_CheckUserInterrupt();
+					    
+						  // get top-level stack element
+						  FunctionStackElement * el = stack;
 
-						if (el->pos == array_sz)
-						// the top-level element on the stack is a complete function
-						// => clean it up
-						{
-							// create a new element in the result function list containing the
-							// completed function on the stack
-							addFunctionListElement(&result[i],k,numEltsFunc,comb,el->transitionFunction);
-							// remove the completed function from the stack
-							deleteFunctionStackElement(&stack);
-						}
-						else
-						if (c_1[el->pos] == c_0[el->pos])
-						// the 0-error and the 1-error are equal
-						// => create two solution branches, one with the <pos>-th bit set to 1
-						// and one with the <pos>-th bit set to 0
-						{
-							// create a new element on the stack with the <pos>-th bit set to 1
-							FunctionStackElement * new = pushFunctionStackElement(&stack,el->transitionFunction,
-																				  numEltsFunc,el->pos+1);
-							new->transitionFunction[el->pos / BITS_PER_BLOCK_32] |= (unsigned int)1 << (el->pos % BITS_PER_BLOCK_32);
+						  if (el->pos == array_sz)
+						  // the top-level element on the stack is a complete function
+						  // => clean it up
+						  {
+							  // create a new element in the result function list containing the
+							  // completed function on the stack
+							  addFunctionListElement(&result[i],k,numEltsFunc,
+							                         comb->comb,el->transitionFunction);
+							  // remove the completed function from the stack
+							  deleteFunctionStackElement(&stack);
+						  }
+						  else
+						  if (c_1[el->pos] == c_0[el->pos])
+						  // the 0-error and the 1-error are equal
+						  // => create two solution branches, one with the <pos>-th bit set to 1
+						  // and one with the <pos>-th bit set to 0
+						  {
+							  // create a new element on the stack with the <pos>-th bit set to 1
+							  FunctionStackElement * new = pushFunctionStackElement(&stack,el->transitionFunction,
+																				    numEltsFunc,el->pos+1);
+							  new->transitionFunction[el->pos / BITS_PER_BLOCK_32] |= (unsigned int)1 << (el->pos % BITS_PER_BLOCK_32);
 
-							// increment the position of the old element, which remains on the stack
-							// with the <pos>-th bit set to 0 (due to initialization)
-							++el->pos;
-						}
-						else
-						if (c_1[el->pos] < c_0[el->pos])
-						// the error is lower if the <pos>-th bit is set to 1
-						{
-							// set the <pos>-th bit of the top-level stack element to 1,
-							// and increment the position to be examined
-							el->transitionFunction[el->pos / BITS_PER_BLOCK_32] |= (unsigned int)1 << (el->pos % BITS_PER_BLOCK_32);
-							++el->pos;
-						}
-						else
-						// the error is lower if the <pos>-th bit is set to 0
-						{
-							// due to initialization, the <pos>-th bit is already set to 0
-							// => increment the position to be examined
-							++el->pos;
-						}
+							  // increment the position of the old element, which remains on the stack
+							  // with the <pos>-th bit set to 0 (due to initialization)
+							  ++el->pos;
+						  }
+						  else
+						  if (c_1[el->pos] < c_0[el->pos])
+						  // the error is lower if the <pos>-th bit is set to 1
+						  {
+							  // set the <pos>-th bit of the top-level stack element to 1,
+							  // and increment the position to be examined
+							  el->transitionFunction[el->pos / BITS_PER_BLOCK_32] |= (unsigned int)1 << (el->pos % BITS_PER_BLOCK_32);
+							  ++el->pos;
+						  }
+						  else
+						  // the error is lower if the <pos>-th bit is set to 0
+						  {
+							  // due to initialization, the <pos>-th bit is already set to 0
+							  // => increment the position to be examined
+							  ++el->pos;
+						  }
+					  }
+					  // terminate if all stack elements have been completed
+					  while (stack != NULL);
 					}
-					// terminate if all stack elements have been completed
-					while (stack != NULL);
 				}
 
 			}
 			// get next input gene combination vector
-			while(nextCombination(comb,&pos,k,numGenes));
-
+			while(nextCombination(comb));
+      
+      freeInputCombination(comb);
 		}
 	}
 }
@@ -426,11 +587,17 @@ void bestFitExtension(unsigned int * inputStates, unsigned int * outputStates,
  * equal to <numGenes> specify genes in the output states.
  * <inputStates> and <outputStates> contain <numStates> states, each consisting
  * of <elementsPerEntry> array elements.
+ * <perturbations> is an array of the same length as <inputStates> specifying
+ * whether inputs were normally regulated (-1), overexpressed (1), or knocked out (0).
  * The table counting the occurrences of gene value combinations is returned in <table>, which
  * must be initialized to a size of 2^<numChosenIndices>.
  * The return value is the entropy H(gene1,...,gene_n).
  */
-static inline double entropy(unsigned int * inputStates, unsigned int * outputStates,
+static inline double entropy(
+              unsigned int * inputStates, 
+              unsigned int * outputStates,
+              unsigned int * perturbations,
+              unsigned int currentGene,
 				      unsigned int numStates, unsigned int elementsPerEntry,
 				      unsigned int numGenes, int * chosenIndices,
 				      unsigned int numChosenIndices,
@@ -440,10 +607,17 @@ static inline double entropy(unsigned int * inputStates, unsigned int * outputSt
 
 	// reset table to 0
 	memset(table,0,sizeof(unsigned int) * numEntries);
-	unsigned int state;
+	unsigned int state, validStates = 0;
 
 	for (state = 0; state < numStates; ++state)
 	{
+		if (perturbations != NULL && perturbations[state * numGenes + currentGene] != -1)
+    // the current gene is perturbed in this state 
+    // => ignore the state in the entropy calculation
+	    continue;
+	  
+	  ++validStates;
+	    
 		unsigned int tableIndex = 0, geneIndex;
 		for (geneIndex = 0; geneIndex < numChosenIndices; ++geneIndex)
 		// count the number of occurrences of gene value combinations
@@ -452,7 +626,7 @@ static inline double entropy(unsigned int * inputStates, unsigned int * outputSt
 			if (chosenIndices[geneIndex] < numGenes)
 			// this is a gene in the input states
 			{
-				int chosenIndex = chosenIndices[geneIndex];
+				unsigned int chosenIndex = chosenIndices[geneIndex];
 				tableIndex |= (GET_BIT(inputStates[state * elementsPerEntry
 								  + chosenIndex/BITS_PER_BLOCK_32],chosenIndex % BITS_PER_BLOCK_32))
 								  << geneIndex;
@@ -461,7 +635,7 @@ static inline double entropy(unsigned int * inputStates, unsigned int * outputSt
 			// this is a gene in the output states
 			{
 
-				int chosenIndex = chosenIndices[geneIndex]  - numGenes;
+				unsigned int chosenIndex = chosenIndices[geneIndex]  - numGenes;
 				tableIndex |= (GET_BIT(outputStates[state * elementsPerEntry
 							  + chosenIndex/BITS_PER_BLOCK_32],chosenIndex % BITS_PER_BLOCK_32))
 							  << geneIndex;
@@ -477,7 +651,7 @@ static inline double entropy(unsigned int * inputStates, unsigned int * outputSt
 	for (tableIndex = 0; tableIndex < numEntries; ++tableIndex)
 	{
 		if (table[tableIndex] != 0)
-			result += ((double)table[tableIndex])/numStates*log2(((double)table[tableIndex])/numStates);
+			result += ((double)table[tableIndex])/validStates*log2(((double)table[tableIndex])/validStates);
 	}
 	return -result;
 }
@@ -486,19 +660,38 @@ static inline double entropy(unsigned int * inputStates, unsigned int * outputSt
  * Liang's REVEAL algorithm for reconstruction of Boolean networks.
  * This version is enhanced for dealing with inconsistent samples by
  * taking the solutions that produce the minimum error.
- * <states> is an array of time series. Here, <ceil(numGenes / 32)>
- * consecutive array entries describe one state, thus
- * the array size is <ceil(numGenes / 32) * numberOfStates>.
+ * <inputStates> and <outputStates> represent state transitions. 
+ * Here, <ceil(numGenes / 32)> consecutive array entries describe one state, 
+ * thus the array size is <ceil(numGenes / 32) * numberOfStates>.
+ * <perturbations> is an array of the same length as <inputStates> specifying
+ * whether inputs were normally regulated (-1), overexpressed (1), or knocked out (0).
  * <numGenes> is the number of genes in the time series.
  * <maxK> is the maximum number of inputs a function can have.
+ * <requiredDependencies> is a flattened Boolean matrix specifying dependencies
+ * that *must* occur in the reconstructed networks.
+ * Similarly, <excludedDependencies> specifies dependencies
+ * that *must not* occur in the reconstructed networks. 
  * <result> receives one list of possible functions for each gene, and
  * <errors> stores the error of these functions on the time series.
+ * <allSolutions> specifies whether the algorithm stops as soon as a perfect solution
+ * is found (false) or not (true).
+ * <returnPBN> specifies whether incomplete functions (with "don't care" values)
+ * are expanded recursively (true) or returned as-is (false).
  */
-void reveal(unsigned int * inputStates, unsigned int * outputStates,
-			unsigned int numStates, unsigned int numGenes, unsigned int maxK,
-			FunctionListElement ** result, unsigned int * errors, bool allSolutions)
+void reveal(unsigned int * inputStates, 
+            unsigned int * outputStates,
+			      unsigned int * perturbations,            
+			      unsigned int numStates, 
+			      unsigned int numGenes, 
+            int * requiredDependencies, 
+            int * excludedDependencies,	
+			      unsigned int maxK,
+			      FunctionListElement ** result, 
+			      unsigned int * errors, 
+			      bool allSolutions,
+			      bool returnPBN)
 {
-	unsigned int i;
+	unsigned int i, j;
 	unsigned int numElts;
 
 	// calculate block size in time series array
@@ -510,6 +703,24 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
 	for (i = 0; i < numGenes; ++i)
 	// iterate over genes
 	{
+		unsigned int currentMaxK = maxK, minK = 0, excludedCount = 0;
+    
+    if (requiredDependencies != NULL)
+      for (j = 0; j < numGenes; ++j)
+        if (requiredDependencies[i*numGenes + j] != 0)
+          ++minK;
+          
+   if (excludedDependencies != NULL)
+      for (j = 0; j < numGenes; ++j)
+        if (excludedDependencies[i*numGenes + j] != 0)
+          ++excludedCount;      
+    
+    if (currentMaxK < minK)
+      currentMaxK = minK;
+      
+    if (currentMaxK > numGenes - excludedCount)
+      currentMaxK =  numGenes - excludedCount;
+	
 		// set error to maximum
 		// Note: in REVEAL, <errors> is only used as an indicator
 		// whether a solution has been found, i.e. it is 0 if
@@ -523,8 +734,10 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
 
 		for (s = 1; s < numStates; ++s)
 		{
-			if (GET_BIT(outputStates[s*numElts + i/BITS_PER_BLOCK_32],i % BITS_PER_BLOCK_32)
-				!= geneVal)
+			if ((perturbations == NULL || perturbations[s * numGenes + i] == -1) &&
+			    GET_BIT(outputStates[s*numElts + i/BITS_PER_BLOCK_32],i % BITS_PER_BLOCK_32)
+          				!= geneVal)
+  		// ignore this state if the current gene is perturbed          				
 			{
 				isConst = false;
 				break;
@@ -539,18 +752,20 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
 			errors[i] = 0;
 		}
 
-		for (k = 1; k <= maxK; ++k)
+		for (k = (minK > 1? minK : 1); k <= currentMaxK; ++k)
 		// iterate over possible numbers of inputs
 		{
 			if (errors[i] == 0 && !allSolutions)
 				break;
 
 			// initialize gene combination vector
-			int comb[k];
-			unsigned int j;
-			for (j = 0; j < k; ++j)
-				comb[j] = k - j - 1;
-			unsigned int pos = 0;
+			InputCombination * comb = initCombination((requiredDependencies == NULL? 
+			                                            NULL : 
+			                                            &requiredDependencies[i*numGenes]), 
+                                                (excludedDependencies == NULL?
+                                                  NULL :
+                                                  &excludedDependencies[i*numGenes]), 
+                                                k, numGenes);
 
 			// calculate the number of array elements needed
 			// to represent the output of a function
@@ -568,18 +783,20 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
         
 				// calculate entropy of input genes
 				unsigned int table_input[array_sz];
-				double entropy_input = entropy(inputStates, outputStates, numStates,
-											   numElts, numGenes, comb, k, table_input);
+				double entropy_input = entropy(inputStates, outputStates,  
+				                               perturbations, i, numStates,
+              											   numElts, numGenes, comb->comb, k, table_input);
 
 				// calculate entropy of the combination of input genes and output value
 				int comb_output[k+1];
-				memcpy(comb_output,comb,sizeof(unsigned int) * k);
+				memcpy(comb_output,comb->comb,sizeof(unsigned int) * k);
 				comb_output[k] = numGenes + i;
 				unsigned int table_output[(unsigned int)1 << (k+1)];
 
-				double entropy_all = entropy(inputStates, outputStates, numStates,
-											 numElts, numGenes, comb_output, k+1, table_output);
-
+				double entropy_all = entropy(inputStates, outputStates, 
+  		                               perturbations, i, numStates,				
+	             										   numElts, numGenes, comb_output, k+1, table_output);
+ 
 				if (fabs(entropy_input - entropy_all) < 1E-6)
 				// the two entropies are the same => output is fully explained by input
 				{
@@ -588,68 +805,101 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
 					// the algorithm does not search for higher k's
 					errors[i] = 0;
 
-					FunctionStackElement * stack =  NULL;
+          if (!returnPBN)
+          // encode a function with "don't care" value
+          // note: in contrast to the code below, 
+          // each entry of f corresponds to a single bit here
+          {
+   					unsigned int f[array_sz];
+  					memset(f,0,sizeof(unsigned int) * array_sz);
 
-					// start with an element initialized to zero,
-					// and first examine the 0-th position
-					unsigned int f[numEltsFunc];
-					memset(f,0,sizeof(unsigned int) * numEltsFunc);
-
-					pushFunctionStackElement(&stack,f,numEltsFunc,0);
-					do
-					{
-					  R_CheckUserInterrupt();
+					  for (unsigned int l = 0; l < array_sz; ++l)
+					  {
+					    if (table_input[l] == 0 || table_output[l | ((unsigned int)1 << k)] == table_output[l])
+      				{
+      				  f[l] = -1;
+      				}
+      				else
+      				if (table_output[l | ((unsigned int)1 << k)] > table_output[l])
+      				{
+      				  f[l] = 1;
+      				}
+      				else
+      				{
+      				  f[l] = 0;
+      				}
+					  }					
+					  addFunctionListElement(&result[i],k,array_sz,comb->comb,f);
+          }
+          else
+          {
+            // recursively determine all functions by filling "don't care" values.
+            // note: here, the elements of f are used as bit vectors
+            // to save memory
+   					// start with an element initialized to zero,
+  					// and first examine the 0-th position
+  					unsigned int f[numEltsFunc];
+  					memset(f,0,sizeof(unsigned int) * numEltsFunc);
+   					FunctionStackElement * stack =  NULL;
+					  pushFunctionStackElement(&stack,f,numEltsFunc,0);
+					  do
+					  {
+					    R_CheckUserInterrupt();
 					
-						// get top-level stack element
-						FunctionStackElement * el = stack;
+						  // get top-level stack element
+						  FunctionStackElement * el = stack;
 
-						if (el->pos == array_sz)
-						// the top-level element on the stack is a complete function
-						// => clean it up
-						{
-							// create a new element in the result function list containing the
-							// completed function on the stack
-							addFunctionListElement(&result[i],k,numEltsFunc,comb,el->transitionFunction);
-							// remove the completed function from the stack
-							deleteFunctionStackElement(&stack);
-						}
-						else
-						if (table_input[el->pos] == 0 || table_output[el->pos | ((unsigned int)1 << k)] == table_output[el->pos])
-						// no information is available if the <pos>-th bit must be set to one or zero
-						// => create two solution branches, one with the <pos>-th bit set to 1
-						// and one with the <pos>-th bit set to 0
-						{
-							// create a new element on the stack with the <pos>-th bit set to 1
-							FunctionStackElement * new = pushFunctionStackElement(&stack,el->transitionFunction,
-																				  numEltsFunc,el->pos+1);
-							new->transitionFunction[el->pos / BITS_PER_BLOCK_32] |= (unsigned int)1 << (el->pos % BITS_PER_BLOCK_32);
+						  if (el->pos == array_sz)
+						  // the top-level element on the stack is a complete function
+						  // => clean it up
+						  {
+							  // create a new element in the result function list containing the
+							  // completed function on the stack
+							  addFunctionListElement(&result[i],k,numEltsFunc,
+							                         comb->comb,el->transitionFunction);
+							  // remove the completed function from the stack
+							  deleteFunctionStackElement(&stack);
+						  }
+						  else
+						  if (table_input[el->pos] == 0 || table_output[el->pos | ((unsigned int)1 << k)] == table_output[el->pos])
+						  // no information is available if the <pos>-th bit must be set to one or zero
+						  // => create two solution branches, one with the <pos>-th bit set to 1
+						  // and one with the <pos>-th bit set to 0
+						  {
+							  // create a new element on the stack with the <pos>-th bit set to 1
+							  FunctionStackElement * new = pushFunctionStackElement(&stack,el->transitionFunction,
+																				    numEltsFunc,el->pos+1);
+							  new->transitionFunction[el->pos / BITS_PER_BLOCK_32] |= (unsigned int)1 << (el->pos % BITS_PER_BLOCK_32);
 
-							// increment the position of the old element, which remains on the stack
-							// with the <pos>-th bit set to 0 (due to initialization)
-							++el->pos;
-						}
-						else
-						if (table_output[el->pos | ((unsigned int)1 << k)] > table_output[el->pos])
-						// the <pos>-th bit must be set to 1
-						{
-							// set the <pos>-th bit of the top-level stack element to 1,
-							// and increment the position to be examined
-							el->transitionFunction[el->pos / BITS_PER_BLOCK_32] |= (unsigned int)1 << (el->pos % BITS_PER_BLOCK_32);
-							++el->pos;
-						}
-						else
-						// the <pos>-th bit must be set to 0
-						{
-							// due to initialization, the <pos>-th bit is already set to 0
-							// => increment the position to be examined
-							++el->pos;
-						}
-					}
-					while (stack != NULL);
+							  // increment the position of the old element, which remains on the stack
+							  // with the <pos>-th bit set to 0 (due to initialization)
+							  ++el->pos;
+						  }
+						  else
+						  if (table_output[el->pos | ((unsigned int)1 << k)] > table_output[el->pos])
+						  // the <pos>-th bit must be set to 1
+						  {
+							  // set the <pos>-th bit of the top-level stack element to 1,
+							  // and increment the position to be examined
+							  el->transitionFunction[el->pos / BITS_PER_BLOCK_32] |= (unsigned int)1 << (el->pos % BITS_PER_BLOCK_32);
+							  ++el->pos;
+						  }
+						  else
+						  // the <pos>-th bit must be set to 0
+						  {
+							  // due to initialization, the <pos>-th bit is already set to 0
+							  // => increment the position to be examined
+							  ++el->pos;
+						  }
+					  }
+					  while (stack != NULL);
+					}  
 				}
 			}
 			// get next input gene combination vector
-			while(nextCombination(comb,&pos,k,numGenes));
+			while(nextCombination(comb));
+			
+			freeInputCombination(comb);
 
 		}
 	}
@@ -667,14 +917,34 @@ void reveal(unsigned int * inputStates, unsigned int * outputStates,
  * elements consists of a vector of input genes, the function as a binary vector, and
  * the error this function makes on the input time series.
  */
-SEXP reconstructNetwork_R(SEXP inputStates, SEXP outputStates, SEXP numberOfStates, SEXP maxK, SEXP method, SEXP allSolutions)
+SEXP reconstructNetwork_R(SEXP inputStates, 
+                          SEXP outputStates, 
+                          SEXP perturbations,
+                          SEXP numberOfStates, 
+                          SEXP requiredDependencies,
+                          SEXP excludedDependencies,                          
+                          SEXP maxK, 
+                          SEXP method, 
+                          SEXP allSolutions,
+                          SEXP returnPBN)
 {
 	int * _inputStates = INTEGER(inputStates);
 	int * _outputStates = INTEGER(outputStates);
+	
+  unsigned int * _perturbations = (Rf_isNull(perturbations)? NULL : 
+                          (unsigned int *)INTEGER(perturbations));
+  
+  int * _requiredDependencies = (Rf_isNull(requiredDependencies)? NULL : 
+                                 INTEGER(requiredDependencies));
+                                 
+  int * _excludedDependencies = (Rf_isNull(excludedDependencies)? NULL : 
+                                 INTEGER(excludedDependencies)); 
+                                 
 	int _numberOfStates = *INTEGER(numberOfStates);
 	int _maxK = *INTEGER(maxK);
 	int _method = *INTEGER(method);
 	int _allSolutions = *INTEGER(allSolutions);
+	int _returnPBN = *INTEGER(returnPBN);	
 
 	unsigned int numGenes = length(inputStates) /  _numberOfStates;
 
@@ -712,12 +982,16 @@ SEXP reconstructNetwork_R(SEXP inputStates, SEXP outputStates, SEXP numberOfStat
 
 	if (_method == 0)
 		// perform Lähdesmäki's best-fit extension
-		bestFitExtension(encodedInputStates,encodedOutputStates,
-						 _numberOfStates,numGenes,_maxK,res,errors,_allSolutions);
+		bestFitExtension(encodedInputStates,encodedOutputStates,_perturbations,
+						 _numberOfStates,numGenes,
+						 _requiredDependencies,_excludedDependencies,
+						 _maxK,res,errors,_allSolutions,_returnPBN);
 	else
 		// start REVEAL algorithm
-		reveal(encodedInputStates,encodedOutputStates,
-								 _numberOfStates,numGenes,_maxK,res,errors,_allSolutions);
+		reveal(encodedInputStates,encodedOutputStates,_perturbations,
+								 _numberOfStates,numGenes,
+								 _requiredDependencies,_excludedDependencies,
+								 _maxK,res,errors,_allSolutions,_returnPBN);
 
 //	for (gene = 0; gene < numGenes; ++gene)
 //	{
@@ -789,7 +1063,14 @@ SEXP reconstructNetwork_R(SEXP inputStates, SEXP outputStates, SEXP numberOfStat
 			PROTECT(funcSXP = allocVector(INTSXP,numBits));
 			array = INTEGER(funcSXP);
 
-			dec2bin(array,(int*)cur->transitionFunction,(int*)&numBits);
+      if (_returnPBN)
+      // for PBN, functions are internally represented as bit vectors to save memory
+  			dec2bin(array,(int*)cur->transitionFunction,(int*)&numBits);
+  	  else
+  	  // for incomplete truth tables, we need a third "don't care" value 
+  	  // hence, each bit is an integer in this case (but far fewer entries => less memory)
+	  		memcpy(array,(int*)cur->transitionFunction,numBits*sizeof(int));
+			
 			SETCADR(entrySXP,funcSXP);
 			UNPROTECT(1);
 

@@ -143,55 +143,22 @@ getInteractionString <- function(readableFunctions,truthTable,genes)
     if (isTRUE(all.equal(truthTable,rep(1,length(truthTable)))))
       return("1")
     else
+    {
+      truthTable <- sapply(truthTable,function(x)
+      {
+        if (x == 0)
+          "0"
+        else
+        if (x == 1)
+          "1"
+        else  
+          "*"
+      })
       paste("<f(",
         paste(genes,collapse=","),"){",
         paste(truthTable,collapse=""),"}>", sep="")
+    }
   }    
-}
-
-# Retrieves an internal graph representation of a state table
-# in <attractorInfo>
-# The vertices are the states, and the edges are the transitions.
-# Returns a list with a $vertices vector and a 2-column $edges matrix.
-getStateGraphStructure <- function(attractorInfo)
-{  
-  numRows <- ncol(attractorInfo$stateInfo$table)  
-  fixedGenes <- which(attractorInfo$stateInfo$fixedGenes != -1)
-  nonFixedGenes <- which(attractorInfo$stateInfo$fixedGenes == -1)
-  
-  if (is.null(attractorInfo$stateInfo$initialStates))
-  {
-    inputStates <- matrix(ncol=length(attractorInfo$stateInfo$genes),nrow=2^length(nonFixedGenes))
-  
-    # encode the initial states
-    # first, encode the changing part by calculating all combinations
-    temp <- allcombn(2,length(nonFixedGenes)) - 1
-    inputStates[,nonFixedGenes] <- temp[,ncol(temp):1]
-  
-    if (length(fixedGenes) > 0)
-    # if there are fixed genes, encode their values
-      inputStates[,fixedGenes] <- sapply(attractorInfo$stateInfo$fixedGenes[fixedGenes],
-                   function(value)rep(value,2^length(nonFixedGenes)))  
-  }
-  else
-  {
-    inputStates <- t(apply(attractorInfo$stateInfo$initialStates,2,dec2bin,length(attractorInfo$stateInfo$genes)))
-  }
-  
-  inputStates <- apply(inputStates,1,function(state)paste(state,collapse=""))
-  
-  # build "hash table" of state numbers
-  stateHash <- seq_len(length(inputStates))
-  names(stateHash) <- inputStates
-  
-  
-  # encode output states
-  outputStates <- apply(attractorInfo$stateInfo$table,2,function(state)
-        {
-          bin <- paste(dec2bin(state,length(attractorInfo$stateInfo$genes)),collapse="")
-        })
-  return(list(vertices=inputStates,edges=cbind(seq_along(inputStates),
-      sapply(outputStates,function(state)stateHash[state]))))
 }
 
 # Reorders a matrix of states <stateMatrix> (with each column being one state)
@@ -249,55 +216,178 @@ xmlFindNode <- function(node,name,throwError=FALSE)
 # Remove leading and trailing whitespace characters from <string>
 trim <- function(string)
 {
-  string <- gsub("^[ ]+", "", string)
-  string <- gsub("[ ]+$", "", string)
+  string <- gsub("^[ \t]+", "", string)
+  string <- gsub("[ \t]+$", "", string)
   return(string)
 }
 
 # Generate an interaction by parsing <expressionString>
 # and building the corresponding truth table.
-# Here, <inputGenes> are the names of the inputs, 
-# and <allGenes> is a list of all genes in the network.
+# Here, <genes> is a list of all genes in the network.
 # Returns an interaction as used in the BooleanNetwork class.
-generateInteraction <- function(expressionString, inputGenes, allGenes)
+generateInteraction <- function(expressionString, genes)
 {
+  res <- .Call("getTruthTable", parseBooleanFunction(expressionString, genes), length(genes))
+  names(res) <- c("input","func")
+  res$expression <- expressionString
+  return(res)
+}
 
-  # strip leading and trailing whitespace characters
-  expressionString <- trim(expressionString)
-  
-  if (length(inputGenes) > 0)
+# Create a DNF from a count predicate 
+# ("maj","sumis","sumgt","sumlt").
+# <tree> is the expression tree of the predicate
+# Returns an expression tree in DNF
+expandCountPredicate <- function(tree)
+{
+  if (tree$operator == "maj")
   {
-    inputIndices <- match(inputGenes, allGenes)
-
-    names(inputIndices) <- inputGenes
-    inputIndices <- sort(inputIndices)
-  
-    truthTable <- as.matrix(allcombn(2,length(inputIndices)) - 1)
-  
-    for (gene in inputGenes)
-    {
-      assign(gene, truthTable[,which(names(inputIndices) == gene)])
-    }
+    if (length(tree$operands) %%2 == 0)
+      count <- length(tree$operands) / 2
+    else
+      count <- floor(length(tree$operands) / 2)
+       
+    operands <- tree$operands      
   }
   else
-    inputIndices <- 0
-    
-  tryCatch(
-    interaction <- list(input = unname(inputIndices),
-                     func = as.numeric(eval(parse(text=expressionString))),
-                     expression = expressionString),
-    error = function(err)
-            {
-              stop(paste("An error was detected while parsing an expression: ",
-                          err$message, "\nExpression: \"",
-                         expressionString,"\"",
-                         sep=""))
-            })
-  if (length(interaction$func) == 1 && length(inputGenes) > 0)
   {
-    warning("There seems to be a constant function that has specified inputs!")
-    interaction$func <- rep(interaction$func, nrow(truthTable))
-  }                         
-  return(interaction)                         
+    count <- tree$operands[[length(tree$operands)]]$value
+    operands <- tree$operands[-length(tree$operands)]
+  }
+  table <- as.matrix(allcombn(2,length(operands)) - 1)
+  tableRes <- as.integer(apply(table,1,function(x)
+  {
+    switch(tree$operator,
+      "maj" = sum(x)  > count,
+      "sumgt" = sum(x)  > count,
+      "sumlt" = sum(x)  < count,
+      "sumis" = sum(x) == count
+      )
+  }))
+  return(parseBooleanFunction(getDNF(tableRes, sapply(operands, stringFromParseTree))))
+}
+
+# Get the inputs for an expression tree <tree>.
+# If <index> is TRUE, the indices are returned instead of the gene names.
+# Returns a vector of gene names.
+getInputs <- function(tree, index=FALSE)
+{
+ res <- switch(tree$type,
+    operator = 
+    {
+      unique(unlist(lapply(tree$operands, getInputs, index=index)))
+    },    
+    atom = 
+    {
+      if (index)
+        tree$index
+      else
+        tree$name
+    },   
+    constant =  
+    {
+      NULL
+    }
+  )                     
+  return(res) 
+}
+
+# Determine the maximum time delays for the genes <genes> 
+# in a symbolic expression tree <tree>.
+# Returns a vector of time delays for the genes.
+maxTimeDelay <- function(tree, genes)
+{
+  res <- switch(tree$type,
+    operator = 
+    {
+      timeDelays <- sapply(tree$operands, maxTimeDelay, genes=genes)
+      
+      if (!is.null(dim(timeDelays)))
+        apply(timeDelays,1,max)
+      else
+        timeDelays
+    },    
+    atom = 
+    {
+      res <- rep(1,length(genes))
+      names(res) <- genes
+      res[tree$index] <- -tree$time
+      res
+    },   
+    constant =  
+    {
+      res <- rep(1,length(genes))
+      names(res) <- genes
+      res
+    }
+  )                     
+  return(res)  
+}
+
+# Convert <geneNames> into valid identifiers
+# by replacing special characters
+# Returns a vector of adjusted gene names.
+adjustGeneNames <- function(geneNames)
+{
+  # eliminate special characters
+  res <- gsub("[^a-zA-Z0-9_]+","_",geneNames)
+  # ensure that identifier does not start with a number
+  res <- gsub("(^[0-9][a-zA-Z0-9_]*)$","_\\1", res)
+  names(res) <- geneNames
+  return(res)
+}
+
+# Check whether the internal C pointer <ptr> is null
+checkNullPointer <- function(ptr)
+{
+  return(.Call("checkNullPointer",ptr))
+}
+
+# Print a synchronous attractor specified by a data frame <attractor>
+# The attractor has the index <index> and a basin consisting of <basinSize> states.
+# If <activeOnly> is true, states are represented as a list of active genes (otherwise binary vectors).
+printSynchronousAttractor <- function(attractor, index, basinSize=NA, activeOnly=FALSE)
+{
+  if (is.na(basinSize))
+    cat("Attractor ",index," is a simple attractor consisting of ", 
+        nrow(attractor),
+        " state(s)",sep="")
+  else
+    cat("Attractor ",index," is a simple attractor consisting of ", 
+        nrow(attractor),
+        " state(s) and has a basin of ", 
+        basinSize, " state(s)",sep="")
+    
+  # print a graphical representation of the attractor cycle
+  if (activeOnly)
+  {
+    cat(".\nActive genes in the attractor state(s):\n")
+    
+    for (j in seq_len(nrow(attractor)))
+    {
+      
+      state <- paste(colnames(attractor)[which(attractor[j,] == 1)],collapse=", ")
+      if (state == "")
+        state <- "--"
+      cat("State ", j, ": ", state, "\n", sep="")
+    }
+    cat("\n")
+  }
+  else
+  {
+    cat(":\n\n")
+    numGenes <- ncol(attractor)
+    cat(" |--<", paste(rep("-",numGenes-1), collapse=""),"|\n", sep="")
+    cat(" V ", paste(rep(" ",numGenes-1), collapse=""),"  |\n", sep="")
+    for (j in seq_len(nrow(attractor)))
+    {
+      cat(" ", as.integer(attractor[j,]),"   |\n",sep="")
+      #cat(" | ", paste(rep(" ",numGenes-1), collapse=""),"  |\n", sep="")
+    }
+    cat(" V ", paste(rep(" ",numGenes-1), collapse=""), "  |\n", sep="")
+    cat(" |-->", paste(rep("-",numGenes-1), collapse=""), "|\n\n", sep="")
+  }
+  if (!activeOnly)
+   cat("\nGenes are encoded in the following order: ",
+       paste(colnames(attractor), collapse=" "), "\n\n", sep="")
 }
 

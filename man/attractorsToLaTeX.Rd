@@ -20,7 +20,7 @@ attractorsToLaTeX(attractorInfo,
 }
 \arguments{
   \item{attractorInfo}{
-	An object of class \code{AttractorInfo}, as returned by \code{\link{getAttractors}}
+	An object of class \code{AttractorInfo}, as returned by \code{\link{getAttractors}}, or an object of class \code{SymbolicSimulation}, as returned by \code{\link{simulateSymbolicModel}}.
 }
 
   \item{subset}{An subset of attractors to be exported. This is a vector of attractor indices in \code{attractorInfo}.}

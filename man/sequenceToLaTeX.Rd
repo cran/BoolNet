@@ -19,12 +19,13 @@ sequenceToLaTeX(network,
                 plotFixed = TRUE,
                 onColor="[gray]{0.9}",
                 offColor="[gray]{0.6}", 
+                highlightAttractor=TRUE,
                 file="sequence.tex")
 }
 
   \arguments{
      \item{network}{
-	  An object of class \code{BooleanNetwork} for which a sequence of state transitions is calculated
+	  An object of class \code{BooleanNetwork} or \code{SymbolicBooleanNetwork} for which a sequence of state transitions is calculated
   }
 
   \item{startState}{
@@ -60,6 +61,10 @@ sequenceToLaTeX(network,
 }
   \item{file}{
 	The file to which the LaTeX document is written. Defaults to "sequence.tex".
+}
+
+ \item{highlightAttractor}{
+If set to true, the attractor states are highlighted in the plot by drawing a line at the begin of the attractor and labeling the states correspondingly. Information on the attractor must be supplied in the attribute \code{attractor} of the sequence, which is a vector of indices of the states that belong to the attractor. This attribute is usually present if the sequence was obtained using \code{\link{getPathToAttractor}}.
 }
 
 }

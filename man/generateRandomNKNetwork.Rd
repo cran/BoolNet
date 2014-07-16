@@ -38,11 +38,14 @@ generateRandomNKNetwork(n, k,
 	If set to "lattice", only genes from the neighbourhood \if{latex}{\cr}\code{(i - d_lattice * k_i):(i + d_lattice * k_i)} are taken, which means that all genes are dependent from other genes in the direct neighbourhood.
 }
   \item{functionGeneration}{
+  This parameter specifies how the truth tables of the transition functions are generated. 
 	If set to "uniform", the truth table result column of the function is filled uniformly at random with 0 and 1. If set to "biased", a bias is introduced, where the probability of drawing a 0 is determined by the parameter \code{zeroBias}.
+	
+As a third option, \code{functionGeneration} can be set to a user-defined function that generates the truth tables. This function must have a single parameter \code{input} that is supplied with a vector of input gene indices. It must return a binary vector of size \code{2^length(input)} corresponding to the result column of the truth table. For the generation of canalyzing and nested canalyzing functions that are often assumed to be biologically plausible, the generation functions \code{\link{generateCanalyzing}} and \code{\link{generateNestedCanalyzing}} are included in \pkg{BoolNet}.
 }
 
   \item{validationFunction}{
-An optional function that restricts the generated Boolean functions to certain classes. The function should have two input parameter \code{input} and \code{func} that receive a candidate function. \code{input} is a matrix of 0/1 integer values specifying the input part of the truth table of the candidate function, with the input genes in the columns. Each of the 2^k rows of \code{input}  (where k is the number of input genes) corresponds to one entry of \code{func}, which is an integer vector of 0/1 values corresponding to the output of the candidate function. The validation function should return \code{TRUE} if the candidate function is accepted or \code{FALSE} if it is rejected.
+An optional function that restricts the generated Boolean functions to certain classes. This can be used if no explicit generation function can be specified in \code{functionGeneration}, but it is nevertheless possible to check whether a generated function belongs to that class or not. The function should have two input parameter \code{input} and \code{func} that receive a candidate function. \code{input} is a matrix of 0/1 integer values specifying the input part of the truth table of the candidate function, with the input genes in the columns. Each of the 2^k rows of \code{input}  (where k is the number of input genes) corresponds to one entry of \code{func}, which is an integer vector of 0/1 values corresponding to the output of the candidate function. The validation function should return \code{TRUE} if the candidate function is accepted or \code{FALSE} if it is rejected.
 }
 
   \item{failureIterations}{

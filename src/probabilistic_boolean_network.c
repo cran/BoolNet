@@ -1,7 +1,7 @@
 /**
  * C code for Markov simulations of Probabilistic Boolean Networks
  *
- * This is part of the BooleanNetwork R package.
+ * This is part of the BoolNet R package.
  *
  * Copyright 2009/2010 by Christoph Müssel
  *

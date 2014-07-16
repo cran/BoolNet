@@ -23,12 +23,12 @@ generateRandomNKNetwork <- function(n,k,topology=c("fixed","homogeneous","scale_
       
   k_i_vec[k_i_vec > n] <- n
   
-  if ((zeroBias == 0 | zeroBias == 1) & noIrrelevantGenes & any(k_i_vec > 0))
+  if ((zeroBias == 0 | zeroBias == 1) && noIrrelevantGenes && any(k_i_vec > 0))
     stop("If setting 'zeroBias' to 0 or 1, you must set 'noIrrelevantGenes' to FALSE!")
   
   geneNames <- paste("Gene",seq_len(n),sep="")
   
-  if (!missing(validationFunction))
+  if (!missing(validationFunction) && !is.null(validationFunction))
     validationFunction <- match.fun(validationFunction)
   else
     validationFunction <- NULL    
@@ -59,10 +59,19 @@ generateRandomNKNetwork <- function(n,k,topology=c("fixed","homogeneous","scale_
             counter <- 0
             while((!validFunction) || containsIrrelevant)
             {
-                func <- switch(match.arg(functionGeneration,c("uniform","biased")),
-                    uniform = round(runif(min=0,max=1,n=2^k_i)),
-                    biased = as.integer(runif(min=0,max=1,n=2^k_i) > zeroBias),
-                    stop("'functionGeneration' must be one of \"uniform\",\"biased\""))
+                tryCatch(
+                {
+                  functionGeneration <- match.fun(functionGeneration)
+                },
+                error = function(e){}
+                )
+                if (is.function(functionGeneration))
+                  func <- functionGeneration(input=genes)
+                else
+                  func <- switch(match.arg(functionGeneration,c("uniform","biased")),
+                      uniform = round(runif(min=0,max=1,n=2^k_i)),
+                      biased = as.integer(runif(min=0,max=1,n=2^k_i) > zeroBias),
+                      stop("'functionGeneration' must be one of \"uniform\",\"biased\" or a function!"))
 
                 if (noIrrelevantGenes)
                 {
@@ -108,4 +117,32 @@ generateRandomNKNetwork <- function(n,k,topology=c("fixed","homogeneous","scale_
   if (simplify)
     net <- simplifyNetwork(net,readableFunctions)
   return(net)  
+}
+
+generateCanalyzing <- function(input) 
+{
+ k <- length(input)
+ table <- allcombn(2, k) - 1
+ canalyzingInput <- sample(1:k,size=1)
+ res <- round(runif(min = 0, 
+                    max = 1, n = 2^k))
+ 
+ res[table[,canalyzingInput] == sample(c(0,1),size=1)] <- sample(c(0,1), size=1)
+ return(res)
+}
+
+generateNestedCanalyzing <- function(input) 
+{
+ k <- length(input)
+ table <- allcombn(2, k) - 1
+ remainingIndices <- 1:(2^k)
+ res <- rep(sample(c(0,1), size=1),2^k)
+ 
+ for (canalyzingInput in sample(1:k,size=k,replace=FALSE))
+ {
+   newIndices <- which(table[remainingIndices,canalyzingInput] == sample(c(0,1),size=1))
+   res[remainingIndices[newIndices]] <- sample(c(0,1), size=1)
+   remainingIndices <- setdiff(remainingIndices, remainingIndices[newIndices])
+ }
+ return(res)
 }

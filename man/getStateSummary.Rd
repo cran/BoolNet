@@ -14,18 +14,18 @@ getStateSummary(attractorInfo, state)
 
 \arguments{
   \item{attractorInfo}{
-	An object of class \code{AttractorInfo}, as returned by \code{\link{getAttractors}}. As the transition table information in this structure is required, \code{getAttractors} must be called in synchronous mode and with \code{returnTable} set to TRUE.
+	An object of class \code{AttractorInfo}, as returned by \code{\link{getAttractors}}, or of class \code{SymbolicSimulation}, as returned by \code{\link{simulateSymbolicModel}}. As the transition table information in this structure is required, \code{getAttractors} must be called in synchronous mode and with \code{returnTable} set to TRUE. Similarly, \code{simulateSymbolicModel} must be called with \code{returnGraph=TRUE}.
 }
   \item{state}{
 	A 0-1 vector with n elements (where n is the number of genes in the underlying networks) describing the state.
 }
 }
 \value{
-Returns a generic dataframe of the class \code{TransitionTable}. For n genes, the first n columns code for the original state (in this case, the \code{state} parameter), i.e. each column represents the value of one gene. The next n columns code for the successive state after a transition. The column \code{attractorAssignment} indicates the attractor to the state is assigned, and the column \code{stepsToAttractor} indicates how many transitions are needed from the original state to the attractor. In this case, the table has only one row describing the supplied state.
+Returns a generic dataframe of the class \code{TransitionTable}. For n genes, the first n columns code for the original state (in this case, the \code{state} parameter), i.e. each column represents the value of one gene. The next n columns code for the successive state after a transition. The column \code{attractorAssignment} indicates the attractor to the state is assigned. If this information is available,  the column \code{stepsToAttractor} indicates how many transitions are needed from the original state to the attractor. In this case, the table has only one row describing the supplied state.
 The \code{TransitionTable} class supports pretty printing using the \code{\link{print}} method.
 }
 \seealso{
-\code{\link{getBasinOfAttraction}}, \code{\link{getTransitionTable}}, \code{\link{getAttractors}}
+\code{\link{getBasinOfAttraction}}, \code{\link{getTransitionTable}}, \code{\link{getAttractors}}, \code{\link{simulateSymbolicModel}}
 }
 \examples{
 # load example data

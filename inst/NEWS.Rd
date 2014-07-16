@@ -1,12 +1,45 @@
 \name{NEWS}
 \title{NEWS file for the \pkg{BoolNet} package}
 
+\section{Changes in version 2.0}{
+
+\subsection{New functions}{
+\itemize{
+\item{Support of temporal networks, and inclusion of a new simulator \code{simulateSymbolicModel()} to simulate these networks. Related functions include \code{truthTableToSymbolic()} and \code{symbolicToTruthTable()} to convert networks between the symbolic representation used by the new simulator and the truth table representation employed by the standard simulator.}
+
+\item{New function \code{perturbTrajectories()} to assess the robustness of networks to noise in the states}.}
+
+}
+
+\subsection{Modified functions}{
+\itemize{
+
+\item{\code{loadNetwork()} can now load networks in a symbolic representation and with temporal extensions. \code{loadSBML()} and \code{loadBioTapestry()} can load symbolic networks without temporal extensions. }
+ 
+\item{Most functions of the package have been adapted to work either with the symbolic representation or with the truth table representation of networks.}
+
+\item{\code{plotSequence()} and \code{sequenceToLaTeX()} now visualize the attractor.}
+
+\item{\code{reconstructNetwork()} now supports the specification of prior knowledge in form of required or excluded dependencies. Furthermore, it can now reconstruct networks from perturbation time series. By default, the function now returns incomplete functions with "don't care" values" instead of enumerating all possible functions.
+}
+
+\item{\code{generateTimeSeries()} can now generate artificial perturbation data with simulated knock-out or overexpression of genes.}
+
+\item{\code{generateRandomNKNetwork()} can now be supplied with a user-defined generation function for the transition functions. Generation functions \code{generateCanalyzing()} and \code{generateNestedCanalyzing()} for canalyzing functions and nested canalyzing functions are included in the package.}
+
+\item{\code{testNetworkProperties()} supports several new tests that perturb the network states instead of the networks themselves. These are available in the test functions \code{testAttractorRobustness()} and \code{testTransitionRobustness()}.
+}
+}
+}
+
+}
+
 \section{Changes in version 1.63}{
+
 \subsection{Modified functions}{
 
 \itemize{
-
-\item{Fixed issues preventing the use of BoolNet on Big Endian systems.}
+\item{Fixed issues preventing the use of \pkg{BoolNet} on Big Endian systems.}
 
 \item{Eliminated some bad style code.}
 
@@ -27,7 +60,6 @@
 }
 }
 }
-
 
 \section{Changes in version 1.61}{
 \subsection{Modified functions}{

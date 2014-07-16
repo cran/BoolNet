@@ -8,8 +8,8 @@
 # instead of their true transition functions
 saveNetwork <- function(network, file, generateDNFs = FALSE, saveFixed = TRUE)
 {
-  stopifnot(inherits(network,"BooleanNetwork") | inherits(network,"ProbabilisticBooleanNetwork")
-            | inherits(network,"BooleanNetworkCollection"))
+  stopifnot(inherits(network,"BooleanNetwork") || inherits(network,"SymbolicBooleanNetwork") ||
+            inherits(network,"ProbabilisticBooleanNetwork"))
   expressions <- NULL
   
   if (inherits(network,"BooleanNetwork"))
@@ -58,6 +58,19 @@ saveNetwork <- function(network, file, generateDNFs = FALSE, saveFixed = TRUE)
           return(paste(gene, ", ", fixed, sep=""))
       }, network$interactions, network$genes, network$fixed)
     }
+    sink(file)
+    cat("targets, factors\n")
+  }
+  else
+  if (inherits(network,"SymbolicBooleanNetwork"))
+  {
+    expressions <- mapply(function(interaction, gene, fixed)
+    {
+      if (!saveFixed || fixed == -1)
+        return(paste(gene, ", ", stringFromParseTree(interaction), sep=""))
+      else
+        return(paste(gene, ", ", fixed, sep=""))
+    }, network$interactions, network$genes, network$fixed)
     sink(file)
     cat("targets, factors\n")
   }

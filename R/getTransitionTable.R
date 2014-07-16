@@ -2,8 +2,16 @@
 # in a readable way
 getTransitionTable <- function(attractorInfo)
 {
-  stopifnot(inherits(attractorInfo,"AttractorInfo"))
+  stopifnot(inherits(attractorInfo,"AttractorInfo") || inherits(attractorInfo,"SymbolicSimulation"))
   
+  if (inherits(attractorInfo,"SymbolicSimulation"))
+  {
+    if (is.null(attractorInfo$graph))
+      stop(paste("This SymbolicSimulation structure does not contain transition table information.",
+           "Please re-run simulateSymbolicModel() with returnGraph=TRUE!"))
+    return(attractorInfo$graph)           
+  }
+  else
   if (is.null(attractorInfo$stateInfo$table))
     stop(paste("This AttractorInfo structure does not contain transition table information.",
            "Please re-run getAttractors() with a synchronous search and returnTable=TRUE!"))

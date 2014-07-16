@@ -5,10 +5,10 @@
 Visualize state transitions and attractor basins
 }
 \description{
-Plots a graph containing all states visited in \code{attractorInfo}, and optionally highlights attractors and basins of attraction. This requires the \pkg{igraph} package.
+Plots a graph containing all states visited in \code{stateGraph}, and optionally highlights attractors and basins of attraction. This requires the \pkg{igraph} package.
 }
 \usage{
-plotStateGraph(attractorInfo, highlightAttractors = TRUE, 
+plotStateGraph(stateGraph, highlightAttractors = TRUE, 
                colorBasins = TRUE, colorSet, 
                drawLegend = TRUE, drawLabels = FALSE, 
                layout = layout.fruchterman.reingold,
@@ -18,8 +18,7 @@ plotStateGraph(attractorInfo, highlightAttractors = TRUE,
 }
 
 \arguments{
-  \item{attractorInfo}{
-	An object of class \code{AttractorInfo}, as returned by \code{\link{getAttractors}}. As the transition table information in this structure is required, \code{\link{getAttractors}} must be called in synchronous mode and with \code{returnTable} set to TRUE.
+  \item{stateGraph}{An object of class \code{AttractorInfo} or \code{SymbolicSimulation}, as returned by \code{\link{getAttractors}} and \code{\link{simulateSymbolicModel}} respectively. As the transition table information in this structure is required, \code{getAttractors} must be called in synchronous mode and with \code{returnTable} set to TRUE. Similarly, \code{simulateSymbolicModel} must be called with \code{returnGraph=TRUE}. Alternatively, \code{stateGraph} can be an object of class \code{TransitionTable}, which can be extracted using the functions \code{\link{getTransitionTable}}, \code{\link{getBasinOfAttraction}}, or \code{\link{getStateSummary}}
 } 
   \item{highlightAttractors}{
 	If this parameter is true, edges in attractors are drawn bold and with a different line type (which can be specified in \code{attractor.lty}). Defaults to TRUE.
@@ -64,7 +63,7 @@ plotStateGraph(attractorInfo, highlightAttractors = TRUE,
 	Returns an invisible object of class \code{igraph} containing the state graph, including color and line attributes.
 }
 \seealso{
-	\code{\link{getAttractors}}, \code{\link{plotNetworkWiring}}, \code{\link[igraph:plot.common]{igraph.plotting}}
+\code{\link{getAttractors}}, \code{\link{simulateSymbolicModel}}, \code{\link{getTransitionTable}}, \code{\link{getBasinOfAttraction}}, \code{\link{getStateSummary}}, \code{\link{plotNetworkWiring}}, \code{\link[igraph:plot.common]{igraph.plotting}}
 }
 \examples{
 # load example data

@@ -7,12 +7,16 @@ Load an SBML document
 Loads an SBML document that specifies a qualitative model using the \code{sbml-qual} extension package.
 }
 \usage{
-loadSBML(file)
+loadSBML(file, symbolic=FALSE)
 }
 
 \arguments{
   \item{file}{
 The SBML document to be imported
+}
+
+  \item{symbolic}{
+If set to \code{TRUE}, the function returns an object of class \code{SymbolicBooleanNetwork} with an expression tree representation. Otherwise, it returns an object of class \code{BooleanNetwork} with a truth table representation.
 }
 }
 \details{
@@ -29,10 +33,10 @@ Further details on the import:
 For the import, the \pkg{XML} package is required.
 }
 \value{
-Returns a structure of class \code{BooleanNetwork}, as described in \code{\link{loadNetwork}}.
+Returns a structure of class \code{BooleanNetwork} or \code{SymbolicBooleanNetwork}, as described in \code{\link{loadNetwork}}.
 }
 \references{
-\url{http://sbml.org/Community/Wiki/SBML_Level_3_Proposals/Qualitative_Models}
+\url{http://sbml.org/Documents/Specifications/SBML_Level_3/Packages/Qualitative_Models_(qual)}
 }
 
 \seealso{

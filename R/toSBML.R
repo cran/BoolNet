@@ -14,53 +14,65 @@ indent <- function(string,count)
 # instead of their true transition functions
 toSBML <- function(network, file, generateDNFs=FALSE, saveFixed = TRUE)
 {
-  stopifnot(inherits(network,"BooleanNetwork"))
-  parseTrees <- NULL
-  
-  if (generateDNFs == FALSE)
-  # Check whether all interactions have suitable string representations
-  {
-    tryCatch(
-    {
-       # parse the string representations
-       parseTrees <- lapply(network$interactions,
-                           function(int)parseBooleanFunction(int$expression))
-    },
-    error=function(e)
-    {
-      warning(paste("The transition functions of this network did not contain valid symbolic expressions!",
-              "Generating DNF representations from the truth tables!"))
-
-      # There was an error parsing a string representation => generate DNFs              
-      generateDNFs <<- TRUE
-    })
-  }
-  
-  if (generateDNFs != FALSE)
-  # build new representations of the functions in disjunctive normal form
-  {
-    network$interactions <- lapply(network$interactions, function(interaction)
-    {
-      table <- allcombn(2, length(interaction$input)) - 1
-      interaction$expression <- getDNF(interaction$func, 
-                                       network$genes[interaction$input],
-                                       generateDNFs)
-      return(interaction)
-    })
+  symbolic <- inherits(network,"SymbolicBooleanNetwork")
+  stopifnot(inherits(network,"BooleanNetwork") || symbolic)
     
-    # parse the DNF representations
-    parseTrees <- lapply(network$interactions,
-                        function(int)parseBooleanFunction(int$expression))
+  if (symbolic)
+  {
+    if (any(network$timeDelays > 1))
+      stop("SBML does not support networks with time delays!")
+      
+    parseTrees <- network$interactions
   }
-  
-  names(parseTrees) <- network$genes
-  
+  else
+  {
+    parseTrees <- NULL
+    
+    if (generateDNFs == FALSE)
+    # Check whether all interactions have suitable string representations
+    {
+      tryCatch(
+      {
+         # parse the string representations
+         parseTrees <- lapply(network$interactions,
+                             function(int)parseBooleanFunction(int$expression))
+      },
+      error=function(e)
+      {
+        warning(paste("The transition functions of this network did not contain valid symbolic expressions!",
+                "Generating DNF representations from the truth tables!"))
+
+        # There was an error parsing a string representation => generate DNFs              
+        generateDNFs <<- TRUE
+      })
+    }
+    
+    if (generateDNFs != FALSE)
+    # build new representations of the functions in disjunctive normal form
+    {
+      network$interactions <- lapply(network$interactions, function(interaction)
+      {
+        table <- allcombn(2, length(interaction$input)) - 1
+        interaction$expression <- getDNF(interaction$func, 
+                                         network$genes[interaction$input],
+                                         generateDNFs)
+        return(interaction)
+      })
+      
+      # parse the DNF representations
+      parseTrees <- lapply(network$interactions,
+                          function(int)parseBooleanFunction(int$expression))
+    }
+    
+    names(parseTrees) <- network$genes
+  }  
   # generate a network identifier from the file name
   id <- sub(".sbml", "", basename(file), fixed=TRUE)
   id <- gsub("[^a-zA-Z0-9_]+","_",id)
   
-  # open the file
-  f <- file(file, encoding="UTF-8", open="w")
+  # open a string connection
+  output <- NULL
+  f <- textConnection("output",  encoding="UTF-8", open="w", local=TRUE)
   
   # write document header
   cat(file=f, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
@@ -77,7 +89,7 @@ toSBML <- function(network, file, generateDNFs=FALSE, saveFixed = TRUE)
   for (gene in network$genes)
   {
     if ((saveFixed && network$fixed[gene] != -1) || 
-        network$interactions[[gene]]$input[1] == 0)
+        (!symbolic && network$interactions[[gene]]$input[1] == 0))
     {
       if (saveFixed && network$fixed[gene] != -1)
         level <- network$fixed[gene]
@@ -104,13 +116,19 @@ toSBML <- function(network, file, generateDNFs=FALSE, saveFixed = TRUE)
   for (gene in network$genes)
   {
     if ((!saveFixed || network$fixed[[gene]] == -1)  && 
-        network$interactions[[gene]]$input[1] != 0)
+        (symbolic || network$interactions[[gene]]$input[1] != 0))
     {
       cat(file=f, "\t\t\t<qual:transition qual:id=\"tr_", gene,
           "\" qual:name=\"Interactions targeting ", gene, "\">\n", sep="")
       cat(file=f, "\t\t\t\t<qual:listOfInputs>\n")
-      for (i in network$interactions[[gene]]$input)
-        cat(file=f, "\t\t\t\t\t<qual:input qual:qualitativeSpecies=\"", network$genes[i],
+      
+      if (symbolic)
+        inputs <- getInputs(network$interactions[[gene]])
+      else
+        inputs <- network$genes[network$interactions[[gene]]$input]
+      
+      for (input in inputs)
+        cat(file=f, "\t\t\t\t\t<qual:input qual:qualitativeSpecies=\"", input,
             "\" qual:transitionEffect=\"none\"/>\n", sep="")
       cat(file=f, "\t\t\t\t</qual:listOfInputs>\n")
       cat(file=f, "\t\t\t\t<qual:listOfOutputs>\n")
@@ -137,6 +155,11 @@ toSBML <- function(network, file, generateDNFs=FALSE, saveFixed = TRUE)
   cat(file=f, "\t</model>\n")
   cat(file=f, "</sbml>\n")
   close(f)
+  
+  # open file and write the complete XML string
+  f <- file(file, encoding="UTF-8", open="w")
+  cat(file=f,output,sep="\n")
+  close(f)  
 }
 
 # Build a MathML representation of a parse tree <tree>
@@ -148,18 +171,26 @@ MathMLFromParseTree <- function(tree,indentLevel=0)
   res <- switch(tree$type,
     operator = 
     {
+      if (tree$operator %in% c("timeis","timegt","timelt"))
+        stop(sprintf("Operator \"%s\" not supported in SBML!", tree$operator));
+      if (tree$operator %in% c("maj","sumis","sumlt","sumgt"))
+      # convert special predicates to general Boolean formulae
+        tree <- expandCountPredicate(tree)
+        
       if (tree$negated)
         paste(indent("<apply>\n", indentLevel),
               indent("<not/>\n", indentLevel+1),
               indent("<apply>\n" ,indentLevel+1),
-              indent({if (tree$operator=="|"){"<or/>\n"} else{"<and/>\n"}}, indentLevel+2),
+              indent({if (tree$operator=="|" || tree$operator=="any")
+              {"<or/>\n"} else{"<and/>\n"}}, indentLevel+2),
               paste(sapply(tree$operands,MathMLFromParseTree, indentLevel+2), 
                     collapse=""),
               indent("</apply>\n", indentLevel+1), 
               indent("</apply>\n", indentLevel), sep="")
       else
         paste(indent("<apply>\n", indentLevel),
-              indent({if (tree$operator=="|"){"<or/>\n"} else{"<and/>\n"}}, indentLevel+1),
+              indent({if (tree$operator=="|" || tree$operator=="any")
+              {"<or/>\n"} else{"<and/>\n"}}, indentLevel+1),
               paste(sapply(tree$operands, MathMLFromParseTree, indentLevel+1), 
                     collapse=""),
               indent("</apply>\n", indentLevel), sep="")

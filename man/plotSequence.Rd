@@ -19,13 +19,14 @@ plotSequence(network,
              layout, 
              drawLabels=TRUE, 
              drawLegend=TRUE, 
+             highlightAttractor=TRUE,
              ...)
 }
 
 \arguments{
 
   \item{network}{
-	An object of class \code{BooleanNetwork} for which a sequence of state transitions is calculated
+	An object of class \code{BooleanNetwork} or \code{SymbolicBooleanNetwork} for which a sequence of state transitions is calculated
 }
 
   \item{startState}{
@@ -69,9 +70,14 @@ plotSequence(network,
   \item{drawLegend}{Specifies whether a color key for the ON/OFF states is drawn if \code{mode="table"}. Defaults to \code{TRUE}.
 }
 
+ \item{highlightAttractor}{
+If set to true, the attractor states are highlighted in the plot. If \code{mode="table"}, a line is drawn at the begin of the attractor, and the states are labeled correspondingly. If \code{mode="graph"}, the attractor transitions are drawn as bold lines. Information on the attractor must be supplied in the attribute \code{attractor} of the sequence, which is a vector of indices of the states that belong to the attractor. This attribute is usually present if the sequence was obtained using \code{\link{getPathToAttractor}}.
+}
+
     \item{\dots}{
 Further graphical parameters to be passed to \code{\link[igraph:plot.graph]{plot.igraph}} if \code{mode="graph"}.
 }
+    
 }
 \details{
 This function comprises two different types of plots: 
@@ -89,7 +95,7 @@ If \code{mode="graph"}, an object of class \code{igraph} describing the graph fo
 }
 
 \seealso{
-\code{\link{sequenceToLaTeX}}, \code{\link{plotAttractors}}, \code{\link{attractorsToLaTeX}}, \code{\link{getPathToAttractor}}, \code{\link{getAttractorSequence}}
+\code{\link{sequenceToLaTeX}}, \code{\link{plotAttractors}}, \code{\link{attractorsToLaTeX}}, \code{\link{getPathToAttractor}}, \code{\link{getAttractorSequence}}, \code{\link{simulateSymbolicModel}}
 }
 \examples{
 # load example data

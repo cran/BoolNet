@@ -4,10 +4,21 @@
 # If <plotFixed> is set, fixed variables are included in the plot.
 # <onColor> and <offColor> specify the colors of ON/1 and OFF/0 states.
 # <file> is the name of the output LaTeX document.
-attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = list(), plotFixed = TRUE,
+attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = list(), plotFixed = TRUE, 
         onColor="[gray]{0.9}",offColor="[gray]{0.6}", file="attractors.tex")  
 {
-  stopifnot(inherits(attractorInfo,"AttractorInfo"))
+  stopifnot(inherits(attractorInfo,"AttractorInfo") || inherits(attractorInfo, "SymbolicSimulation"))
+  
+  if (inherits(attractorInfo,"AttractorInfo"))
+  {
+    numGenes <- length(attractorInfo$stateInfo$genes)
+    geneNames <- attractorInfo$stateInfo$genes
+  }
+  else
+  {
+    numGenes <- ncol(attractorInfo$attractors[[1]])
+    geneNames <- colnames(attractorInfo$attractors[[1]])
+  } 
   
   if (missing(subset))
       subset <- seq_along(attractorInfo$attractors)
@@ -15,9 +26,6 @@ attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = lis
     if (any(subset > length(attractorInfo$attractors)))
       stop("You specified an attractor index that is greater than the total number of attractors in 'subset'!")
 
-  
-  numGenes <- length(attractorInfo$stateInfo$genes)
-  
   # escape "_" in LaTeX
   genes = gsub("_", "\\_", attractorInfo$stateInfo$genes)
   
@@ -28,23 +36,32 @@ attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = lis
   else
     plotIndices <- (seq_len(numGenes))[-whichFixed]
   
-      # convert decimal state numbers to binary state matrices (one for each attractor)
-  binMatrices <- lapply(attractorInfo$attractors,function(attractor)
-          {
-            res <- matrix(apply(attractor$involvedStates,2,function(state)
-              dec2bin(state,numGenes)[plotIndices]),nrow=length(plotIndices))
-          })
+  if (inherits(attractorInfo,"AttractorInfo"))
+  {
+    # convert decimal state numbers to binary state matrices (one for each attractor)
+    binMatrices <- lapply(attractorInfo$attractors,function(attractor)
+            {
+              res <- matrix(apply(attractor$involvedStates,2,function(state)
+                dec2bin(state,numGenes)[plotIndices]),nrow=length(plotIndices))
+            })
 
-  # count the numbers of attractors with equal lengths
-  attractorLengths <- sapply(attractorInfo$attractors,function(attractor)
-                             {
-                                if (is.null(attractor$initialStates))
-                                # simple attractor
-                                  ncol(attractor$involvedStates)
-                                else
-                                # complex attractor => extra treatment
-                                  -1
-                             })  
+    # count the numbers of attractors with equal lengths
+    attractorLengths <- sapply(attractorInfo$attractors,function(attractor)
+                               {
+                                  if (is.null(attractor$initialStates))
+                                  # simple attractor
+                                    ncol(attractor$involvedStates)
+                                  else
+                                  # complex attractor => extra treatment
+                                    -1
+                               })
+  }
+  else
+  {
+    binMatrices <- lapply(attractorInfo$attractors, t)
+    attractorLengths <- sapply(binMatrices, ncol)
+  }
+  
   lengthTable <- table(attractorLengths)
   lengthTable <- lengthTable[as.integer(names(lengthTable)) != -1]
   
@@ -68,7 +85,7 @@ attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = lis
       {
         totalMatrix <- cbind(totalMatrix,mat)
       }
-      rownames(totalMatrix) <- attractorInfo$stateInfo$genes[plotIndices]
+      rownames(totalMatrix) <- geneNames[plotIndices]
       colnames(totalMatrix) <- sapply(intersect(which(attractorLengths == len),subset),function(i)paste("Attr",i,".",seq_len(len),sep=""))
     
       if(length(grouping)>0)
@@ -115,9 +132,16 @@ attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = lis
         cat("\\\\\n")
       }
     
-          # output frequency of attractor (basin size / number of states)
-      freq <- round(sapply(attractorInfo$attractors[intersect(which(attractorLengths == len),subset)],
-          function(attractor)attractor$basinSize/ncol(attractorInfo$stateInfo$table)) * 100,2)
+      # output frequency of attractor (basin size / number of states)
+      if (inherits(attractorInfo,"AttractorInfo"))
+      {
+        freq <- round(sapply(attractorInfo$attractors[intersect(which(attractorLengths == len),subset)],
+            function(attractor)attractor$basinSize/ncol(attractorInfo$stateInfo$table)) * 100,2)
+      }
+      else
+      {
+        freq <- rep(NA, length(attractorInfo$attractors))
+      }
 
       if (!isTRUE(all(is.na(freq))))
       {

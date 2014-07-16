@@ -12,7 +12,7 @@ fixGenes(network, fixIndices, values)
 }
 \arguments{
   \item{network}{
-	The original network of class \code{BooleanNetwork} or \if{latex}{\cr}\code{ProbabilisticBooleanNetwork} containing the genes to be fixed
+	The original network of class \code{BooleanNetwork}, \if{latex}{\cr} \code{SymbolicBooleanNetwork} or \code{ProbabilisticBooleanNetwork} containing the genes to be fixed
 }
   \item{fixIndices}{
 	A vector of names or indices of the genes to be fixed
@@ -22,7 +22,7 @@ fixGenes(network, fixIndices, values)
 }
 }
 \value{
-Depending on the input, an object of class \code{BooleanNetwork} or \code{ProbabilisticBooleanNetwork} containing the fixed genes is returned. The classes \code{BooleanNetwork} and \if{latex}{\cr}\code{ProbabilisticBooleanNetwork} is described in more detail in \code{\link{loadNetwork}}.
+Depending on the input, an object of class \code{BooleanNetwork}, \code{SymbolicBooleanNetwork} or \code{ProbabilisticBooleanNetwork} containing the fixed genes is returned. These classes are described in more detail in \code{\link{loadNetwork}}.
 }
 \seealso{
 \code{\link{loadNetwork}}}

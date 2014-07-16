@@ -1,11 +1,12 @@
 
 sequenceToLaTeX <- function(network, startState, includeAttractorStates = c("all","first","none"),
                             sequence, title="", grouping = list(), plotFixed = TRUE,
-                            onColor="[gray]{0.9}",offColor="[gray]{0.6}", file="sequence.tex")
+                            onColor="[gray]{0.9}",offColor="[gray]{0.6}", highlightAttractor=TRUE, 
+                            file="sequence.tex")
 {
   if (!missing(network))
   {
-    stopifnot(inherits(network,"BooleanNetwork"))
+    stopifnot(inherits(network,"BooleanNetwork") || inherits(network,"SymbolicBooleanNetwork"))
     if (missing(startState) || !missing(sequence))
       stop("Either \"network\" and \"startState\" or \"sequence\" must be provided!")
     
@@ -19,13 +20,17 @@ sequenceToLaTeX <- function(network, startState, includeAttractorStates = c("all
       plotIndices <- seq_len(numGenes)
     else
       plotIndices <- seq_len(numGenes)[-whichFixed]
-      
-    sequence <- sequence[,plotIndices]                                   
+    
+    attractor <- attributes(sequence)$attractor  
+    sequence <- sequence[,plotIndices]
+    attributes(sequence)$attractor <- attractor                                  
   }
   else
   {
     if (missing(sequence) || !missing(startState))
         stop("Either \"network\" and \"startState\" or \"sequence\" must be provided!")
+    
+    attractor <- attributes(sequence)$attractor          
   }
   
   # escape "_" in LaTeX
@@ -50,13 +55,24 @@ sequenceToLaTeX <- function(network, startState, includeAttractorStates = c("all
   else
     separationPositions <- c()
 
+  if (highlightAttractor && !is.null(attractor))
+  {
+      header <- paste(paste(rep(">{\\centering\\arraybackslash}X", 
+                            min(attractor) - 1), collapse = " "),
+                      "|",
+                      paste(rep(">{\\centering\\arraybackslash}X", 
+                            length(attractor)), collapse = " "),
+                      "|", sep="")
+  }
+  else
+    header <- paste(rep(">{\\centering\\arraybackslash}X", 
+          ncol(totalMatrix), collapse = " "))
   # output table header
   cat("\\begin{table}[ht]\n",
        "\\begin{center}\n",
        "\\caption{",title,"}\n",
        "\\begin{tabularx}{\\linewidth}{l", 
-     paste(rep(paste(rep(">{\\centering\\arraybackslash}X", 
-          ncol(totalMatrix), collapse = " "))),collapse=""), 
+       header, 
   "}\\hline\n", sep="")
        
   cat("\\textbf{Time}\t&\t",paste(seq_len(ncol(totalMatrix)),collapse="\t&\t"),"\\\\")
@@ -72,7 +88,8 @@ sequenceToLaTeX <- function(network, startState, includeAttractorStates = c("all
     separator <- which(separationPositions==j)
     if (length(separator) != 0)
     {
-      cat("\\hline \\multicolumn{",ncol(totalMatrix) + 1,"}{c}{",grouping$class[separator],"}\\\\ \\hline \n",sep="")
+      cat("\\hline \\multicolumn{",ncol(totalMatrix) + 1,
+          "}{c}{",grouping$class[separator],"}\\\\ \\hline \n",sep="")
     }
     cat("\\textbf{",rownames(totalMatrix)[j],"}\t&\t",sep="")
     for(i in seq_len(ncol(totalMatrix)))
@@ -86,12 +103,20 @@ sequenceToLaTeX <- function(network, startState, includeAttractorStates = c("all
     }
     cat("\\\\\n")
   }
+  
+  cat("\\hline")
+  if (highlightAttractor && !is.null(attractor))
+  {    
+    cat("\\multicolumn{",min(attractor),
+        "}{c|}{}\t&\t\\multicolumn{",length(attractor),
+        "}{c|}{Attractor}\\\\\\cline{",min(attractor) + 1, "-", max(attractor) + 1, "}\n",sep="")
+  }
 
-  cat("\\hline\\end{tabularx}\n\\end{center}\n",
+  cat("\\end{tabularx}\n\\end{center}\n",
       "\\end{table}\n\n",sep="")
 
-  # return a list of accumulated matrices
   sink()
+  # return the matrix  
   return(totalMatrix)
 }
 

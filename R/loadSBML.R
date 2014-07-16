@@ -51,7 +51,7 @@ parseSBMLSpecies <- function(rootNode)
                   name,"\" has a maximum level of ",attrs["maxLevel"],"!", sep=""))
     
     # build a lookup table id -> gene name  
-    genes[attrs["id"]] <- name
+    genes[attrs["id"]] <- adjustGeneNames(name)
     
     if (!is.na(attrs["constant"]) && tolower(attrs["constant"]) == "true")
     # if the gene is constant, save its initial level in the "fixed" vector
@@ -76,7 +76,7 @@ parseSBMLSpecies <- function(rootNode)
 # specifying fixed genes and a vector of initial levels.
 # Returns a list of interactions in the format 
 # of class BooleanNetwork
-parseSBMLTransitions <- function(rootNode, genes)
+parseSBMLTransitions <- function(rootNode, genes, symbolic)
 { 
   # iterate over all transitions 
   transitions <- xmlApply(rootNode,function(transition)
@@ -180,6 +180,10 @@ parseSBMLTransitions <- function(rootNode, genes)
           # a non-constant gene should have a transition or an initial level
           warning(paste("There is no transition and no initial level for the non-constant gene \"",
                      gene,"\"! Assuming an input!",sep=""))
+                     
+        if (symbolic)
+          return(parseBooleanFunction(genes$gene[gene]))
+        else
           return(list(input=which(names(genes$genes) == gene), 
                       func=c(0,1), 
                       expression=genes$gene[gene]))
@@ -191,9 +195,13 @@ parseSBMLTransitions <- function(rootNode, genes)
       }
       
       # build a constant interaction
-      return(list(input=0, 
-                  func=genes$initialLevels[genes$gene[gene]], 
-                  expression=as.character(genes$initialLevels[genes$gene[gene]])))
+      
+      if (symbolic)
+        return(parseBooleanFunction(as.character(genes$initialLevels[genes$gene[gene]])))
+      else
+        return(list(input=0, 
+                    func=genes$initialLevels[genes$gene[gene]], 
+                    expression=as.character(genes$initialLevels[genes$gene[gene]])))
     }
     else
     {
@@ -208,10 +216,19 @@ parseSBMLTransitions <- function(rootNode, genes)
       # a constant gene should not be the output of a transition
         stop(paste("Gene \"",gene,"\" has been specified as constant, but there is a transition!",sep=""))
 
-      # parse the Boolean expression, and generate an interaction with 
-      # the corresponding truth table
-      return(generateInteraction(transitions[[linkedTransitions]]$transitionFunction, 
-                                 genes$genes[transitions[[linkedTransitions]]$input], genes$genes))
+      if (symbolic)
+      {
+        # parse the Boolean expression, and construct a symbolic expression tree
+        return(parseBooleanFunction(transitions[[linkedTransitions]]$transitionFunction, genes$genes))
+      }
+      else
+      {
+        # parse the Boolean expression, and generate an interaction with 
+        # the corresponding truth table
+        return(generateInteraction(transitions[[linkedTransitions]]$transitionFunction, 
+                                   #genes$genes[transitions[[linkedTransitions]]$input], 
+                                   genes$genes))
+      }
     }
   })
   names(interactions) <- genes$genes
@@ -522,7 +539,7 @@ parseMathML <- function(rootNode, genes, inputThresholds)
 }
 
 # Import the sbml-qual document <file>
-loadSBML <- function(file)
+loadSBML <- function(file, symbolic=FALSE)
 {
   if (!require(XML))
         stop("Please install the XML package before using this function!")  
@@ -557,18 +574,34 @@ loadSBML <- function(file)
   
   # parse transitions  
   transitions <- xmlFindNode(model, "listOfTransitions", throwError=TRUE)[[1]]
-  interactions <- parseSBMLTransitions(transitions, genes)
+  interactions <- parseSBMLTransitions(transitions, genes, symbolic)
   
-  # create BooleanNetwork structure
-  res <- list(genes = genes$genes,
-              fixed = sapply(interactions,function(i)
-                            {
-                              if (i$input[1] == 0)
-                                i$func[1]
-                              else
-                                -1
-                            }),
-              interactions = interactions)
-  class(res) <- "BooleanNetwork"
+  if (symbolic)
+  {
+    delays <- apply(sapply(interactions,maxTimeDelay,genes=genes$genes),1,max)
+
+    fixed <- as.integer(rep(-1L,length(genes$genes)))
+    names(fixed) <- genes$genes
+    
+    res <- list(genes = genes$genes, interactions=interactions, fixed=fixed)
+    res$internalStructs <- .Call("constructNetworkTrees",res)
+    res$timeDelays <- delays
+    
+    class(res) <- "SymbolicBooleanNetwork"
+  }
+  else
+  {
+    # create BooleanNetwork structure
+    res <- list(genes = genes$genes,
+                fixed = sapply(interactions,function(i)
+                              {
+                                if (i$input[1] == 0)
+                                  i$func[1]
+                                else
+                                  -1
+                              }),
+                interactions = interactions)
+    class(res) <- "BooleanNetwork"
+  }
   return(res)              
 }

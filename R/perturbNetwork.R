@@ -6,19 +6,24 @@
 # <method="shuffle"> randomly permutes the bits in the functions or states.
 # If <simplify> is set, the perturbed network is simplified to remove irrelevant input functions.
 # If <excludeFixed> is set, fixed genes are excluded from the perturbations and stay as they are.
-perturbNetwork <- function(network,perturb=c("functions","states"),method=c("bitflip","shuffle"),
-      simplify=(perturb[1]=="states"),readableFunctions=FALSE,excludeFixed=TRUE,
+perturbNetwork <- function(network,perturb=c("functions","transitions"),method=c("bitflip","shuffle"),
+      simplify=(perturb[1]!="functions"),readableFunctions=FALSE,excludeFixed=TRUE,
       maxNumBits=1,numStates=max(1,2^length(network$genes)/100))
 {
-  stopifnot(inherits(network,"BooleanNetwork") | inherits(network,"ProbabilisticBooleanNetwork")
-          | inherits(network,"BooleanNetworkCollection"))
+  stopifnot(inherits(network,"BooleanNetwork") | inherits(network,"ProbabilisticBooleanNetwork"))
 
   fixedGenes <- which(network$fixed != -1)
 
+  if (length(perturb) == 1 && perturb == "states")
+  {
+    warning("perturb=\"states\" is deprecated. Use perturb=\"transitions\" instead!")
+    perturb <- "transitions"
+  }
+  
   if (inherits(network,"BooleanNetwork"))
   # deterministic network
   {
-    switch(match.arg(perturb,c("functions","states")),
+    switch(match.arg(perturb,c("functions","transitions")),
       functions=
         switch(match.arg(method,c("bitflip","shuffle")),
         bitflip =
@@ -67,7 +72,7 @@ perturbNetwork <- function(network,perturb=c("functions","states"),method=c("bit
           },
         stop("'method' must be one of \"bitflip\",\"shuffle\"")),
     
-    states =
+    transitions =
       {  
         # turn off gene fixing - otherwise reverse-engineering of the transition table is not possible
       
@@ -136,7 +141,7 @@ perturbNetwork <- function(network,perturb=c("functions","states"),method=c("bit
       
       
       },  
-      stop("'perturb' must be one of \"functions\",\"states\""))
+      stop("'perturb' must be one of \"functions\",\"transitions\""))
   }
   else
   # probabilistic network

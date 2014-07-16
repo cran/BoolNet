@@ -1,7 +1,9 @@
 useDynLib(BoolNet)
 
 S3method(print, AttractorInfo)
+S3method(print, SymbolicSimulation)
 S3method(print, BooleanNetwork)
+S3method(print, SymbolicBooleanNetwork)
 S3method(print, BooleanNetworkCollection)
 S3method(print, ProbabilisticBooleanNetwork)
 S3method(print, BooleanStateInfo)
@@ -31,10 +33,14 @@ getTransitionProbabilities,
 toPajek,
 toSBML,
 generateRandomNKNetwork,
+generateCanalyzing,
+generateNestedCanalyzing,
 generateState,
 generateTimeSeries,
 perturbNetwork,
+perturbTrajectories,
 simplifyNetwork,
+simulateSymbolicModel,
 reconstructNetwork,
 chooseNetwork,
 fixGenes,
@@ -42,5 +48,8 @@ binarizeTimeSeries,
 markovSimulation,
 testNetworkProperties,
 testAttractorRobustness,
-testIndegree)
+testTransitionRobustness,
+testIndegree,
+truthTableToSymbolic,
+symbolicToTruthTable)
 

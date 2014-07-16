@@ -7,11 +7,16 @@ Import a network from BioTapestry
 Imports a Boolean network from a BioTapestry file (*.btp). BioTapestry is an interactive tool for building, visualizing, and simulating gene-regulatory networks, and can be accessed at \url{http://www.biotapestry.org}. 
 }
 \usage{
-loadBioTapestry(file)
+loadBioTapestry(file,
+                symbolic = FALSE)
 }
 \arguments{
   \item{file}{
 The name of the file to import. This must be a BioTapestry XML file (*.btp).
+}
+  
+  \item{symbolic}{
+If set to \code{TRUE}, the function returns an object of class \code{SymbolicBooleanNetwork} with an expression tree representation. Otherwise, it returns an object of class \code{BooleanNetwork} with a truth table representation.
 }
 }
 \details{
@@ -24,7 +29,7 @@ The function builds up a Boolean network by importing the nodes, the links betwe
 }
 }
 \value{
-A network of class \code{BooleanNetwork}, as described in \code{\link{loadNetwork}}.
+A network of class \code{BooleanNetwork} or \code{SymbolicBooleanNetwork}, as described in \code{\link{loadNetwork}}.
 }
 \references{
 W. J. R. Longabaugh, E. H. Davidson, H. Bolour (2005), Computational representation of developmental genetic regulatory networks. Developmental Biology 283(1):1--16.

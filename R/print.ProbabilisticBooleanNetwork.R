@@ -16,10 +16,24 @@ print.ProbabilisticBooleanNetwork <- function(x, ...)
       # print original expressions read from the files (if available)
       lapply(interaction,function(func)
       {
-        cat(gene," = ",func$expression," (probability: ",func$probability,sep="")
-        if (!is.null(func$error))
-          cat(", error: ",func$error,sep="")
-        cat(")\n")
+        cat(gene," = ",func$expression,sep="")
+        
+        if (!is.null(func$probability) || !is.null(func$error))
+        {
+          cat(" (")
+          
+          if (!is.null(func$probability))
+          {
+            cat(" probability: ",func$probability,sep="")
+            if (!is.null(func$error))
+              cat(", ")
+          }  
+          if (!is.null(func$error))
+            cat("error: ",func$error,sep="")
+          
+          cat(")")
+        }
+        cat("\n")
       })
     },  
     x$genes,x$interactions)

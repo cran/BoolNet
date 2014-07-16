@@ -1,23 +1,40 @@
-# Export a state table in <attractorInfo> to a Pajek graph
-toPajek <- function (attractorInfo, file="boolean.net", includeLabels=FALSE) 
+# Export a state table in <stateGraph> to a Pajek graph
+toPajek <- function (stateGraph, file="boolean.net", includeLabels=FALSE, ...) 
 {
-  stopifnot(inherits(attractorInfo,"AttractorInfo"))
+  args <- list(...)
   
-  if (is.null(attractorInfo$stateInfo$table))
-    stop(paste("This AttractorInfo structure does not contain transition table information.",
-           "Please re-run getAttractors() with a synchronous search and returnTable=TRUE!"))
+  if (!is.null(args$attractorInfo))
+  {
+    warning("The parameter \"attractorInfo\" is deprecated. Use \"stateGraph\" instead!")
+    stateGraph <- args$attractorInfo
+  }
+  
+  if (!inherits(stateGraph,"TransitionTable"))
+    stateGraph <- getTransitionTable(stateGraph)
+  
+  geneCols <- setdiff(colnames(stateGraph),c("attractorAssignment","transitionsToAttractor"))
+  numGenes <- (length(geneCols)) / 2
+  
+  from <- apply(stateGraph[,1:numGenes,drop=FALSE],1,paste,collapse="")
+  to <- apply(stateGraph[,((numGenes+1):(2*numGenes)),drop=FALSE],1,paste,collapse="")
+  vertices <- unique(c(from,to))
+  vertexIndices <- seq_along(vertices)
+  names(vertexIndices) <- vertices
+  
+  from <- vertexIndices[from]
+  to <- vertexIndices[to]
 
-  graphStruct <- getStateGraphStructure(attractorInfo)
-  
+ 
   sink(file)
-  cat("*Vertices ", length(graphStruct$vertices), "\r\n", sep = "")
+  cat("*Vertices ", length(vertices), "\r\n", sep = "")
   if (includeLabels)
   {
-    lapply(seq_along(graphStruct$vertices),function(i)
-      cat(i," \"",graphStruct$vertices[i],"\"\r\n",sep=""))
+    for (i  in seq_along(vertices))
+      cat(i," \"",vertices[i],"\"\r\n",sep="")
   }
   cat("*Arcs\r\n")
-  apply(graphStruct$edges,1,function(edge)
-    cat(edge[1]," ",edge[2]," 1\r\n",sep=""))
+
+  for (i in seq_along(from))
+    cat(from[i]," ",to[i]," 1\r\n",sep="")
   sink()
 }

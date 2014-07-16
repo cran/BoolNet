@@ -7,8 +7,6 @@ AllocatedMemory * memoryMap = NULL;
 /**
  * Common utilities for the BoolNet package
  *
- * This is part of the BooleanNetwork R package.
- *
  * Copyright 2009/2010 by Christoph Müssel and Zhou Dao
  *
  * Contact christoph.muessel@uni-ulm.de
@@ -133,3 +131,20 @@ void removeFixedGenes(unsigned int * value, int* fixedGenes, unsigned int numGen
 	// re-encode Boolean array to integer value
 	bin2dec((int *)value,(int*)tmp,(int*)&numGenes);
 }
+
+
+SEXP getListElement(SEXP list, char *str) 
+{
+  SEXP names = getAttrib(list, R_NamesSymbol);
+  
+  unsigned int i;
+   
+  for (i = 0; i < length(list); ++i)
+  {
+    if (strcmp(CHAR(STRING_ELT(names, i)), str) == 0 ) 
+    { 
+      return VECTOR_ELT(list, i); 
+    }
+  }
+  return R_NilValue;
+} 

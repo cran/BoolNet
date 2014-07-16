@@ -5,10 +5,20 @@
 # <onColor> and <offColor> specify the colors of ON/1 and OFF/0 states.
 plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","graph"),
                             grouping = list(), plotFixed = TRUE, onColor="green",offColor="red",
-                            layout=layout.circle, drawLabels=TRUE, drawLegend=TRUE, ...) 
+                            layout=layout.circle, drawLabels=TRUE, drawLegend=TRUE, ask=TRUE, ...) 
 {
-  stopifnot(inherits(attractorInfo,"AttractorInfo"))
-  numGenes <- length(attractorInfo$stateInfo$genes)
+  stopifnot(inherits(attractorInfo,"AttractorInfo") || inherits(attractorInfo, "SymbolicSimulation"))
+  
+  if (inherits(attractorInfo,"AttractorInfo"))
+  {
+    numGenes <- length(attractorInfo$stateInfo$genes)
+    geneNames <- attractorInfo$stateInfo$genes
+  }
+  else
+  {
+    numGenes <- ncol(attractorInfo$attractors[[1]])
+    geneNames <- colnames(attractorInfo$attractors[[1]])
+  }
   
   if (missing(subset))
       subset <- seq_along(attractorInfo$attractors)
@@ -27,15 +37,17 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
     else
       plotIndices <- seq_len(numGenes)[-whichFixed]
   
-    # convert decimal state numbers to binary state matrices (one for each attractor)
-    binMatrices <- lapply(attractorInfo$attractors,function(attractor)
-            {
-              res <- matrix(apply(attractor$involvedStates,2,function(state)
-                dec2bin(state,numGenes)[plotIndices]),nrow=length(plotIndices))
-            })
-
-    # count the numbers of attractors with equal lengths
-    attractorLengths <- sapply(attractorInfo$attractors,function(attractor)
+    if (inherits(attractorInfo,"AttractorInfo"))
+    {
+      # convert decimal state numbers to binary state matrices (one for each attractor)
+      binMatrices <- lapply(attractorInfo$attractors,function(attractor)
+              {
+                res <- matrix(apply(attractor$involvedStates,2,function(state)
+                  dec2bin(state,numGenes)[plotIndices]),nrow=length(plotIndices))
+              })
+              
+      # count the numbers of attractors with equal lengths
+      attractorLengths <- sapply(attractorInfo$attractors,function(attractor)
                                {
                                   if (is.null(attractor$initialStates))
                                   # simple attractor
@@ -43,10 +55,18 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
                                   else
                                   # complex attractor => extra treatment
                                     -1
-                               })  
+                               })        
+    }
+    else
+    {
+      binMatrices <- lapply(attractorInfo$attractors, t)
+      attractorLengths <- sapply(binMatrices, ncol)
+    }
+
     lengthTable <- table(attractorLengths)
     lengthTable <- lengthTable[as.integer(names(lengthTable)) != -1]
-  
+    oldAsk <- par("ask")
+    
     res <- lapply(seq_along(lengthTable),function(i)
     # accumulate all attractors with equal length in one matrix and plot them
     {
@@ -61,13 +81,14 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
         {
           totalMatrix <- cbind(totalMatrix,mat)
         }
-        rownames(totalMatrix) <- attractorInfo$stateInfo$genes[plotIndices]
+        rownames(totalMatrix) <- geneNames[plotIndices]
         colnames(totalMatrix) <- sapply(intersect(which(attractorLengths == len),subset),function(i)paste("Attr",i,".",seq_len(len),sep=""))
     
         if(length(grouping)>0)
            # reorder genes according to the supplied groups
           totalMatrix = totalMatrix[unlist(grouping$index),,drop=FALSE]
 
+        par(ask=ask && i > 1 && dev.interactive())
         # initialize with empty plot
         plot(c(),c(),xlim=c(0,len*cnt),ylim=c(-2,nrow(totalMatrix)+1),xlab="",ylab="",
              axes=FALSE,main=paste(title, "Attractors with ",len," state(s)",sep=""))    
@@ -88,9 +109,22 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
             abline(v = sep[-1],col="white",lwd=3)
             
         # output frequency of attractor (basin size / number of states)
-        freq <- round(sapply(attractorInfo$attractors[intersect(which(attractorLengths == len),subset)],
-            function(attractor)attractor$basinSize/ncol(attractorInfo$stateInfo$table)) * 100,2)
-
+        
+        if (inherits(attractorInfo,"AttractorInfo"))
+        {
+          freq <- round(sapply(attractorInfo$attractors[intersect(which(attractorLengths == len),subset)],
+              function(attractor)attractor$basinSize/ncol(attractorInfo$stateInfo$table)) * 100,2)
+        }
+        else
+        {
+          if (!is.null(attractorInfo$graph))
+          {
+            freq <- round(sapply(intersect(which(attractorLengths == len),subset), 
+                          function(i)sum(attractorInfo$graph$attractorAssignment == i)/
+                          nrow(attractorInfo$graph)) * 100,2)
+          }
+        }
+        
         if (!isTRUE(all(is.na(freq))))
         {
           text(sep[seq_along(sep)-1] + len/2, rep(0.4+nrow(totalMatrix),ncol(totalMatrix)),
@@ -115,6 +149,7 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
         totalMatrix
        }
     })
+    par(ask=oldAsk)
   
     # return a list of accumulated matrices
     names(res) <- names(lengthTable)
@@ -148,28 +183,38 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
       
     lapply(attractorInfo$attractors[subset],function(attractor)
     {
-      nodes <- data.frame(apply(attractor$involvedStates,2,function(state)
-                          paste(dec2bin(state,numGenes),collapse="")),
-                          stringsAsFactors=FALSE)
     
-      if (!is.null(attractor$initialStates))
-      # asynchronous complex attractor
+      if (inherits(attractorInfo,"AttractorInfo"))
       {
-        initialStates <- apply(attractor$initialStates,2,function(state)
-                                paste(dec2bin(state,numGenes),collapse=""))
-        nextStates <- apply(attractor$nextStates,2,function(state)
-                                paste(dec2bin(state,numGenes),collapse=""))
+        nodes <- data.frame(apply(attractor$involvedStates,2,function(state)
+                          paste(dec2bin(state,numGenes),collapse="")),
+                          stringsAsFactors=FALSE)      
+      
+        if (!is.null(attractor$initialStates))
+        # asynchronous complex attractor
+        {
+          initialStates <- apply(attractor$initialStates,2,function(state)
+                                  paste(dec2bin(state,numGenes),collapse=""))
+          nextStates <- apply(attractor$nextStates,2,function(state)
+                                  paste(dec2bin(state,numGenes),collapse=""))
+        }
+        else
+        {
+          initialStates <- apply(attractor$involvedStates,2,function(state)
+                                  paste(dec2bin(state,numGenes),collapse=""))
+          if (length(initialStates) == 1)
+          # steady state
+            nextStates <- initialStates
+          else
+          # synchronous attractor with more than one state
+            nextStates <- initialStates[c(2:length(initialStates),1)]                                
+        }
       }
       else
       {
-        initialStates <- apply(attractor$involvedStates,2,function(state)
-                                paste(dec2bin(state,numGenes),collapse=""))
-        if (length(initialStates) == 1)
-        # steady state
-          nextStates <- initialStates
-        else
-        # synchronous attractor with more than one state
-          nextStates <- initialStates[c(2:length(initialStates),1)]                                
+        initialStates <- apply(attractor,1,paste,collapse="")
+        nextStates <- apply(attractor[c(2:nrow(attractor),1),,drop=FALSE],1,paste,collapse="")
+        nodes <- data.frame(unique(c(initialStates, nextStates)), stringsAsFactors=FALSE)
       }
       edgeMatrix <- data.frame(initialStates,nextStates)
       graph <- graph.data.frame(edgeMatrix,vertices=nodes,directed=TRUE)
@@ -179,11 +224,12 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
       else
         labels <- NA
       
-       plot(graph,layout=layout,vertex.label=labels,vertex.label.cex=args$vertex.label.cex,
-         vertex.size=args$vertex.size,vertex.color=args$vertex.color,
-         vertex.label.dist=args$vertex.label.dist,
-         edge.arrow.size=args$edge.arrow.size,
-         main=title,...)
+      args$layout <- layout
+      args$x <- graph
+      args$vertex.label <- labels
+      args$main <- title
+      
+      do.call("plot",args)
       graph
     })
   })

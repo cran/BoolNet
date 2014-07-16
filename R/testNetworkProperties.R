@@ -6,9 +6,20 @@ Gini <- function(x)
     1/(n-1)*(n+1-2*(sum((n+1-seq_len(n))*x)/sum(x)))
 }
 
+# Compare the Hamming distances of the successor states of states and their perturbed copies.
+testTransitionRobustness <- function(network, accumulate=TRUE, params=list())
+{
+  res <- do.call("perturbTrajectories", c(list(network=network, measure="hamming"), params))
+  if (accumulate)
+    return(res$value)
+  else
+    return(res$stat)
+}
+
 # Test attractor robustness by searching the original attractor
-# in <params$copies> perturbed copies of <network>.
-testAttractorRobustness <- function(network,accumulate=TRUE,params=list())
+# in <params$numSamples> perturbed copies of <network> or by perturbing the state trajectories
+# and checking whether the attractors change.
+testAttractorRobustness <- function(network, accumulate=TRUE, params=list())
 {
   origAttrs <- getAttractors(network,canonical=TRUE)
 
@@ -18,74 +29,96 @@ testAttractorRobustness <- function(network,accumulate=TRUE,params=list())
   else
     perturb <- params$perturb
     
-  if (is.null(params$method))
-    method <- "bitflip"
-  else
-    method <- params$method
-    
-  if (is.null(params$maxNumBits))
-    maxNumBits <- 1
-  else
-    maxNumBits <- params$maxNumBits
-    
-  if (is.null(params$numStates))
-    numStates <- max(1,2^length(network$genes)/100)
-  else
-    numStates <- params$numStates
-    
-  if (is.null(params$simplify))
-    simplify <- (perturb[1] == "states")
-  else
-    simplify <- params$simplify
   
-  if (is.null(params$readableFunctions))
-    readableFunctions <- FALSE
-  else
-    readableFunctions <- params$readableFunctions
+  if (params$perturb == "trajectories")
+  {
+    params$perturb <- NULL
     
-  if (is.null(params$excludeFixed))
-    excludeFixed <- TRUE
-  else
-    excludeFixed <- params$excludeFixed
-  
-  if (is.null(params$copies))
-    copies <- 100
-  else
-    copies <- params$copies
-  
-  perturbationResults <- unlist(sapply(seq_len(copies),function(copy)
+    if (!is.null(params$copies))
     {
-      # get attractors of perturbed network
-      perturbedAttrs <- getAttractors(perturbNetwork(network,
-                                                     perturb=perturb,
-                                                     method=method,
-                                                     maxNumBits=maxNumBits,
-                                                     numStates=numStates,
-                                                     simplify=simplify,
-                                                     readableFunctions=readableFunctions,
-                                                     excludeFixed=excludeFixed))
+      params$numSamples <- params$copies
+      params$copies <- NULL
+    }
+    res <- do.call("perturbTrajectories", c(list(network=network, measure="attractor"), params))
+    if (accumulate)
+      return(res$value)
+    else
+      return(res$stat)
+  }  
+  else 
+  {
+    if (is.null(params$method))
+      method <- "bitflip"
+    else
+      method <- params$method
       
-      # try to find original attractors in perturbed network                                               
-	    attractorIndices <- sapply(origAttrs$attractors,function(attractor1)
-				{
-					index <- which(sapply(perturbedAttrs$attractors,function(attractor2)
-						{
-							identical(attractor1,attractor2)
-						}))
-					if (length(index) == 0)
-						NA
-					else
-						index
-				})
-	    return(sum(!is.na(attractorIndices)))
-	  }))
+    if (is.null(params$maxNumBits))
+      maxNumBits <- 1
+    else
+      maxNumBits <- params$maxNumBits
+      
+    if (is.null(params$numStates))
+      numStates <- max(1,2^length(network$genes)/100)
+    else
+      numStates <- params$numStates
+      
+    if (is.null(params$simplify))
+      simplify <- (perturb[1] == "states")
+    else
+      simplify <- params$simplify
+    
+    if (is.null(params$readableFunctions))
+      readableFunctions <- FALSE
+    else
+      readableFunctions <- params$readableFunctions
+      
+    if (is.null(params$excludeFixed))
+      excludeFixed <- TRUE
+    else
+      excludeFixed <- params$excludeFixed
 
-	if (accumulate)
-	  # return overall percentage of found attractors
-  	return(sum(perturbationResults)/(length(origAttrs$attractors) * copies) * 100)
-  else
-    # return percentage of found attractors for each run
-    return(perturbationResults/(length(origAttrs$attractors)) * 100)
+    if (!is.null(params$numSamples))
+      copies <- params$numSamples
+    else    
+    if (is.null(params$copies))
+      copies <- 100
+    else
+      copies <- params$copies
+    
+    perturbationResults <- unlist(sapply(seq_len(copies),function(copy)
+      {
+        # get attractors of perturbed network
+        perturbedAttrs <- getAttractors(perturbNetwork(network,
+                                                       perturb=perturb,
+                                                       method=method,
+                                                       maxNumBits=maxNumBits,
+                                                       numStates=numStates,
+                                                       simplify=simplify,
+                                                       readableFunctions=readableFunctions,
+                                                       excludeFixed=excludeFixed))
+        
+        # try to find original attractors in perturbed network                                               
+	      attractorIndices <- sapply(origAttrs$attractors,function(attractor1)
+				  {
+					  index <- which(sapply(perturbedAttrs$attractors,function(attractor2)
+						  {
+							  identical(attractor1,attractor2)
+						  }))
+					  if (length(index) == 0)
+						  NA
+					  else
+						  index
+				  })
+	      return(sum(!is.na(attractorIndices)))
+	    }))
+
+	  if (accumulate)
+	    # return overall percentage of found attractors
+    	return(sum(perturbationResults)/(length(origAttrs$attractors) * copies) * 100)
+    else
+      # return percentage of found attractors for each run
+      return(perturbationResults/(length(origAttrs$attractors)) * 100)
+  }
 }
 
 # Calculate the in-degrees of states in the network.
@@ -136,21 +169,25 @@ kullbackLeiblerDistance <- function(x,y,bins=list(),minVal=0.00001)
 # If <accumulation> is "kullback_leibler", a histogram of the Kullback-Leibler distances of the test value distribution for the original network
 # and the random networks is plotted.
 # <sign.level> is the desired significance level for <network> in comparison to the random networks.
-# <functionGeneration>,<simplify>,<noIrrelevantGenes>,<d_lattice>,<zeroBias> are the corresponding parameters of generateRandomNKNetwork().
+# <functionGeneration>,<simplify>,<noIrrelevantGenes>,<validationFunction>,<failureInterations,
+# <d_lattice>,<zeroBias> are the corresponding parameters of generateRandomNKNetwork().
 # <title> is the title of the plot, <xlab> is its x axis caption, <breaks> is the corresponding histogram parameter, and ... supplies further
 # graphical parameters
 testNetworkProperties <- function(network, numRandomNets=100, testFunction="testIndegree",
-                                  testFunctionParams=list(),accumulation=c("characteristic","kullback_leibler"),
-                                  sign.level=0.05,drawSignificanceLevel=TRUE,
+                                  testFunctionParams=list(),
+                                  accumulation=c("characteristic","kullback_leibler"),
+                                  alternative=c("greater","less"),
+                                  sign.level=0.05, drawSignificanceLevel=TRUE,
                                   klBins,klMinVal=0.00001,
                                   linkage=c("uniform","lattice"),
                                   functionGeneration=c("uniform","biased"),
+                                  validationFunction, failureIterations=10000,
                                   simplify=FALSE, noIrrelevantGenes=TRUE,
                                   d_lattice=1, zeroBias=0.5, 
                                   title="", xlab, xlim, breaks=30, 
                                   ...)
 {
-  stopifnot(inherits(network,"BooleanNetwork"))
+  stopifnot(inherits(network,"BooleanNetwork") || inherits(network,"SymbolicBooleanNetwork"))
 
   if (is.character(testFunction))
     testFunctionName <- testFunction
@@ -163,13 +200,24 @@ testNetworkProperties <- function(network, numRandomNets=100, testFunction="test
   origResult <- testFunction(network,accumulate,testFunctionParams)
 
   numGenes <- length(network$interactions)
-  inputGenes <- sapply(network$interactions,function(interaction)length(interaction$input))
+  
+  if (inherits(network,"SymbolicBooleanNetwork"))
+    inputGenes <- sapply(network$interactions,function(interaction)length(getInputs(interaction)))
+  else
+    inputGenes <- sapply(network$interactions,function(interaction)length(interaction$input))
+  
+  if (missing(validationFunction))
+    validationFunction <- NULL
       
   randomResults <- lapply(seq_len(numRandomNets),function(i)
                    {      
-                      randomNet <- generateRandomNKNetwork(n=numGenes,k=inputGenes,topology="fixed",
+                      randomNet <- generateRandomNKNetwork(n=numGenes,
+                                                           k=inputGenes,
+                                                           topology="fixed",
                                                            linkage=linkage,
                                                            functionGeneration=functionGeneration,
+                                                           validationFunction=validationFunction,
+                                                           failureIterations=failureIterations,
                                                            simplify=simplify,
                                                            noIrrelevantGenes=noIrrelevantGenes,
                                                            d_lattice=d_lattice,
@@ -189,23 +237,31 @@ testNetworkProperties <- function(network, numRandomNets=100, testFunction="test
                   {                    
                     xlab <- switch(testFunctionName,
                       testIndegree = "Gini index of state in-degrees",
-                      testAttractorRobustness = "% of original attractors found in perturbed networks",
+                      testAttractorRobustness = "% of identical attractors",
+                      testTransitionRobustness = "Normalized Hamming distance",
                       "accumulated results"
                     )
                   }
                   if (missing(xlim))
                   {                    
-                    xlim <- switch(testFunctionName,
-                      testIndegree = c(0,1),
-                      testAttractorRobustness = c(0,100),
-                      c(min(c(origResult,randomResults)),
-                            max(c(origResult,randomResults)))
-                    )
+                    #xlim <- switch(testFunctionName,
+                    #  testIndegree = c(0,1),
+                    #  testAttractorRobustness = c(0,100),
+                    #  c(min(c(origResult,randomResults)),
+                    #        max(c(origResult,randomResults)))
+                    #)
+                    xlim <- range(c(origResult, randomResults))
                   }
                   
-                  # calculate p-value
-                  pval <- sum(randomResults < origResult) / length(randomResults)  
+                  alternative <- match.arg(alternative, c("greater","less"))
                   
+                  # calculate p-value
+                  
+                  if (alternative == "greater")
+                    pval <- sum(randomResults < origResult) / length(randomResults)
+                  else                    
+                    pval <- sum(randomResults > origResult) / length(randomResults)
+                    
                   # plot histogram
                   if (testFunctionName == "testIndegree" | testFunctionName == "testAttractorRobustness")
                   {
@@ -219,19 +275,36 @@ testNetworkProperties <- function(network, numRandomNets=100, testFunction="test
                   }
                             
                   # plot result for original network          
-                  abline(v=origResult,col="red")                  
-                  text(x=origResult,pos=2,y=max(r$counts)*0.75,
-                       labels=paste("> ",round(pval * 100),"%\nof random results",sep=""), 
-                       col="red",cex=0.75)
+                  abline(v=origResult,col="red")
+                  
+                  if (alternative == "greater")
+                    text(x=origResult,pos=2,y=max(r$counts)*0.75,
+                         labels=paste("> ",round(pval * 100),"%\nof random results",sep=""), 
+                         col="red",cex=0.75)
+                  else
+                    text(x=origResult,pos=4,y=max(r$counts)*0.75,
+                         labels=paste("< ",round(pval * 100),"%\nof random results",sep=""), 
+                         col="red",cex=0.75)
                        
                   if (drawSignificanceLevel)
                   # plot line for significance level
                   {
-                    quant <- quantile(randomResults,1.0-sign.level)
-                    abline(v=quant,col="blue")
-                    text(x=quant,pos=2,y=max(r$counts)*0.85,
-                       labels=paste((1.0-sign.level) * 100,"% quantile",sep=""), 
-                       col="blue",cex=0.75)
+                    if (alternative == "greater")
+                    {
+                      quant <- quantile(randomResults,1.0-sign.level)
+                      abline(v=quant,col="blue")
+                      text(x=quant,pos=2,y=max(r$counts)*0.85,
+                         labels=paste((1.0-sign.level) * 100,"% quantile",sep=""), 
+                         col="blue",cex=0.75)                    
+                    }
+                    else
+                    {
+                      quant <- quantile(randomResults,sign.level)
+                      abline(v=quant,col="blue")
+                      text(x=quant,pos=4,y=max(r$counts)*0.85,
+                         labels=paste(sign.level * 100,"% quantile",sep=""), 
+                         col="blue",cex=0.75)
+                    }
                   }
                   list(hist=r,pval=1.0-pval,significant=(1.0-pval<=sign.level))
                 },

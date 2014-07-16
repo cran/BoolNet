@@ -3,7 +3,7 @@
 # All probabilities below <cutoff> are regarded as zero. 
 markovSimulation <- function(network, numIterations=1000, startStates=list(), cutoff=0.001, returnTable=TRUE)
 {
-  stopifnot(inherits(network,"ProbabilisticBooleanNetwork") | inherits(network,"BooleanNetworkCollection")
+  stopifnot(inherits(network,"ProbabilisticBooleanNetwork") 
             | inherits(network,"BooleanNetwork"))
 
   if (sum(network$fixed == -1) > 32)

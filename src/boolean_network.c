@@ -1,7 +1,7 @@
 /**
  * C code to identify attractors in Boolean networks
  *
- * This is part of the BooleanNetwork R package.
+ * This is part of the BoolNet R package.
  *
  * Copyright 2009/2010 by Christoph Müssel and Zhou Dao
  *
@@ -670,7 +670,6 @@ unsigned long long stateTransition_singleInt(unsigned long long currentState, Bo
 unsigned long long * getTransitionTable(BooleanNetwork * net)
 {
 	unsigned long long i = 0;
-	unsigned int j;
 
 	// determine number of fixed genes
 	int numFixed = 0;
@@ -681,7 +680,7 @@ unsigned long long * getTransitionTable(BooleanNetwork * net)
 	int numNonFixed = net->numGenes - numFixed;
 
 	// allocate truth table with 2^(non-fixed genes) elements
-	unsigned long long numberOfElements = pow(2,numNonFixed);
+	unsigned long long numberOfElements = (unsigned long long)1 << numNonFixed;//pow(2,numNonFixed);
 	unsigned long long * table = CALLOC(numberOfElements,sizeof(unsigned long long));
 	if (table == 0)
 	{
@@ -706,7 +705,7 @@ unsigned long long * getTransitionTable(BooleanNetwork * net)
  * 
  * Returns a list of attractors - the last element of this list is empty!
  */
-pAttractorInfo getAttractors(unsigned long long * table, unsigned int numberOfStates, unsigned int numberOfGenes)
+pAttractorInfo getAttractors(unsigned long long * table, unsigned long long numberOfStates, unsigned int numberOfGenes)
 {
 	unsigned long long i;
 	unsigned int current_attractor = 0, elementsPerEntry;
@@ -1543,7 +1542,7 @@ SEXP getAttractors_R(SEXP inputGenes,
 			return R_NilValue;
     }
 
-		unsigned long long numStates = pow(2,numNonFixed);
+		unsigned long long numStates = (unsigned long long)1 << numNonFixed;//pow(2,numNonFixed);
 		// find attractors
 		res = getAttractors(table, numStates, network.numGenes);
 	}

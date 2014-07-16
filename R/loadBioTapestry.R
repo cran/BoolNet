@@ -51,7 +51,8 @@ parseGeneAttrs <- function(rootNode)
               logic <- unname(xmlAttrs(logic)["type"])
             }
             
-            list(id=unname(attrs["id"]),name=name,logic=logic,initVal=initVal,inputs=NULL)
+            list(id=unname(attrs["id"]),
+                 name=adjustGeneNames(name),logic=logic,initVal=initVal,inputs=NULL)
         })     
 }
 
@@ -90,7 +91,7 @@ parseAllLinks <- function(rootNode,geneList)
 
 # Load a BioTapestry file (*.btp) from <file>
 # and convert it to a Boolean network
-loadBioTapestry <- function(file)
+loadBioTapestry <- function(file, symbolic=FALSE)
 {
     if (!require(XML))
         stop("Please install the XML package before using this function!")  
@@ -117,7 +118,7 @@ loadBioTapestry <- function(file)
     
     geneIds <- names(geneList)
     
-    fixed <- rep(-1,length(genes))
+    fixed <- rep(-1L,length(genes))
     
     i <- 0
     interactions <- lapply(geneList,function(gene)
@@ -152,58 +153,61 @@ loadBioTapestry <- function(file)
                 # determine signs/negations of genes
                 inputSigns <- sapply(gene$input,function(inp)inp$sign)  
         
-                tt <- as.matrix(allcombn(2,length(input)) - 1)
-                            
-                func <- as.integer(switch(gene$logic,
-                    AND = {
-                            # calculate truth table for AND
-                            apply(tt,1,function(assignment)
-                            {
-                                res <- 1
-                                for (i in seq_along(assignment))
-                                {
-                                    if (inputSigns[i] == "+")
-                                    res <- res & assignment[i]
-                                    else
-                                    res <- res & !assignment[i]
-                                    if (!res)
-                                    break
-                                }
-                                res
-                            })
-                        },
-                    OR = {
-                            # calculate truth table for OR
-                            apply(tt,1,function(assignment)
-                            {
-                                res <- 0
-                                for (i in seq_along(assignment))
-                                {
-                                    if (inputSigns[i] == "+")
-                                    res <- res | assignment[i]
-                                    else
-                                    res <- res | !assignment[i]
-                                    if (res)
-                                    break
-                                }
-                                res
-                            })
-                        },
-                    XOR = {
-                            # calculate truth table for XOR
-                            apply(tt,1,function(assignment)
-                            {
-                                res <- assignment[1]
-                                for (i in 2:length(assignment))
-                                {
-                                    res <- xor(res,assignment[i])
-                                }
-                                res
-                            })
-                        },
-                    stop(paste("Unknown Boolean operator \"",gene$logic,"\"!",sep=""))                            
-                ))
-                
+                if (!symbolic || gene$logic == "XOR")
+                {
+                  tt <- as.matrix(allcombn(2,length(input)) - 1)
+                              
+                  func <- as.integer(switch(gene$logic,
+                      AND = {
+                              # calculate truth table for AND
+                              apply(tt,1,function(assignment)
+                              {
+                                  res <- 1
+                                  for (i in seq_along(assignment))
+                                  {
+                                      if (inputSigns[i] == "+")
+                                      res <- res & assignment[i]
+                                      else
+                                      res <- res & !assignment[i]
+                                      if (!res)
+                                      break
+                                  }
+                                  res
+                              })
+                          },
+                      OR = {
+                              # calculate truth table for OR
+                              apply(tt,1,function(assignment)
+                              {
+                                  res <- 0
+                                  for (i in seq_along(assignment))
+                                  {
+                                      if (inputSigns[i] == "+")
+                                      res <- res | assignment[i]
+                                      else
+                                      res <- res | !assignment[i]
+                                      if (res)
+                                      break
+                                  }
+                                  res
+                              })
+                          },
+                      XOR = {
+                              # calculate truth table for XOR
+                              apply(tt,1,function(assignment)
+                              {
+                                  res <- assignment[1]
+                                  for (i in 2:length(assignment))
+                                  {
+                                      res <- xor(res,assignment[i])
+                                  }
+                                  res
+                              })
+                          },
+                      stop(paste("Unknown Boolean operator \"",
+                                gene$logic,"\"!",sep=""))
+                  ))
+                }                
                 # get string representation of the input gene literals
                 literals <- mapply(function(gene,sign)
                                     {
@@ -226,13 +230,26 @@ loadBioTapestry <- function(file)
                           }      
                         )
             }
-            return(list(input=input,func=func,expression=expr))
+            
+            if (symbolic)
+              return(parseBooleanFunction(expr,varNames=genes))
+            else
+              return(list(input=input,func=func,expression=expr))
         })
         
     names(interactions) <- genes
+    fixed <- as.integer(fixed)
     names(fixed) <- genes
         
     net <- list(genes=genes,interactions=interactions,fixed=fixed)
-    class(net) <- "BooleanNetwork"
+    
+    if (symbolic)
+    {
+      net$timeDelays <- apply(sapply(net$interactions,maxTimeDelay,genes=net$genes),1,max)
+      net$internalStructs <- .Call("constructNetworkTrees",net)
+      class(net) <- "SymbolicBooleanNetwork"
+    }
+    else    
+      class(net) <- "BooleanNetwork"
     return(net)
 }

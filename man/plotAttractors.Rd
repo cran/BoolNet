@@ -20,11 +20,12 @@ plotAttractors(attractorInfo,
                layout = layout.circle, 
                drawLabels = TRUE,
                drawLegend = TRUE,
+               ask = TRUE,
                ...) 
 }
 \arguments{
   \item{attractorInfo}{
-	An object of class \code{AttractorInfo}, as returned by \code{\link{getAttractors}}
+	An object of class \code{AttractorInfo}, as returned by \code{\link{getAttractors}}, or an object of class \code{SymbolicSimulation}, as returned by \code{\link{simulateSymbolicModel}}.
 }
   \item{subset}{An subset of attractors to be plotted. This is a vector of attractor indices in \code{attractorInfo}.}
   
@@ -58,14 +59,19 @@ plotAttractors(attractorInfo,
   \item{drawLegend}{Specifies whether a color key for the ON/OFF states is drawn if \code{mode="table"}. Defaults to \code{TRUE}.
 } 
  
+   \item{ask}{
+If set to true, the plot function will prompt for a user input for each new plot that is shown on an interactive device (see \code{link{par("ask")}}). 
+}
+
     \item{\dots}{
 Further graphical parameters to be passed to \code{\link[igraph:plot.graph]{plot.igraph}} if \code{mode="graph"}.
 }
+
 }
 \details{
 This function comprises two different types of plots: 
 
-The "table" mode visualizes the gene values of the states in the attractor and is only suited for synchronous or steady-state attractors. Complex asynchronous attractors are omitted in this mode. Attractors in \code{attractorInfo} are first grouped by length. Then, a figure is plotted to the currently selected device for each attractor length (i.e. one plot with all attractors consisting of 1 state, one plot with all attractors consisting of 2 states, etc.). This means that on the standard X11 output device, only the last plot is displayed unless you set \code{par(mfrow=c(...))} accordingly.
+The "table" mode visualizes the gene values of the states in the attractor and is only suited for synchronous or steady-state attractors. Complex asynchronous attractors are omitted in this mode. Attractors in \code{attractorInfo} are first grouped by length. Then, a figure is plotted to the currently selected device for each attractor length (i.e. one plot with all attractors consisting of 1 state, one plot with all attractors consisting of 2 states, etc.). If \code{ask=TRUE} and the standard X11 output device is used, the user must confirm that the next plot for the next attractor size should be shown.
 The figure is a table with the genes in the rows and the states of the attractors in the columns. Cells of the table are (by default) red for 0/OFF values and green for 1/ON values. If \code{grouping} is set, the genes are rearranged according to the indices in the group, horizontal separation lines are plotted between the groups, and the group names are printed.
 
 The "graph" mode visualizes the transitions between different states. It creates a graph in which the vertices are the states in the attractor and the edges are state transitions among these states. This mode can visualize all kinds of attractors, including complex/loose attractors. One plot is drawn for each attractor. As before, this means that on the standard output device, only the last plot is displayed unless you set \code{par(mfrow=c(...))} accordingly.
@@ -77,7 +83,7 @@ If \code{mode="table"}, a list of matrices corresponding to the tables is return
 If \code{mode="graph"}, a list of objects of class \code{igraph} is returned. Each of these objects describes the graph for one attractor.
 }
 \seealso{
-\code{\link{getAttractors}}, \code{\link{attractorsToLaTeX}}, \code{\link{plotSequence}}, \code{\link{sequenceToLaTeX}}
+\code{\link{getAttractors}}, \code{\link{simulateSymbolicModel}}, \code{\link{attractorsToLaTeX}}, \code{\link{plotSequence}}, \code{\link{sequenceToLaTeX}}
 }
 \examples{
 # load example data
@@ -108,7 +114,7 @@ par(mfrow=c(1, length(attractors$attractors)))
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{LaTeX
+\keyword{
 	Boolean network
 	attractor
 	cycle

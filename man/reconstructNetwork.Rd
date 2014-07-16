@@ -10,8 +10,12 @@ Reconstructs a Boolean network from a set of time series or from a transition ta
 reconstructNetwork(measurements, 
                    method = c("bestfit", "reveal"), 
                    maxK = 5, 
-                   readableFunctions = FALSE,
-                   allSolutions = FALSE)
+                   requiredDependencies = NULL, 
+                   excludedDependencies = NULL, 
+                   perturbations=NULL,
+                   readableFunctions=FALSE, 
+                   allSolutions=FALSE, 
+                   returnPBN=FALSE)
 }
 \arguments{
   \item{measurements}{
@@ -23,6 +27,14 @@ reconstructNetwork(measurements,
   \item{maxK}{
 	The maximum number of input genes for one gene to be tested. Defaults to 5.
 }
+
+  \item{requiredDependencies}{An optional specification of known dependencies that must be included in reconstructed networks. This is a named list containing a vector of gene names (regulators) for each target.}
+  
+  \item{excludedDependencies}{Analogous to \code{requiredDependencies}, this is an optional specification of dependencies that must not be included in reconstructed networks. This is a named list containing a vector of gene names (prohibited regulators) for each target.}
+    
+  \item{perturbations}{If \code{measurements} contains data obtained from perturbation experiments (i.e. different targeted knock-outs and overexpressions), this optional parameter is a matrix with one column for each entry in \code{measurements} and a row for each gene. A matrix entry is 0 for a knock-out of the corresponding gene in the corresponding time series, 1 for overexpression, and NA or -1 for no perturbation. If \code{measurements} has an element \code{perturbations} and this argument is not specified, the element of \code{measurements} is taken. 
+}  
+  
   \item{readableFunctions}{
 	If this is true, readable DNF representations of the truth tables of the functions are generated. These DNF are displayed when the network is printed. The DNF representations are not minimized and can thus be very long. If set to FALSE, the truth table result column is displayed.
 }
@@ -30,13 +42,18 @@ reconstructNetwork(measurements,
   \item{allSolutions}{
   If this is true, all solutions with the minimum error and up to \code{maxK} inputs are returned. By default, \code{allSolutions=FALSE}, which means that only the solutions with both minimum error and minimum \code{k} are returned.
   }
+  
+  \item{returnPBN}{Specifies the way unknown values in the truth tables of the transition functions ("don't care" values) are processed. If \code{returnPBN=TRUE}, all possible functions are enumerated recursively, and an object of class \code{ProbabilisticBooleanNetwork} is returned. This can consume a high amount of memory and computation time. If \code{returnPBN=FALSE}, the transition functions may contain "don't care" (*) values, and an object of class \code{BooleanNetworkCollection} is returned. \code{returnPBN=TRUE} corresponds to the behaviour prior to version 2.0. The default value is \code{returnPBN=FALSE}.
+  }
+
 }
+
 \details{
-	Both algorithms iterate over all possible input combinations. While Best-Fit Extension is capable of returning functions that do not perfectly explain the measurements (for example, if there are inconsistent measurements or if \code{maxK} was specified too small), REVEAL only finds functions that explain all measurements. For more information, please refer to the cited publications.
+Both algorithms iterate over all possible input combinations. While Best-Fit Extension is capable of returning functions that do not perfectly explain the measurements (for example, if there are inconsistent measurements or if \code{maxK} was specified too small), REVEAL only finds functions that explain all measurements. For more information, please refer to the cited publications.
 }
 \value{
-Returns an object of class \code{ProbabilisticBooleanNetwork}, with each alternative function of a gene having the same probability. The structure is described in detail in \code{\link{loadNetwork}}. In addition to the standard components, each alternative transition function has a component \code{error} which stores the error of the function on the input time series data.
-If a non-probabilistic network of class \code{BooleanNetwork} is required, a specific Boolean network can be extracted using \code{\link{chooseNetwork}}.
+If \code{returnPBN=TRUE}, the function returns an object of class \code{ProbabilisticBooleanNetwork}, with each alternative function of a gene having the same probability. The structure is described in detail in \code{\link{loadNetwork}}. In addition to the standard components, each alternative transition function has a component \code{error} which stores the error of the function on the input time series data.
+If \code{returnPBN=FALSE}, the function returns an object of class \code{BooleanNetworkCollection} that has essentially the same structure as \code{ProbabilisticBooleanNetwork}, but does not store probabilities and keeps "don't care" values in the functions. Due to the "don't care" (*) values, this collection cannot be simulated directly. However, a specific Boolean network of class \code{BooleanNetwork} can be extracted from both \code{BooleanNetworkCollection} and \code{ProbabilisticBooleanNetwork} structures using \code{\link{chooseNetwork}}.
 
 }
 \references{
@@ -50,7 +67,7 @@ S. Liang, S. Fuhrman and R. Somogyi (1998), REVEAL, a general reverse engineerin
 
 
 \seealso{
-\code{\link{binarizeTimeSeries}}, \code{\link{chooseNetwork}}
+\code{\link{generateTimeSeries}}, \code{\link{binarizeTimeSeries}}, \code{\link{chooseNetwork}}
 }
 \examples{
 # load example data
@@ -60,7 +77,7 @@ data(yeastTimeSeries)
 bin <- binarizeTimeSeries(yeastTimeSeries)
 
 # reconstruct networks from transition table
-net <- reconstructNetwork(bin$binarizedMeasurements, method="bestfit", maxK=3)
+net <- reconstructNetwork(bin$binarizedMeasurements, method="bestfit", maxK=3, returnPBN=TRUE)
 
 # print reconstructed net
 print(net)

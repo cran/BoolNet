@@ -5,7 +5,7 @@
 plotNetworkWiring <- function(network,layout=layout.fruchterman.reingold,plotIt=TRUE,...)
 {
   stopifnot(inherits(network,"ProbabilisticBooleanNetwork") | inherits(network,"BooleanNetworkCollection")
-            | inherits(network,"BooleanNetwork"))
+            | inherits(network,"BooleanNetwork") | inherits(network,"SymbolicBooleanNetwork"))
   
   if (!require(igraph))
     stop("Please install the igraph package before using this function!")
@@ -33,6 +33,18 @@ plotNetworkWiring <- function(network,layout=layout.fruchterman.reingold,plotIt=
       }
     }
   }
+  else
+  if (inherits(network,"SymbolicBooleanNetwork"))
+  # symbolic network
+  {
+    inputs <- lapply(network$interactions, getInputs, index=TRUE)
+    for (i in seq_along(network$genes))
+    {
+      edgeList <- rbind(edgeList,
+                  cbind(inputs[[i]],
+                  rep(i,length(inputs[[i]]))))
+    }
+  }  
   else
   # probabilistic network
   {

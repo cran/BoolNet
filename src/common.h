@@ -2,6 +2,8 @@
 #define COMMON_H
 
 #include <R.h>
+#include <Rinternals.h>
+#include <stdbool.h>
 #include "uthash.h"
 
 /**
@@ -12,16 +14,16 @@
 #define BITS_PER_BLOCK_32 (sizeof(unsigned int) * 8)
 
 // Retrieve the <i>-th bit in <x>
-#define GET_BIT(x,i) (((x) & ((unsigned int)1 << (i))) != 0)
+#define GET_BIT(x,i) (((x) & ((unsigned long long)1 << (i))) != 0)
 
 // Set the <i>-th bit in <x> to 1
-#define SET_BIT(x,i) ((x) | ((unsigned int)1 << (i)))
+#define SET_BIT(x,i) ((x) | ((unsigned long long)1 << (i)))
 
 // Set the <i>-th bit in <x> to 0
-#define CLEAR_BIT(x,i) ((x) & (~((unsigned int)1 << (i))))
+#define CLEAR_BIT(x,i) ((x) & (~((unsigned long long)1 << (i))))
 
 // Set the <i>-th bit in <x> to <v>
-#define SET_BIT_TO_VAL(x,i,v) (((x) & (~((unsigned int)1 << (i)))) | ((v) << (i)))
+#define SET_BIT_TO_VAL(x,i,v) (((x) & (~((unsigned long long)1 << (i)))) | ((v) << (i)))
 
 typedef struct
 {
@@ -40,10 +42,14 @@ extern AllocatedMemory * memoryMap;
  * Custom function to allocate memory that stores
  * the pointers in the global map.
  */
-static inline void* CALLOC(unsigned int n, unsigned int sz) 
+static inline void* CALLOC(size_t n, size_t sz) 
 {
   void * ptr = calloc(n, sz); 
-  AllocatedMemory * m = calloc(1, sizeof(AllocatedMemory)); 
+  
+  if (ptr == NULL)
+    error("Out of memory!");
+    
+  AllocatedMemory * m = calloc(1, sizeof(AllocatedMemory));  
   m->ptr = ptr; 
   HASH_ADD_PTR(memoryMap, ptr, m);
   return ptr;
@@ -60,6 +66,44 @@ static inline void FREE(void * ptr)
   HASH_DEL(memoryMap, m); 
   free(m); 
   free(ptr);
+}
+
+/**
+ * Add one to a binary number represented by an array of characters
+ * with 0/1 elements. 
+ * <fixed> is a vector of fixed positions that are not touched or NULL.
+ * Return true if there is a next state, or false in case of an overflow.
+ */
+static inline bool getNextState(unsigned char * state, int * fixed, unsigned int numBits)
+{
+  if (numBits == 0)
+    return false;
+    
+  int i = numBits - 1;
+  
+  while(true)
+  {
+    while (fixed != NULL && fixed[i] != -1)
+    {     
+      --i;
+    }
+    if (i < 0)
+      return false;
+      
+    if (state[i] == 0)
+    {
+      state[i] = 1;
+      return true;
+    }
+    else
+    {
+      if (i == 0)
+        return false;
+        
+      state[i] = 0;
+      --i;
+    }
+  }
 }
 
 /**
@@ -142,4 +186,7 @@ extern void insertFixedGenes(unsigned int * value, int* fixedGenes, unsigned int
  * The function changes the state pointed to by <value> and has no return value.
  */
 extern void removeFixedGenes(unsigned int * value, int* fixedGenes, unsigned int numGenes);
+
+extern SEXP getListElement(SEXP list, char *str);
+
 #endif
