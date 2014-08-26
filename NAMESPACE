@@ -1,5 +1,7 @@
 useDynLib(BoolNet)
 
+import(igraph, XML)
+
 S3method(print, AttractorInfo)
 S3method(print, SymbolicSimulation)
 S3method(print, BooleanNetwork)

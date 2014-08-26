@@ -106,9 +106,6 @@ plotSequence <- function(network, startState,
   
   graph = 
   {
-    if (!require(igraph))
-      stop("Please install the igraph package before using the \"graph\" mode of this function!")
-   
     if (installed.packages()["igraph","Version"] < package_version("0.6"))
       bias <- 1
     else

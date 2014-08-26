@@ -126,7 +126,6 @@ testAttractorRobustness <- function(network, accumulate=TRUE, params=list())
 # using the Gini coefficient
 testIndegree <- function(network,accumulate=TRUE,params)
 {
-  require(igraph)
   attr <- getAttractors(network)
   graph <- plotStateGraph(attr,plotIt=FALSE)
   

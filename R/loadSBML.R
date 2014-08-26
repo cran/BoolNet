@@ -56,15 +56,16 @@ parseSBMLSpecies <- function(rootNode)
     if (!is.na(attrs["constant"]) && tolower(attrs["constant"]) == "true")
     # if the gene is constant, save its initial level in the "fixed" vector
     {
-      if (is.na(attrs["initialLevel"]))
-        stop(paste("Gene \"", name, "\" is constant, but no initial level is supplied!", sep=""))
+      #if (is.na(attrs["initialLevel"]))
+        #stop(paste("Gene \"", name, "\" is constant, but no initial level is supplied!", sep=""))
+      #  warning(paste("Gene \"", name, "\" is constant, but no initial level is supplied! Assuming an input!", sep=""))
       
       fixed[name] <- TRUE 
     }
     else
     # this gene is not constant
       fixed[name] <- FALSE
-      
+          
     initialLevels[name] <- as.integer(attrs["initialLevel"])
   }
   return(list(genes = genes, fixed = fixed, initialLevels = initialLevels))
@@ -173,13 +174,13 @@ parseSBMLTransitions <- function(rootNode, genes, symbolic)
     if (length(linkedTransitions) == 0)
     # no transitions are assigned to this gene
     {
-      if (!genes$fixed[genes$gene[gene]])
+      if (!genes$fixed[genes$gene[gene]] || is.na(genes$initialLevels[genes$gene[gene]]))
       {
         if (is.na(genes$initialLevels[genes$gene[gene]]))
         {
-          # a non-constant gene should have a transition or an initial level
-          warning(paste("There is no transition and no initial level for the non-constant gene \"",
-                     gene,"\"! Assuming an input!",sep=""))
+          # Assume an input if the gene has no transition function and no initial value
+          warning(paste("There is no transition and no initial level for gene \"",
+                     gene,"\"! Assuming an input!",sep=""), call.=FALSE)
                      
         if (symbolic)
           return(parseBooleanFunction(genes$gene[gene]))
@@ -189,9 +190,10 @@ parseSBMLTransitions <- function(rootNode, genes, symbolic)
                       expression=genes$gene[gene]))
         }
         else
+        if (!genes$fixed[genes$gene[gene]])
           warning(paste("There is no transition for the non-constant gene \"",
                      gene,"\"! Setting it to a constant ", 
-                     genes$initialLevels[genes$gene[gene]], "!" ,sep=""))
+                     genes$initialLevels[genes$gene[gene]], "!" ,sep=""), call.=FALSE)
       }
       
       # build a constant interaction
@@ -541,9 +543,6 @@ parseMathML <- function(rootNode, genes, inputThresholds)
 # Import the sbml-qual document <file>
 loadSBML <- function(file, symbolic=FALSE)
 {
-  if (!require(XML))
-        stop("Please install the XML package before using this function!")  
-  
   # load XML document  
   doc <- xmlRoot(xmlParse(file))
   

@@ -1,6 +1,17 @@
 \name{NEWS}
 \title{NEWS file for the \pkg{BoolNet} package}
 
+\section{Changes in version 2.0.1}{
+
+\subsection{Modified functions}{
+\itemize{
+\item{Fixed memory misalignment in \code{simulateSymbolicModel()}.}
+
+\item{\code{loadSBML()} now accepts nodes that are constant, but have no initial value.}
+}
+}
+}
+
 \section{Changes in version 2.0}{
 
 \subsection{New functions}{

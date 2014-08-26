@@ -13,9 +13,6 @@ plotPBNTransitions <- function(markovSimulation,stateSubset,
 {
   stopifnot(inherits(markovSimulation,"MarkovSimulation"))
 
-  if (!require(igraph))
-    stop("Please install the igraph package before using this function!")
-
   if (is.null(markovSimulation$table))
     stop(paste("The supplied simulation result does not contain transition information.",
                "Please re-run markovSimulation() with returnTable=TRUE!"))

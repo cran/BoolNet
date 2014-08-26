@@ -3,7 +3,7 @@
  *
  * This is part of the BoolNet R package.
  *
- * Copyright 2013 by Christoph Müssel
+ * Copyright 2013 by Christoph Muessel
  *
  * Contact christoph.muessel@uni-ulm.de
  *
@@ -138,6 +138,7 @@ typedef struct
   
   StateHash * table;
   unsigned int stateSize;
+  unsigned int internalStateSize;
   unsigned int hashSize;  
   
   unsigned int currentEntryHash;
@@ -152,6 +153,7 @@ typedef struct
   
   AttractorHash * table;
   unsigned int stateSize;
+  unsigned int internalStateSize;
   
   unsigned int currentEntryHash;
   unsigned int poolArraySize;
@@ -177,6 +179,14 @@ StateHashTable * allocStateHashTable(unsigned int stateSize)
   res->stateStructs = NULL;
   
   res->stateSize = stateSize;
+  
+  // ensure proper alignment of states in array
+  if (stateSize % sizeof(unsigned long long) == 0)
+    res->internalStateSize = stateSize;
+  else
+    res->internalStateSize = ((stateSize / sizeof(unsigned long long)) * 
+                              sizeof(unsigned long long) + sizeof(unsigned long long));
+  
   res->hashSize = offsetof(TemporalState, state) +
                   stateSize * sizeof(unsigned char);
   
@@ -194,6 +204,13 @@ AttractorHashTable * allocAttractorHashTable(unsigned int stateSize)
   res->stateStructs = NULL;
   
   res->stateSize = stateSize;
+  
+  // ensure proper alignment of states in array
+  if (stateSize % sizeof(unsigned long long) == 0)
+    res->internalStateSize = stateSize;
+  else
+    res->internalStateSize = ((stateSize / sizeof(unsigned long long)) * 
+                              sizeof(unsigned long long) + sizeof(unsigned long long));
   
   res->table = NULL;
   res->currentEntryHash = 0;
@@ -362,14 +379,14 @@ bool findOrStore(StateHashTable * hash, StateHash ** initialState, TemporalState
   if (hash->currentEntryHash % hash->poolArraySize == 0)
   {
 	    allocNewArray(&hash->hashStructs, hash->poolArraySize, 
-	                  sizeof(StateHash) * hash->stateSize);
+	                  sizeof(StateHash));
       allocNewArray(&hash->stateStructs, hash->poolArraySize, 
-	                  sizeof(TemporalState) + sizeof(unsigned char) * hash->stateSize);  
+	                  sizeof(TemporalState) + sizeof(unsigned char) * hash->internalStateSize);  
   }
   res = (StateHash *) (((unsigned char * )hash->hashStructs->array) + sizeof(StateHash)
                                                   * (hash->currentEntryHash % hash->poolArraySize));
   res->initialState = (TemporalState *) (((unsigned char * )hash->stateStructs->array) + (sizeof(TemporalState) +
-                                   sizeof(unsigned char) * hash->stateSize) 
+                                   sizeof(unsigned char) * hash->internalStateSize) 
                                                   * (hash->currentEntryHash % hash->poolArraySize));
   
   memcpy(res->initialState, nextState, sizeof(TemporalState) +  sizeof(unsigned char) * hash->stateSize);
@@ -403,16 +420,16 @@ AttractorHash * addAttractorHashEntry(AttractorHashTable * hash, TemporalState *
   if (hash->currentEntryHash % hash->poolArraySize == 0)
   {
 	    allocNewArray(&hash->hashStructs, hash->poolArraySize, 
-	                  sizeof(AttractorHash) * hash->stateSize);
+	                  sizeof(AttractorHash));
       allocNewArray(&hash->stateStructs, hash->poolArraySize, 
-	                  sizeof(TemporalState) + sizeof(unsigned char) * hash->stateSize);  	                  
+	                  sizeof(TemporalState) + sizeof(unsigned char) * hash->internalStateSize);  	                  
   }
   AttractorHash * res = (AttractorHash *) (((unsigned char * )hash->hashStructs->array) + 
                                             sizeof(AttractorHash) 
                                                   * (hash->currentEntryHash % hash->poolArraySize));
   
   res->state = (TemporalState *) (((unsigned char * )hash->stateStructs->array) + (sizeof(TemporalState) +
-                                   sizeof(unsigned char) * hash->stateSize) 
+                                   sizeof(unsigned char) * hash->internalStateSize) 
                                                   * (hash->currentEntryHash % hash->poolArraySize));
   
   memcpy(res->state, state, sizeof(TemporalState) +  sizeof(unsigned char) * hash->stateSize);

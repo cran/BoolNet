@@ -93,9 +93,6 @@ parseAllLinks <- function(rootNode,geneList)
 # and convert it to a Boolean network
 loadBioTapestry <- function(file, symbolic=FALSE)
 {
-    if (!require(XML))
-        stop("Please install the XML package before using this function!")  
-    
     doc <- xmlRoot(xmlTreeParse(file))
     
     # detect the "genome" XML node which holds the nodes and links of the network

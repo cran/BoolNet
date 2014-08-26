@@ -7,9 +7,6 @@ plotNetworkWiring <- function(network,layout=layout.fruchterman.reingold,plotIt=
   stopifnot(inherits(network,"ProbabilisticBooleanNetwork") | inherits(network,"BooleanNetworkCollection")
             | inherits(network,"BooleanNetwork") | inherits(network,"SymbolicBooleanNetwork"))
   
-  if (!require(igraph))
-    stop("Please install the igraph package before using this function!")
-  
   if (installed.packages()["igraph","Version"] < package_version("0.6"))
     bias <- 1
   else

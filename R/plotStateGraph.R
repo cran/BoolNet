@@ -25,9 +25,6 @@ plotStateGraph <- function(stateGraph,highlightAttractors=TRUE,colorBasins=TRUE,
     stateGraph <- args$attractorInfo
   }
 
-  if (!require(igraph))
-    stop("Please install the igraph package before using this function!")
-
   if (installed.packages()["igraph","Version"] < package_version("0.6"))
     bias <- 1
   else

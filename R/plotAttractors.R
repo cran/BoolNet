@@ -157,10 +157,7 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
   },
   
   graph = 
-  {
-    if (!require(igraph))
-      stop("Please install the igraph package before using the \"graph\" mode of this function!")
-    
+  {   
      args <- list(...)
       
     if (is.null(args$vertex.size))
