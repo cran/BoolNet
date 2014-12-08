@@ -544,12 +544,15 @@ SEXP markovSimulation_R(SEXP inputGenes,
 	// decode start states (remove fixed genes)
 	unsigned int numStartStates;
 
+	unsigned int *  decodedStartStates = NULL;
+
 	if (isNull(startStates))
 		numStartStates = 0;
 	else
+	{
 		numStartStates = length(startStates)/startStateElements;
-
-	unsigned int decodedStartStates[numStartStates];
+  	decodedStartStates =  (unsigned int*)CALLOC(numStartStates, sizeof(unsigned int));
+  }
 
 	for (i = 0; i < numStartStates; ++i)
 	{
@@ -675,6 +678,8 @@ SEXP markovSimulation_R(SEXP inputGenes,
 
 	freeMatrix(matrix);
 	FREE(outcome);
+	if (decodedStartStates != NULL)
+	  FREE(decodedStartStates);
 
 	return resSXP;
 }

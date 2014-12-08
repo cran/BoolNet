@@ -76,7 +76,7 @@ data(yeastTimeSeries)
 # perform binarization with k-means
 bin <- binarizeTimeSeries(yeastTimeSeries)
 
-# reconstruct networks from transition table
+# reconstruct networks from binarized measurements
 net <- reconstructNetwork(bin$binarizedMeasurements, method="bestfit", maxK=3, returnPBN=TRUE)
 
 # print reconstructed net

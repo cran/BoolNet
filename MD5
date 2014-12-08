@@ -1,4 +1,4 @@
-bd547ca6d79370a8ea3c77b876319d90 *DESCRIPTION
+46fcb6b730737f53beef978272355ca2 *DESCRIPTION
 2ac8698b8109b3fa4e41d7336d15ffff *NAMESPACE
 4d120d4e043d27196e4def717d0a9167 *R/attractorsToLaTeX.R
 0e037f01fa88a832cb43d3a9d5e9f5dd *R/binarizeTimeSeries.R
@@ -56,13 +56,13 @@ bcc8e5efc6d7859ebb74a9ec935bccb1 *R/symbolicToTruthTable.R
 d58578f1cc7da58378f1617a6d8bb021 *data/igf.rda
 8919de127f7ee2391900468a36c5dcd4 *data/yeastTimeSeries.rda
 62409980eecaca8e52f1d495f499d6bd *inst/CITATION
-f40e99908372998ba08a747e827d83bf *inst/NEWS.Rd
+412221b44fd806ef8e832f9b117fdce7 *inst/NEWS.Rd
 cda72cec7898c9ad77c0cce064efb747 *inst/doc/BoolNet_package_vignette.R
 49c259005afa7cf046ffb9c9e763fc83 *inst/doc/BoolNet_package_vignette.Snw
-ab02ae582727c0f2ce23647c82cf4735 *inst/doc/BoolNet_package_vignette.pdf
+6e1d2f1ce9e46713f057f35c984238aa *inst/doc/BoolNet_package_vignette.pdf
 fcb0ddc4a26eb5062f05b55032e5b151 *inst/doc/cellcycle.txt
 27bccf40991bbe762bc274cbd7874f40 *inst/doc/example.btp
-64157206bf2b17b56cf1b1521fb5d3b3 *man/BoolNet-package.Rd
+ea0d28ada8a638c8143423f8aa0dcea9 *man/BoolNet-package.Rd
 8643de64a151c82b1b3c178d689aec0c *man/attractorsToLaTeX.Rd
 3461bfd43dd57a88d01d83df611f95c0 *man/binarizeTimeSeries.Rd
 3623b2fe85476af5336cf7e220c1d60e *man/cellcycle.Rd
@@ -98,7 +98,7 @@ b480ee06d8d8c2ade8ad0b5c89a13a7e *man/print.MarkovSimulation.Rd
 d03ef8645e4d3ad814798e882167aa8d *man/print.ProbabilisticBooleanNetwork.Rd
 0b0de959a1efcef7fb7cbee820e80353 *man/print.SymbolicSimulation.Rd
 d6e7961146750c9b36106a8d280a1c09 *man/print.TransitionTable.Rd
-41d44e143d021de61795a67ef6599ed4 *man/reconstructNetwork.Rd
+7a162f0ea5bac4672f926d81b43424b0 *man/reconstructNetwork.Rd
 a00de398f679b032e7455478b427b4b5 *man/saveNetwork.Rd
 fb3ed745ed8c9ff4dfe397d016bef439 *man/sequenceToLaTeX.Rd
 5944620706adac67972e04b0eea2627f *man/simplifyNetwork.Rd
@@ -113,7 +113,7 @@ a43aad3b0dd5fff7a95a9075bdfdaa2e *man/truthTableToSymbolic.Rd
 a51a8c64ec6b1663297b76263d42dc09 *src/boolean_network.c
 0545b3b0cbcacb0031fc0908ee97225a *src/common.c
 58ea72840dd9c7591e37c90e1666a487 *src/common.h
-8b8f36f3817e3b52ffc0025ccafa22da *src/probabilistic_boolean_network.c
+270a204670d5fcb351fed50214d1e9a5 *src/probabilistic_boolean_network.c
 686e443cfcfa3f597ea866bc25c356e7 *src/random.h
 58be262aa256be87d8d8cf3cf63abfb3 *src/reconstruct_network.c
 f15b38ef61b81e1653d9265ff6676a93 *src/symbolic_simulator.c

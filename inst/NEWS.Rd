@@ -1,6 +1,15 @@
 \name{NEWS}
 \title{NEWS file for the \pkg{BoolNet} package}
 
+\section{Changes in version 2.0.2}{
+
+\subsection{Modified functions}{
+\itemize{
+\item{Fixed undefined behaviour in \code{markovSimulation()}.}
+}
+}
+}
+
 \section{Changes in version 2.0.1}{
 
 \subsection{Modified functions}{
