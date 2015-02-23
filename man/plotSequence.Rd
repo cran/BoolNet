@@ -20,6 +20,7 @@ plotSequence(network,
              drawLabels=TRUE, 
              drawLegend=TRUE, 
              highlightAttractor=TRUE,
+             reverse = FALSE,             
              ...)
 }
 
@@ -70,8 +71,12 @@ plotSequence(network,
   \item{drawLegend}{Specifies whether a color key for the ON/OFF states is drawn if \code{mode="table"}. Defaults to \code{TRUE}.
 }
 
- \item{highlightAttractor}{
+  \item{highlightAttractor}{
 If set to true, the attractor states are highlighted in the plot. If \code{mode="table"}, a line is drawn at the begin of the attractor, and the states are labeled correspondingly. If \code{mode="graph"}, the attractor transitions are drawn as bold lines. Information on the attractor must be supplied in the attribute \code{attractor} of the sequence, which is a vector of indices of the states that belong to the attractor. This attribute is usually present if the sequence was obtained using \code{\link{getPathToAttractor}}.
+}
+
+  \item{reverse}{
+Specifies the order of the genes in the plot. By default, the first gene is placed in the first row of the plot. If \code{reverse=TRUE} (which was the default until \pkg{BoolNet} version 2.0.2), the first gene in the network is placed in the bottom row of the plot. 
 }
 
     \item{\dots}{
@@ -113,8 +118,8 @@ sequence <- getPathToAttractor(cellcycle,
                                includeAttractorStates="all")
 
 # plot sequence as a graph
-\donttest{plotSequence(sequence=sequence, 
-                       mode="graph")}
+plotSequence(sequence=sequence, 
+             mode="graph")
 }
 \keyword{Boolean network
          state

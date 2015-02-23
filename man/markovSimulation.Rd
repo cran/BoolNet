@@ -66,7 +66,7 @@ sim <- markovSimulation(examplePBN)
 print(sim)
 
 # plot the transitions and their probabilities
-\donttest{plotPBNTransitions(sim)}
+plotPBNTransitions(sim)
 }
 \keyword{probabilistic Boolean network
          PBN

@@ -583,7 +583,7 @@ loadSBML <- function(file, symbolic=FALSE)
     names(fixed) <- genes$genes
     
     res <- list(genes = genes$genes, interactions=interactions, fixed=fixed)
-    res$internalStructs <- .Call("constructNetworkTrees",res)
+    res$internalStructs <- .Call("constructNetworkTrees_R",res)
     res$timeDelays <- delays
     
     class(res) <- "SymbolicBooleanNetwork"

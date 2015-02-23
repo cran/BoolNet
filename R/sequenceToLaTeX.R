@@ -1,7 +1,8 @@
 
 sequenceToLaTeX <- function(network, startState, includeAttractorStates = c("all","first","none"),
                             sequence, title="", grouping = list(), plotFixed = TRUE,
-                            onColor="[gray]{0.9}",offColor="[gray]{0.6}", highlightAttractor=TRUE, 
+                            onColor="[gray]{0.9}",offColor="[gray]{0.6}", highlightAttractor=TRUE,
+                            reverse=FALSE, 
                             file="sequence.tex")
 {
   if (!missing(network))
@@ -83,7 +84,12 @@ sequenceToLaTeX <- function(network, startState, includeAttractorStates = c("all
      cat("\n")  
 
   # output active and inactive states
-  for(j in seq_len(nrow(totalMatrix)))
+  if (reverse)
+    indices <- rev(seq_len(nrow(totalMatrix)))
+  else
+    indices <- seq_len(nrow(totalMatrix))
+  
+  for(j in indices)
   {
     separator <- which(separationPositions==j)
     if (length(separator) != 0)

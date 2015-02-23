@@ -10,6 +10,7 @@
  */
 #include "uthash.h"
 #include "common.h"
+#include "boolean_network.h"
 
 #include <R.h>
 #include <Rinternals.h>
@@ -21,47 +22,7 @@
 
 #define MATRIX_POOL_SIZE 1024
 
-typedef struct
-{
-	int * inputGenes;
-	int * transitionFunction;
 
-	unsigned int numGenes;
-
-	double probability;
-
-	unsigned int functionIndex;
-} PBNFunction;
-
-/**
- * Internal structure describing a Boolean network
- */
-typedef struct
-{
-	// the number of genes in the network
-	unsigned int numGenes;
-
-	// the number of non-fixed genes in the network
-	unsigned int numNonFixedGenes;
-
-	// a vector specifying whether the genes are fixed:
-	// -1 means the gene is not fixed, 1 and 0 means the
-	// genes are fixed to the corresponding values
-	int * fixedGenes;
-
-	// an index array with the <i>-th entry
-	// specifying the bit position of the <i>-th gene
-	// in a state array - this is not always equal to <i>,
-	// as fixed genes are not stored
-	unsigned int * nonFixedGeneBits;
-
-	// an array containing an array of transition functions for each gene
-	PBNFunction ** transitionFunctions;
-
-	// the lengths of the arrays in <transitionFunctions>
-	unsigned int * numFunctionsPerGene;
-
-} ProbabilisticBooleanNetwork;
 
 /**
  * An entry in the state probability matrix
@@ -441,6 +402,7 @@ SEXP markovSimulation_R(SEXP inputGenes,
 					 SEXP returnTable)
 {
 	ProbabilisticBooleanNetwork network;
+	network.type = PROBABILISTIC_BOOLEAN_NETWORK;
 
 	int * _inputGenes = INTEGER(inputGenes);
 

@@ -15,7 +15,8 @@ attractorsToLaTeX(attractorInfo,
                   grouping = list(), 
                   plotFixed = TRUE,
                   onColor = "[gray]{0.9}",
-                  offColor = "[gray]{0.6}", 
+                  offColor = "[gray]{0.6}",
+                  reverse = FALSE, 
                   file = "attractors.tex")
 }
 \arguments{
@@ -43,6 +44,11 @@ attractorsToLaTeX(attractorInfo,
   \item{offColor}{
 	An optional color value for the 0/OFF values in the table. Defaults to light grey.	
 }
+
+  \item{reverse}{
+Specifies the order of the genes in the plot. By default, the first gene is placed in the first row of the table. If \code{reverse=TRUE}, the first gene in the network is placed in the bottom row of the table. 
+}
+
   \item{file}{
 	The file to which the LaTeX document is written. Defaults to "attractors.tex".
 }

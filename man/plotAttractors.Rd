@@ -21,6 +21,7 @@ plotAttractors(attractorInfo,
                drawLabels = TRUE,
                drawLegend = TRUE,
                ask = TRUE,
+               reverse = FALSE,
                ...) 
 }
 \arguments{
@@ -61,6 +62,9 @@ plotAttractors(attractorInfo,
  
    \item{ask}{
 If set to true, the plot function will prompt for a user input for each new plot that is shown on an interactive device (see \code{link{par("ask")}}). 
+}
+  \item{reverse}{
+Specifies the order of the genes in the plot. By default, the first gene is placed in the first row of the plot. If \code{reverse=TRUE} (which was the default until \pkg{BoolNet} version 2.0.2), the first gene in the network is placed in the bottom row of the plot. 
 }
 
     \item{\dots}{
@@ -103,14 +107,14 @@ plotAttractors(attractors)
 
 # plot attractors in "graph" mode
 par(mfrow=c(1, length(attractors$attractors)))
-\donttest{plotAttractors(attractors, mode="graph")}
+plotAttractors(attractors, mode="graph")
 
 # identify asynchronous attractors
 attractors <- getAttractors(cellcycle, type="asynchronous")
 
 # plot attractors in "graph" mode
 par(mfrow=c(1, length(attractors$attractors)))
-\donttest{plotAttractors(attractors, mode="graph")}
+plotAttractors(attractors, mode="graph")
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

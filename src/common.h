@@ -10,6 +10,10 @@
  * Common structures and definitions
  */
 
+/**
+ * Macros for bit manipulation
+ */
+
 // the number of bits that can be stored in one component of a 32-bit state array
 #define BITS_PER_BLOCK_32 (sizeof(unsigned int) * 8)
 
@@ -25,6 +29,31 @@
 // Set the <i>-th bit in <x> to <v>
 #define SET_BIT_TO_VAL(x,i,v) (((x) & (~((unsigned long long)1 << (i)))) | ((v) << (i)))
 
+// Retrieve the <i>-th bit in an array of 32-bit integers <x>
+#define GET_BIT_ARRAY(x,i) (((*(&(x) + i / BITS_PER_BLOCK_32)) & ((unsigned int)1 << (i % BITS_PER_BLOCK_32))) != 0)
+
+// Set the <i>-th bit in an array of 32-bit integers <x> to 1
+#define SET_BIT_ARRAY(x,i) (*(&(x) + i / BITS_PER_BLOCK_32) |= ((unsigned int)1 << (i % BITS_PER_BLOCK_32)))
+
+// Set the <i>-th bit in an array of 32-bit integers <x> to 0
+#define CLEAR_BIT_ARRAY(x,i) (*(&(x) + i / BITS_PER_BLOCK_32) &= (~((unsigned int)1 << (i % BITS_PER_BLOCK_32))))
+
+/**
+ * Macros for the management of vector-like buffers with automatic resizing
+ */
+
+// Allocate a buffer <buf> of type <type>[] and set the capacity counter <sz> and the number of elements <count>
+#define ALLOC_BUFFER(buf, type, sz, count) do{sz = 4; count = 0; buf = calloc(sz, sizeof(type)); } while(0);
+
+// Add a new element <el> of type <type> to the buffer <buf>, and update the capacity counter <sz> and the number of elements <count>
+#define PUT_BUFFER(buf, type, sz, count, el) do{if (sz == count) {sz *= 2; buf = realloc(buf, sz * sizeof(type));} buf[count++] = (type) el; } while(0);
+
+// Set the capacity <sz> of the buffer <buf> of type <type>[] to the current number of elements <count>
+#define FINALIZE_BUFFER(buf, type, sz, count) do{sz = count; buf = realloc(buf, sz * sizeof(type)); } while(0);
+
+/**
+ * A hash structure for the allocated memory map
+ */
 typedef struct
 {
   // a pointer to the allocated memory
@@ -53,6 +82,27 @@ static inline void* CALLOC(size_t n, size_t sz)
   m->ptr = ptr; 
   HASH_ADD_PTR(memoryMap, ptr, m);
   return ptr;
+}
+
+static inline void* REALLOC(void* ptr, size_t new_sz) 
+{
+  if (ptr == NULL)
+    return CALLOC(new_sz, 1);
+    
+  void * newptr = realloc(ptr, new_sz); 
+  
+  if (newptr == NULL)
+    error("Out of memory!");
+  
+  if (newptr != ptr)
+  { 
+    AllocatedMemory * m;
+    HASH_FIND_PTR(memoryMap, &ptr, m); 
+    HASH_DEL(memoryMap, m); 
+    m->ptr = newptr; 
+    HASH_ADD_PTR(memoryMap, ptr, m);
+  }
+  return newptr;
 }
 
 /**

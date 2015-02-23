@@ -1,18 +1,21 @@
 # Identify attractors in a Boolean network.
 # <network> is a BooleanNetwork/SymbolicBooleanNetwork structure specifying the network.
 # <method> specifies what kind of search is conducted: "exhaustive" performs a full search over all states,
-# "random" generates <startStates> random initial states, and "chosen" uses the states supplied in <startStates>.
+# "random" generates <startStates> random initial states, and "chosen" uses the states supplied in <startStates>. 
+# "sat.exhaustive" and "sat.restricted" start a SAT-based attractor search.
 # <genesON> and <genesOFF> are lists of genes to be set to ON/1 or OFF/0 respectively.
 # If <canonical> is true, states in the attractors are reordered such that the "smallest" state is the first
 # <randomChainLength> is the number of random transitions performed for the identification of an asynchronous attractor
 # If <avoidSelfLoops> is true, loops to the same state are eliminated from asynchronous attractors.
 # <geneProbabilities> optionally specifies the probabilities of choosing a gene for an asynchronous update.
+# <maxAttractorLength> specifies the maximum attractor length for method="sat.restricted" and the initial search length for method="sat.exhaustive".
 # if <returnTable> is true, the transition table is included in the result.
 getAttractors <- function (network, type=c("synchronous","asynchronous"), 
-         method=c("exhaustive","random","chosen"), startStates=list(),
+         method=c("exhaustive","sat.exhaustive","sat.restricted","random","chosen"), startStates=list(),
          genesON = c(), genesOFF = c(), canonical=TRUE,
          randomChainLength = 10000, avoidSelfLoops = TRUE, 
          geneProbabilities = NULL, 
+		 maxAttractorLength=Inf, 
          returnTable=TRUE) 
 {
   stopifnot(inherits(network,"BooleanNetwork") || inherits(network,"SymbolicBooleanNetwork"))
@@ -41,7 +44,10 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
     
   }
   
-  if (length(method) == 3)
+  if (!is.null(maxAttractorLength) && is.infinite(maxAttractorLength))
+    maxAttractorLength <- NULL
+  
+  if (length(method) > 1)
   # if no method is supplied, infer method from the type of <startStates>
   {
     if (type == "asynchronous" & length(startStates) == 0)
@@ -59,16 +65,14 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
     }
     else
     if (is.list(startStates) & (length(startStates) > 0))
-      method = "chosen"
+      method <- "chosen"
     else
-      method = "exhaustive"
+    if (!is.null(maxAttractorLength))
+      method <- "sat.restricted"
+    else
+      method <- "exhaustive"
   }
-
-      
-  if ((length(network$genes) > 64) & (match.arg(method) == "exhaustive") & (type == "synchronous"))
-    stop(paste("An exhaustive attractor search is not supported for networks with more than 64 genes!",
-          "Please use a heuristic method or provide start states!"))
-  
+ 
   # fix genes according to genesON and genesOFF
   if (length(genesON) > 0) 
   {
@@ -84,15 +88,32 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
     return(simulateSymbolicModel(network, 
                                  method=method, 
                                  startStates=startStates,
-                                 returnGraph=returnTable,
+                                 maxAttractorLength=maxAttractorLength,
+                                 returnGraph=returnTable && !(match.arg(method) %in% c("sat.exhaustive", "sat.restricted")),
                                  returnSequences=FALSE,
                                  returnAttractors=TRUE,
                                  canonical=canonical))
   }
   else
   {
-    startStates <- switch(match.arg(method,c("exhaustive","random","chosen")),
+    method <- match.arg(method,c("exhaustive","sat.exhaustive","sat.restricted","random","chosen"))
+
+	if (method == "sat.restricted" && is.null(maxAttractorLength))
+		stop("maxAttractorLength must be set for method=\"sat.restricted\"!")
+	
+    if ((length(network$genes) > 29) && (method == "exhaustive") && (type == "synchronous"))
+    {
+      method <- "sat.exhaustive"
+      warning("An exhaustive state space search is restricted to networks with at most 29 genes. Switching to the SAT-based exhaustive search, which supports more genes, but does not return a transition table!")
+    }
+    else
+    if (method %in% c("sat.exhaustive", "sat.restricted") && type != "synchronous")
+      stop("SAT-based search can only be used for synchronous networks!")
+    
+    startStates <- switch(method,
       exhaustive = list(),
+      sat.exhaustive = list(),
+	  sat.restricted = list(),
       random = {
           if (!is.numeric(startStates))
             stop("Please supply the number of random states in startStates!")
@@ -113,11 +134,9 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
               startStates = 2 ^ length(nonFixedPositions)            
             }     
           }
-          if (startStates <= (2 ^ length(nonFixedPositions)))
           # generate random matrix
-          {
-            generateRandomStartStates(network, startStates)
-          }
+          generateRandomStartStates(network, startStates)
+
          },
       chosen = {
           if (!is.list(startStates) | length(startStates) == 0)
@@ -141,6 +160,12 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
          }
     )
     
+    if (!is.null(maxAttractorLength))
+    {
+      if (!(method %in% c("sat.exhaustive", "sat.restricted")))
+        stop("maxAttractorLength can only be used with method=\"sat.exhaustive\" or method=\"sat-res.ricted\"!")
+      maxAttractorLength <- as.integer(maxAttractorLength)
+    }
     specialInitialization <- NULL
     
     convertedStartStates <- NULL
@@ -159,8 +184,8 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
     transitionFunctionPositions <- as.integer(cumsum(c(0,sapply(network$interactions,
                 function(interaction)length(interaction$func)))))
 
-    networkType <- switch(type,
-      synchronous = 0,
+   searchType <- switch(type,
+      synchronous = if (method == "sat.exhaustive") 2 else if (method == "sat.restricted") 3 else 0,
       asynchronous = 1)
     
     on.exit(.C("freeAllMemory", PACKAGE = "BoolNet"))
@@ -169,11 +194,12 @@ getAttractors <- function (network, type=c("synchronous","asynchronous"),
           transitionFunctions,transitionFunctionPositions,
           as.integer(network$fixed),
           as.integer(convertedStartStates),
-          as.integer(networkType),
+          as.integer(searchType),
           as.double(geneProbabilities),
           as.integer(randomChainLength),
           as.integer(avoidSelfLoops),
           as.integer(returnTable),
+          maxAttractorLength,
           PACKAGE="BoolNet")
     
     if (is.null(result))

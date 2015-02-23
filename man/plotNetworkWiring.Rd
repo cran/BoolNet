@@ -40,7 +40,7 @@ Further graphical parameters to be passed to \code{\link[igraph:plot.graph]{plot
 data(cellcycle)
 
 # plot wiring graph
-\donttest{plotNetworkWiring(cellcycle)}
+plotNetworkWiring(cellcycle)
 }
 \keyword{wiring graph
         plot

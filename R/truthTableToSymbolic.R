@@ -27,7 +27,7 @@ truthTableToSymbolic <- function(network, generateDNFs=FALSE)
               }))
 
   names(res$fixed) <- res$genes
-  res$internalStructs <- .Call("constructNetworkTrees",res)
+  res$internalStructs <- .Call("constructNetworkTrees_R",res)
   res$timeDelays <- apply(sapply(res$interactions,maxTimeDelay,genes=res$genes),1,max)
               
   class(res) <- "SymbolicBooleanNetwork"

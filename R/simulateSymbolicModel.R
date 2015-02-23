@@ -1,18 +1,27 @@
-simulateSymbolicModel <- function(network, startStates=NULL, 
-                          method=c("exhaustive","random","chosen"), 
-                          returnSequences=TRUE, returnGraph=TRUE,                         
-                          returnAttractors=TRUE,
-                          maxTransitions=Inf,
-                          canonical=TRUE)
+simulateSymbolicModel <- function(network, 
+                          method=c("exhaustive","random","chosen","sat.exhaustive","sat.restricted"),
+						  startStates=NULL, 
+						  returnSequences=(!(match.arg(method) %in% c("sat.exhaustive", "sat.restricted"))),
+						  returnGraph=(!(match.arg(method) %in% c("sat.exhaustive", "sat.restricted"))),
+						  returnAttractors=TRUE,
+						  maxTransitions=Inf,
+						  maxAttractorLength=Inf,
+						  canonical=TRUE)
 {
   stopifnot(inherits(network,"SymbolicBooleanNetwork"))
   if (is.null(network$internalStructs) || checkNullPointer(network$internalStructs))
   # refresh internal tree representations if necessary
-    network$internalStructs = .Call("constructNetworkTrees",network);
+    network$internalStructs = .Call("constructNetworkTrees_R",network);
   
-  if (length(method) == 3)
+  if (!is.null(maxAttractorLength) && is.infinite(maxAttractorLength))
+    maxAttractorLength <- NULL
+  
+  if (length(method) > 1)
   # if no method is supplied, infer method from the type of <startStates>
   {
+    if (!is.null(maxAttractorLength))
+      method <- "sat.restricted"
+    else
     if (length(startStates) == 0)
     {
       method <- "exhaustive"
@@ -32,7 +41,7 @@ simulateSymbolicModel <- function(network, startStates=NULL,
       stop("Please supply either the number of start states or a list of start states in startStates!")
   }
   
-  method <- match.arg(method, c("exhaustive","random","chosen"))
+  method <- match.arg(method, c("exhaustive","random","chosen","sat.exhaustive","sat.restricted"))
   
   if (method == "random")
   {
@@ -44,7 +53,27 @@ simulateSymbolicModel <- function(network, startStates=NULL,
                             "number of states. Performing an exhaustive search!"))
      }                            
   }
-
+    
+  if (method %in% c("sat.exhaustive", "sat.restricted"))
+  {
+    if (!is.null(maxAttractorLength))
+      maxAttractorLength <- as.integer(maxAttractorLength)
+    else
+	if (method == "sat.restricted")
+		stop("maxAttractorLength must be set for method=\"sat.restricted\"!")
+  
+    if (returnSequences)
+    {
+      warning("Sequences cannot be returned for method=\"sat.exhaustive\" and method=\"sat.restricted\"!")
+      returnSequences <- FALSE
+    }
+    if (returnGraph)
+    {
+      warning("Graph cannot be returned for method=\"sat.exhaustive\" and method=\"sat.restricted\"!")
+      returnGraph <- FALSE
+    }
+  }
+  else
   if (method == "exhaustive")
   {
     startStates <- NULL
@@ -79,15 +108,19 @@ simulateSymbolicModel <- function(network, startStates=NULL,
   if (is.infinite(maxTransitions))
     maxTransitions <- 0
     
-  on.exit(.C("freeAllMemory", PACKAGE = "BoolNet"))  
-  res <- .Call("simulateStates",
-               network$internalStructs, 
-               convertedStates, 
-               #as.integer(length(startStates)), 
-               as.integer(maxTransitions),
-               as.logical(returnSequences),
-               as.logical(returnGraph),
-               as.logical(returnAttractors))
+  on.exit(.C("freeAllMemory", PACKAGE = "BoolNet"))
+  
+  if (method %in% c("sat.exhaustive","sat.restricted"))  
+    res <- .Call("symbolicSATSearch_R", network$internalStructs, maxAttractorLength, method == "sat.restricted")
+  else
+    res <- .Call("simulateStates_R",
+                 network$internalStructs, 
+                 convertedStates, 
+                 #as.integer(length(startStates)), 
+                 as.integer(maxTransitions),
+                 as.logical(returnSequences),
+                 as.logical(returnGraph),
+                 as.logical(returnAttractors))
  
   ret <- list()
   if (returnSequences)
@@ -125,21 +158,32 @@ simulateSymbolicModel <- function(network, startStates=NULL,
         for (i in seq_len(nrow(att)))
         # iterate over elements of encoded state
         {
+		  equal <- TRUE
           for (j in seq(ncol(att),by=-1,length.out=ncol(att)))
           {
             if (att[i,j] < smallestVal[j])
             # determine new minimum
             {
+			  equal <- FALSE				
               smallestVal <- att[i,]
               smallestIndex <- i
               break
             }
             else
-            {
-              if (att[i,j] > smallestVal[j])
-                break
-            }
+			if (att[i,j] > smallestVal[j])
+			{
+				equal <- FALSE        
+				break
+			}
           }
+		  if (equal && i != smallestIndex)
+		  {
+			  if (i - smallestIndex < (smallestIndex + nrow(att) - i) %% nrow(att))
+			  {
+				  smallestVal <- att[i,]
+				  smallestIndex <- i
+			  }
+		  }
         }
       }
       if (smallestIndex != 1)

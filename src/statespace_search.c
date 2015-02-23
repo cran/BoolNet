@@ -9,8 +9,6 @@
  *
  */
 
-#include <R.h>
-#include <Rinternals.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,123 +16,11 @@
 #include <math.h>
 #include "random.h"
 #include "common.h"
+#include "boolean_network.h"
+#include "statespace_search.h"
 #include <time.h>
 
-/**
- * Identification of attractors
- */
-
-#define SYNC_MODE 0
-#define ASYNC_MODE_RANDOM 1
 #define NODE_ARRAY_SIZE 1024
-
-/**
- * Internal structure describing a Boolean network
- */
-typedef struct
-{
-	// the number of genes in the network
-	unsigned int numGenes;
-
-	// a vector specifying whether the genes are fixed:
-	// -1 means the gene is not fixed, 1 and 0 means the
-	// genes are fixed to the corresponding values
-	int * fixedGenes;
-
-	// an index array with the <i>-th entry
-	// specifying the bit position of the <i>-th gene
-	// in a state array - this is not always equal to <i>,
-	// as fixed genes are not stored
-	unsigned int * nonFixedGeneBits;
-
-	// a vector encoding the input genes for all transition functions.
-	int * inputGenes;
-
-	// a vector of indices to split up <inputGenes> for the single
-	// gene transition functions.
-	int * inputGenePositions;
-
-	// a vector encoding the return values of all transition functions
-	int * transitionFunctions;
-
-	// a vector of indices to split up <transitionFunctions> for the single
-	// genes.
-	int * transitionFunctionPositions;
-
-} BooleanNetwork;
-
-
-typedef struct TTE
-{
-	unsigned int * initialState;
-	unsigned int * nextState;
-	struct TTE * next;
-} TransitionTableEntry;
-
-/**
- * Structure that internally describes an attractor
- */
-typedef struct Attractor
-{
-
-	// an array of states the attractor consists of
-	unsigned int *involvedStates;
-
-	// if this is a complex attractor,
-	// the transitions of the attractor are stored here
-	TransitionTableEntry * table;
-
-	// the number of elements in <table>
-	unsigned int transitionTableSize;
-
-	// the number of array elements for one entry of <involvedStates>
-	// - i.e. for more than 32 genes, <numElementsPerEntry> successive
-	// array elements form one entry.
-	unsigned int numElementsPerEntry;
-
-	// the number of states in <involvedStates>
-	int length;
-
-	// the number of states in the basin of attraction
-	unsigned int basinSize;
-
-	// list pointer to the next element
-	struct Attractor *next;
-} Attractor, *pAttractor;
-
-
-/**
- * A structure holding all information
- * retrieved by the algorithms in this file
- */
-typedef struct
-{
-	// the number of elements in the following three arrays
-	unsigned long long tableSize;
-
-	// the states before the transition - can be NULL
-	unsigned int *initialStates;
-
-
-	// the resulting states of the transition table
-	unsigned int *table;
-
-	// the number of array elements for one entry of the table
-	// - i.e. for more than 32 genes, <numElementsPerEntry> successive
-	// array elements in <table> and <originalStates> form one table entry.
-	unsigned int numElementsPerEntry;
-
-	// the attractors the corresponding states belong to
-	unsigned int *attractorAssignment;
-
-	// the number of transitions needed to go from the original state
-	// (before transition, not stored here as it is defined by the order)
-	// to the attractor
-	unsigned int *stepsToAttractor;
-
-	// the list of attractors
-	pAttractor attractorList;
-} AttractorInfo, *pAttractorInfo;
 
 /**
  * A structure saving search trees for states.
@@ -203,58 +89,7 @@ typedef struct
   ArrayListElement * successorArrays;  
 } StateTree;
 
-void stateTransition(unsigned int * currentState, unsigned int * nextState, BooleanNetwork * net);
-
-
-/**
- * Allocate a new AttractorInfo structure for <tableSize> states
- */
-pAttractorInfo allocAttractorInfo(unsigned long long tableSize, unsigned int numGenes)
-{
-	pAttractorInfo res = (pAttractorInfo)CALLOC(1,sizeof(AttractorInfo));
-	if ((numGenes % BITS_PER_BLOCK_32) == 0)
-		res->numElementsPerEntry = numGenes/BITS_PER_BLOCK_32;
-	else
-		res->numElementsPerEntry = numGenes/BITS_PER_BLOCK_32 + 1;
-	res->table = NULL;
-	res->tableSize = tableSize;
-	res->initialStates = NULL;
-	res->table = (unsigned int*) CALLOC(tableSize * res->numElementsPerEntry,sizeof(unsigned int));
-	res->attractorAssignment = (unsigned int*) CALLOC(tableSize,sizeof(unsigned int));
-	res->stepsToAttractor = (unsigned int*) CALLOC(tableSize,sizeof(unsigned int));
-	return res;
-}
-
-/**
- * Free a list of attractor structures
- */
-void freeAttractorList(pAttractor p)
-{
-	do
-	{
-		pAttractor next = p->next;
-		if (p->involvedStates != NULL)
-  		FREE(p->involvedStates);
-		FREE(p);
-		p = next;
-	}
-	while(p != NULL);
-}
-
-/**
- * Free an AttractorInfo structure including
- * all sub-elements and the attractor list
- */
-void freeAttractorInfo(pAttractorInfo p)
-{
-	if (p->initialStates != 0)
-		FREE(p->initialStates);
-	FREE(p->table);
-	FREE(p->attractorAssignment);
-	FREE(p->stepsToAttractor);
-	freeAttractorList(p->attractorList);
-	FREE(p);
-}
+void stateTransition(unsigned int * currentState, unsigned int * nextState, TruthTableBooleanNetwork * net);
 
 /**
  * Insert a new transition from <initialState> to <nextState> into <table>.
@@ -456,7 +291,7 @@ StateTreeNode * findNode(StateTree * tree, unsigned int * data, unsigned int num
  * <basinCounter> is a counter to be increased when a new state is identified
  */
 StateTreeNode * findSuccessor(StateTree * tree, StateTreeNode * current,
-							 unsigned int numElementsPerEntry, BooleanNetwork * net, unsigned int * basinCounter)
+							 unsigned int numElementsPerEntry, TruthTableBooleanNetwork * net, unsigned int * basinCounter)
 {
 	bool found;
 	if (current->type.sync.successor == 0)
@@ -536,7 +371,7 @@ void freeTreeNode(StateTreeNode * node, bool freeSuccessorArray)
  *
  * The return value is the next state, encoded in a single integer.
  */
-void stateTransition(unsigned int * currentState, unsigned int * nextState, BooleanNetwork * net)
+void stateTransition(unsigned int * currentState, unsigned int * nextState, TruthTableBooleanNetwork * net)
 {
 	unsigned int i = 0, k = 0, idx = 0;
 
@@ -584,7 +419,7 @@ void stateTransition(unsigned int * currentState, unsigned int * nextState, Bool
 
 			if(transition != -1)
 				// apply transition function
-				nextState[idx / BITS_PER_BLOCK_32] |= (transition << (idx % BITS_PER_BLOCK_32));
+				nextState[idx / BITS_PER_BLOCK_32] |= ((unsigned int)transition << (idx % BITS_PER_BLOCK_32));
 			else
 				// this is a dummy function for a constant gene
 				// => value does not change
@@ -610,7 +445,7 @@ void stateTransition(unsigned int * currentState, unsigned int * nextState, Bool
  *
  * The return value is the next state, encoded in a single integer.
  */
-unsigned long long stateTransition_singleInt(unsigned long long currentState, BooleanNetwork * net)
+unsigned long long stateTransition_singleInt(unsigned long long currentState, TruthTableBooleanNetwork * net)
 {
 	unsigned int i = 0, k = 0, idx = 0;
 
@@ -667,7 +502,7 @@ unsigned long long stateTransition_singleInt(unsigned long long currentState, Bo
  * <transitionFunctions> provides the truth tables for all transition functions and can be split up
  * for a single function according to <transitionFunctionPositions>.
  */
-unsigned long long * getTransitionTable(BooleanNetwork * net)
+unsigned long long * getTransitionTable(TruthTableBooleanNetwork * net)
 {
 	unsigned long long i = 0;
 
@@ -801,6 +636,7 @@ pAttractorInfo getAttractors(unsigned long long * table, unsigned long long numb
 				while(tmp != begin); /* set steps of attractors to 0; add attractor stub information */
 
 				//generate a next attractor space
+
 				attractorList->next = (pAttractor)CALLOC(1,sizeof(Attractor));
 				attractorList = attractorList->next;
 				attractorList->next = NULL;
@@ -833,6 +669,7 @@ pAttractorInfo getAttractors(unsigned long long * table, unsigned long long numb
 	}
 
 	result->attractorList = attractorHead;
+	result->numAttractors = current_attractor - 1;
 
 	FREE(table);
 
@@ -846,7 +683,7 @@ pAttractorInfo getAttractors(unsigned long long * table, unsigned long long numb
  * <net> describes the network structure.
  */
 pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned int numberOfStates,
-									  BooleanNetwork * net)
+									  TruthTableBooleanNetwork * net)
 {
   unsigned long long i;
 	unsigned int current_attractor = 0, elementsPerEntry;
@@ -978,6 +815,7 @@ pAttractorInfo getAttractorsForStates(unsigned int * selectedStates, unsigned in
 	pAttractorInfo result = allocAttractorInfo(stateTree->nodeCount,net->numGenes);
 	result->attractorList = attractorHead;
 	result->initialStates = CALLOC(result->tableSize * elementsPerEntry,sizeof(unsigned int));
+	result->numAttractors = current_attractor - 1;
 
 	unsigned int nodeNo = 0;
 
@@ -1041,7 +879,7 @@ static inline void deleteStateStackElement(StateStackElement ** stack)
  * <net> holds the network information.
  * The result is returned in <currentState>.
  */
-static inline void applySingleFunction(unsigned int * currentState, unsigned int geneIdx, BooleanNetwork * net)
+static inline void applySingleFunction(unsigned int * currentState, unsigned int geneIdx, TruthTableBooleanNetwork * net)
 {
 	unsigned int k = 0;
 
@@ -1094,7 +932,7 @@ static inline void applySingleFunction(unsigned int * currentState, unsigned int
  * to be chosen for a transition. Otherwise, each gene has equal probability.
  */
 static inline void asynchronousStateTransition(unsigned int * currentState, double * probabilities,
-										BooleanNetwork * net)
+										TruthTableBooleanNetwork * net)
 {
 	unsigned int i;
 
@@ -1135,7 +973,7 @@ static inline void asynchronousStateTransition(unsigned int * currentState, doub
  * Returns the resulting state tree (set)..
  */
 StateTree * buildAsynchronousStateSet(unsigned int * startState, unsigned int numElements,
-									   bool avoidSelfLoops, BooleanNetwork * net)
+									   bool avoidSelfLoops, TruthTableBooleanNetwork * net)
 {
   StateTree * res = allocStateTree(numElements, NODE_ARRAY_SIZE);
 	StateStackElement * stack = NULL;
@@ -1318,7 +1156,7 @@ void getLooseAttractorTransitionTable(StateTreeNode * root,
  * <net> holds the network information.
  */
 bool validateAttractor(unsigned int * attractor, unsigned int attractorLength,
-					   bool avoidSelfLoops,BooleanNetwork * net)
+					   bool avoidSelfLoops,TruthTableBooleanNetwork * net)
 {
 	unsigned int numElts, i;
 	if (net->numGenes % BITS_PER_BLOCK_32 == 0)
@@ -1359,7 +1197,7 @@ bool validateAttractor(unsigned int * attractor, unsigned int attractorLength,
  * for a transition.
  */
 pAttractorInfo getLooseAttractors(unsigned int * selectedStates, unsigned int numberOfStates,
-					    BooleanNetwork * net, unsigned int randomSteps,
+					    TruthTableBooleanNetwork * net, unsigned int randomSteps,
 					    bool avoidSelfLoops, double * probabilities)
 {
 	// attractor list has empty dummy element at the end
@@ -1394,6 +1232,7 @@ pAttractorInfo getLooseAttractors(unsigned int * selectedStates, unsigned int nu
 		}
 		pProbabilities = convertedProbabilities;
 	}
+	unsigned int attractorCount = 0;
 
 	for (i = 0; i < numberOfStates; ++i)
 	// iterate over supplied start states
@@ -1447,6 +1286,7 @@ pAttractorInfo getLooseAttractors(unsigned int * selectedStates, unsigned int nu
 				// if this is a steady-state attractor, no need to store transition table!
 					getLooseAttractorTransitionTable(set->root,&attractor->table,numElts,&(attractor->transitionTableSize));
 
+				++attractorCount;
 				attractor->next = attractorList;
 				attractorList = attractor;
 			}
@@ -1454,296 +1294,7 @@ pAttractorInfo getLooseAttractors(unsigned int * selectedStates, unsigned int nu
 		freeStateTree(set);
 	}
 	pAttractorInfo res = allocAttractorInfo(0,net->numGenes);
+	res->numAttractors = attractorCount;
 	res->attractorList = attractorList;
 	return res;
-}
-
-/**
- * The R wrapper function for getAttractors.
- * Arguments:
- * inputGenes			An integer vector containing the concatenated input gene lists
- * 						of *all* transition functions
- * inputGenePositions	A vector of positions to split up <inputGenes> for each transition function
- * transitionFunctions	The concatenated truth table result columns of the transition functions of all genes.
- * transitionFunctionPositions	A vector of positions to split up <transitionFunctions> for each transition function.
- * fixedGenes			A vector that contains -1 for all genes that can be both ON and OFF, 1 for genes that are always ON,
- * 						and 0 for genes that are always OFF.
- * specialInitializations	A matrix of special initializations supplied by the user. The first row contains the genes,
- * 							the second row contains the corresponding initialization values.
- * startStates			An optional array of encoded states used to initialize the heuristics
- * 						(not needed for exhaustive search)
- * networkType			An integer that determines whether a synchronous or asynchronous search is performed
- * geneProbabilities	For asynchronous search, the probabilities of each gene to be chosen for update
- * randomSteps			For asynchronous search, the number of random transitions performed to reach a potential attractor
- * avoidSelfLoops		If set to true, self loops are only allowed if no other transitions are possible, which reduces the
- * 						number of edges in the attractors
- * returnTable			If set to true and networkType is synchronous, the transition table is included in the return value.
- */
-SEXP getAttractors_R(SEXP inputGenes,
-					 SEXP inputGenePositions,
-					 SEXP transitionFunctions,
-					 SEXP transitionFunctionPositions,
-					 SEXP fixedGenes,
-					 SEXP startStates,
-					 SEXP networkType,
-					 SEXP geneProbabilities,
-					 SEXP randomSteps,
-					 SEXP avoidSelfLoops,
-					 SEXP returnTable)
-{
-  GetRNGstate();
-
-	// decode information in SEXP for use in C
-
-	BooleanNetwork network;
-	network.numGenes = length(fixedGenes);
-
-	network.inputGenes = INTEGER(inputGenes);
-	network.inputGenePositions = INTEGER(inputGenePositions);
-	network.transitionFunctions = INTEGER(transitionFunctions);
-	network.transitionFunctionPositions = INTEGER(transitionFunctionPositions);
-	network.fixedGenes = INTEGER(fixedGenes);
-	network.nonFixedGeneBits = CALLOC(network.numGenes,sizeof(unsigned int));
-
-	int _networkType = *INTEGER(networkType);
-	int _randomSteps = *INTEGER(randomSteps);
-
-	bool _returnTable = (bool)(*INTEGER(returnTable));
-	bool _avoidSelfLoops = (bool)(*INTEGER(avoidSelfLoops));
-
-	double * _probabilities = NULL;
-	if (!isNull(geneProbabilities) && length(geneProbabilities) > 0)
-		_probabilities = REAL(geneProbabilities);
-
-	// count fixed genes, and create an index array for non-fixed genes:
-	// <network.nonFixedGeneBits[i]> contains the bit positions in a state
-	// at which the <i>-th gene is stored - this is different from <i>
-	// as fixed genes are not stored
-	unsigned int numNonFixed = 0, i;
-
-	for(i = 0; i < network.numGenes; i++)
-	{
-		if(network.fixedGenes[i] == -1)
-		{
-			network.nonFixedGeneBits[i] = numNonFixed++;
-		}
-	}
-	pAttractorInfo res;
-
-	if (isNull(startStates) || length(startStates) == 0)
-	// no start states supplied => perform exhaustive search
-	{
-		// calculate transition table
-		unsigned long long * table = getTransitionTable(&network);
-
-		if (table == 0)
-		{
-  		PutRNGstate();
-			return R_NilValue;
-    }
-
-		unsigned long long numStates = (unsigned long long)1 << numNonFixed;//pow(2,numNonFixed);
-		// find attractors
-		res = getAttractors(table, numStates, network.numGenes);
-	}
-	else
-	// start states supplied => only identify attractors for these states
-	{
-		unsigned int numElts;
-		if (network.numGenes % BITS_PER_BLOCK_32 == 0)
-			numElts = network.numGenes / BITS_PER_BLOCK_32;
-		else
-			numElts = network.numGenes / BITS_PER_BLOCK_32 + 1;
-
-		unsigned int* _startStates = (unsigned int*) INTEGER(startStates);
-	
-		if (_networkType == SYNC_MODE)
-		{
-		  for (unsigned int i = 0; i < length(startStates) / numElts; ++i)
-		  {
-		    removeFixedGenes(&_startStates[i*numElts],network.fixedGenes,network.numGenes);
-		  }
-			res = getAttractorsForStates(_startStates, length(startStates) / numElts,
-										&network);
-		}
-		else
-		{
-			res = getLooseAttractors(_startStates, length(startStates) / numElts,
-								     &network,_randomSteps,
-								     _avoidSelfLoops,_probabilities);
-		}
-	}
-
-	// pack results in SEXP structure for return value
-	SEXP resSXP;
-	SEXP stateInfoSXP;
-	int* array;
-
-	// create a result list with two elements (attractors and transition table)
-	PROTECT(resSXP = allocList(2));
-	SET_TAG(resSXP, install("stateInfo"));
-	SET_TAG(CDR(resSXP), install("attractors"));
-
-	if (res->tableSize != 0 && _returnTable)
-	{
-		// create a 3-element list for the transition table
-		PROTECT(stateInfoSXP = allocList(4));
-		SET_TAG(stateInfoSXP, install("table"));
-		SET_TAG(CDR(stateInfoSXP), install("attractorAssignment"));
-		SET_TAG(CDR(CDR(stateInfoSXP)), install("stepsToAttractor"));
-		SET_TAG(CDR(CDR(CDR(stateInfoSXP))), install("initialStates"));
-
-		// write transition table result column
-		SEXP tableSXP;
-		PROTECT(tableSXP = allocVector(INTSXP,res->tableSize * res->numElementsPerEntry));
-		array = INTEGER(tableSXP);
-		for (i = 0; i < res->tableSize; ++i)
-		{
-			// the transition table results do not contain fixed genes => insert them
-			insertFixedGenes(&res->table[i*res->numElementsPerEntry],network.fixedGenes,network.numGenes);
-			memcpy(&array[i*res->numElementsPerEntry],&res->table[i*res->numElementsPerEntry],
-					res->numElementsPerEntry * sizeof(unsigned int));
-		}
-		SETCAR(stateInfoSXP,tableSXP);
-		UNPROTECT(1);
-
-		// write attractor assignment vector for states in transition table
-		SEXP assignmentSXP;
-		PROTECT(assignmentSXP = allocVector(INTSXP,res->tableSize));
-		array = INTEGER(assignmentSXP);
-		memcpy(array,res->attractorAssignment,res->tableSize * sizeof(int));
-		SETCADR(stateInfoSXP,assignmentSXP);
-		UNPROTECT(1);
-
-		// write a vector with number of transitions from a state to an attractor
-		SEXP stepSXP;
-		PROTECT(stepSXP = allocVector(INTSXP,res->tableSize));
-		array = INTEGER(stepSXP);
-		memcpy(array,res->stepsToAttractor,res->tableSize * sizeof(int));
-		SETCADDR(stateInfoSXP,stepSXP);
-		UNPROTECT(1);
-
-		// if available, write the original states
-		SEXP initialStateSXP;
-		if (res->initialStates == 0)
-			initialStateSXP = R_NilValue;
-		else
-		// if start states are specified, the initial states for each transition have to be saved as well,
-		// as they cannot be inferred by enumeration
-		{
-			PROTECT(initialStateSXP = allocVector(INTSXP,res->tableSize * res->numElementsPerEntry));
-			array = INTEGER(initialStateSXP);
-			for (i = 0; i < res->tableSize; ++i)
-			{
-				// the transition table results do not contain fixed genes => insert them
-				insertFixedGenes(&res->initialStates[i*res->numElementsPerEntry],network.fixedGenes,network.numGenes);
-				memcpy(&array[i*res->numElementsPerEntry],
-						&res->initialStates[i*res->numElementsPerEntry],res->numElementsPerEntry * sizeof(unsigned int));
-			}
-			SETCADDDR(stateInfoSXP,initialStateSXP);
-			UNPROTECT(1);
-		}
-	}
-	else
-	{
-		stateInfoSXP = R_NilValue;
-	}
-
-	// assign to result list
-	SETCAR(resSXP,stateInfoSXP);
-
-	if (res->tableSize != 0 && _returnTable)
-		UNPROTECT(1);
-
-	// count attractors
-	unsigned int numAttractors = 0;
-	pAttractor el;
-
-	for(el = res->attractorList; el->next != NULL; el = el->next)
-		++numAttractors;
-
-	// write attractors
-	SEXP attractorsSXP;
-	PROTECT(attractorsSXP = allocList(numAttractors));
-	SEXP listPos = attractorsSXP;
-	for(el = res->attractorList, i=0; el->next != NULL; el = el->next, ++i)
-	{
-		SEXP attractorSXP;
-		// each attractor is a 2-element list with a list of states included
-		// in the attractor and the size of the basin
-		if (el->transitionTableSize == 0)
-			PROTECT(attractorSXP = allocList(2));
-		else
-			PROTECT(attractorSXP = allocList(4));
-		SET_TAG(attractorSXP, install("involvedStates"));
-		SET_TAG(CDR(attractorSXP), install("basinSize"));
-
-		if (el->transitionTableSize != 0)
-		{
-			SET_TAG(CDR(CDR(attractorSXP)), install("initialStates"));
-			SET_TAG(CDR(CDR(CDR(attractorSXP))), install("nextStates"));
-		}
-
-		SEXP stateSXP;
-		PROTECT(stateSXP = allocVector(INTSXP,el->length * el->numElementsPerEntry));
-		array = INTEGER(stateSXP);
-		for (i = 0; i < el->length; ++i)
-		{
-				if (_networkType == SYNC_MODE)
-					// insert fixed gene values, as they are missing in the calculated results
-					insertFixedGenes(&el->involvedStates[i*el->numElementsPerEntry],network.fixedGenes,network.numGenes);
-				
-				memcpy(&array[i*el->numElementsPerEntry],
-					  &el->involvedStates[i*el->numElementsPerEntry],el->numElementsPerEntry*sizeof(unsigned int));
-					  
-		}
-		SETCAR(attractorSXP,stateSXP);
-
-		// write basin size
-		SEXP basinSXP;
-		PROTECT(basinSXP = allocVector(INTSXP,1));
-		array = INTEGER(basinSXP);
-		array[0] = el->basinSize;
-		SETCADR(attractorSXP,basinSXP);
-		SETCAR(listPos,attractorSXP);
-		if (el->next != NULL)
-			listPos = CDR(listPos);
-
-		if (el->transitionTableSize != 0)
-		{
-			SEXP attrInitialStateSXP;
-			SEXP attrNextStateSXP;
-			PROTECT(attrInitialStateSXP = allocVector(INTSXP,el->numElementsPerEntry * el->transitionTableSize));
-			PROTECT(attrNextStateSXP = allocVector(INTSXP,el->numElementsPerEntry * el->transitionTableSize));
-			unsigned int * initial = (unsigned int*)INTEGER(attrInitialStateSXP);
-			unsigned int * next = (unsigned int*)INTEGER(attrNextStateSXP);
-
-			TransitionTableEntry * currentState = el->table;
-			for (i = 0; i < el->transitionTableSize; ++i)
-			{
-				memcpy(&initial[i * el->numElementsPerEntry],currentState->initialState,
-					   sizeof(unsigned int) * el->numElementsPerEntry);
-				memcpy(&next[i * el->numElementsPerEntry],currentState->nextState,
-					   sizeof(unsigned int) * el->numElementsPerEntry);
-				currentState = currentState->next;
-			}
-			SETCADDR(attractorSXP,attrInitialStateSXP);
-			SETCADDDR(attractorSXP,attrNextStateSXP);
-			UNPROTECT(2);
-		}
-
-		UNPROTECT(3);
-	}
-	UNPROTECT(1);
-	SETCADR(resSXP,attractorsSXP);
-
-  PutRNGstate();
-	UNPROTECT(1);
-
-	// free resources
-	freeAttractorInfo(res);
-	
-	FREE(network.nonFixedGeneBits);
-
-	return(resSXP);
 }

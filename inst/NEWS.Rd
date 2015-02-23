@@ -1,6 +1,19 @@
 \name{NEWS}
 \title{NEWS file for the \pkg{BoolNet} package}
 
+\section{Changes in version 2.1.0}{
+
+\subsection{Modified functions}{
+\itemize{
+\item{\code{getAttractors()} and \code{simulateSymbolicModel()} now support the identification of attractors in large networks based on a formulation as a satisfiability (SAT) problem. }
+
+\item{\code{plotAttractors()} and \code{plotSequence()} now plot the genes in the order of the network instead of the reverse order by default. This behaviour can be controlled using a new parameter \code{reverse} which is also available in \code{attractorsToLaTeX()} and \code{sequenceToLaTeX()}.}
+
+\item{Bugfix regarding negated temporal predicates in \code{simulateSymbolicModel()}.}
+}
+}
+}
+
 \section{Changes in version 2.0.2}{
 
 \subsection{Modified functions}{

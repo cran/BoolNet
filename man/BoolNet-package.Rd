@@ -3,14 +3,14 @@
 \alias{BoolNet-package}
 \alias{BoolNet}
 \docType{package}
-\title{Analyze Boolean networks}
+\title{Construction, Simulation and Analysis of Boolean Networks}
 \description{Tools for reconstruction, analysis and visualization of synchronous, asynchronous and probabilistic Boolean networks, in particular for the identification of attractors in gene-regulatory networks}
 \details{
 \tabular{ll}{
 Package: \tab BoolNet\cr
 Type: \tab Package\cr
-Version: \tab 2.0.2\cr
-Date: \tab 2014-12-08\cr
+Version: \tab 2.1.0\cr
+Date: \tab 2015-02-23\cr
 License: \tab Artistic-2.0\cr
 LazyLoad: \tab yes\cr
 }
@@ -41,9 +41,11 @@ The package also provides methods to visualize state transitions and basins of a
 Transition tables of the network can be analyzed using \code{\link{getTransitionTable}}. Paths from start states to their corresponding attractors are identified using \code{\link{getPathToAttractor}}.
 }
 \author{
-Christoph Müssel, Martin Hopfensitz, Dao Zhou, Hans Kestler
+Christoph Müssel, Martin Hopfensitz, Dao Zhou, Hans A. Kestler
 
-Maintainer: Hans Kestler <hans.kestler@uni-ulm.de>
+Contributors: Armin Biere (contributed PicoSAT code), Troy D. Hanson (contributed uthash macros)
+
+Maintainer: Hans A. Kestler <hans.kestler@uni-ulm.de>
 
 }
 \references{
@@ -84,7 +86,8 @@ plotAttractors(attractors)
 # identifies asynchronous attractors
 attractors <- getAttractors(cellcycle, 
                             type="asynchronous", startStates=100)
-\donttest{plotAttractors(attractors, mode="graph")}
+                            
+plotAttractors(attractors, mode="graph")
 
 ####################################
 # Example 2: reconstruct a network #

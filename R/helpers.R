@@ -227,7 +227,7 @@ trim <- function(string)
 # Returns an interaction as used in the BooleanNetwork class.
 generateInteraction <- function(expressionString, genes)
 {
-  res <- .Call("getTruthTable", parseBooleanFunction(expressionString, genes), length(genes))
+  res <- .Call("getTruthTable_R", parseBooleanFunction(expressionString, genes), length(genes))
   names(res) <- c("input","func")
   res$expression <- expressionString
   return(res)

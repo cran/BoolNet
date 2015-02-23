@@ -83,7 +83,7 @@ net <- reconstructNetwork(bin$binarizedMeasurements, method="bestfit", maxK=3, r
 print(net)
 
 # plot reconstructed net
-\donttest{plotNetworkWiring(net)}
+plotNetworkWiring(net)
 }
 
 \keyword{probabilistic Boolean network

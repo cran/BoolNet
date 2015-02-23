@@ -17,7 +17,7 @@ fixGenes <- function(network,fixIndices,values)
   network$fixed[fixIndices] <- as.integer(values)
   
   if (inherits(network,"SymbolicBooleanNetwork"))
-    network$internalStructs = .Call("constructNetworkTrees",network);
+    network$internalStructs = .Call("constructNetworkTrees_R",network);
     
   return(network)
 }

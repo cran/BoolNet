@@ -27,7 +27,7 @@ stateTransition <- function(network,state,type=c("synchronous","asynchronous","p
 
     if (is.null(network$internalStructs) || checkNullPointer(network$internalStructs))
     # refresh internal tree representations if necessary
-      network$internalStructs = .Call("constructNetworkTrees",network);
+      network$internalStructs = .Call("constructNetworkTrees_R",network);
       
     on.exit(.C("freeAllMemory", PACKAGE = "BoolNet"))  
     res <- .Call("symbolicStateTransition_R",

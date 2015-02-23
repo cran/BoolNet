@@ -4,7 +4,9 @@ plotSequence <- function(network, startState,
                          title = "", mode=c("table","graph"),
                          plotFixed = TRUE, grouping = list(),
                          onColor="green",offColor="red",
-                         layout, drawLabels=TRUE, drawLegend=TRUE, highlightAttractor=TRUE,
+                         layout, drawLabels=TRUE, drawLegend=TRUE, 
+                         highlightAttractor=TRUE,
+                         reverse=FALSE,
                          ...)
 {
   if (!missing(network))
@@ -59,8 +61,12 @@ plotSequence <- function(network, startState,
       }
 
       # initialize with empty plot
-      plot(c(),c(),xlim=c(0,ncol(totalMatrix)),ylim=c(-2,nrow(totalMatrix)),xlab="",ylab="",
-           axes=FALSE, main=title, ...)    
+      if (reverse)
+        plot(c(),c(),xlim=c(0,ncol(totalMatrix)),ylim=c(-2,nrow(totalMatrix)),xlab="",ylab="",
+             axes=FALSE, main=title, ...)
+      else
+        plot(c(),c(),xlim=c(0,ncol(totalMatrix)),ylim=c(nrow(totalMatrix),-2),xlab="",ylab="",
+             axes=FALSE, main=title, ...)                 
       axis(3,c(0,seq_len(ncol(totalMatrix))-0.5),c("t=",colnames(totalMatrix)), 
            lty="blank", yaxt='s', xaxt='s', xaxs="i")
       axis(2,seq_len(nrow(totalMatrix))-0.5,rownames(totalMatrix),

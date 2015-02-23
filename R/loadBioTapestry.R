@@ -243,7 +243,7 @@ loadBioTapestry <- function(file, symbolic=FALSE)
     if (symbolic)
     {
       net$timeDelays <- apply(sapply(net$interactions,maxTimeDelay,genes=net$genes),1,max)
-      net$internalStructs <- .Call("constructNetworkTrees",net)
+      net$internalStructs <- .Call("constructNetworkTrees_R",net)
       class(net) <- "SymbolicBooleanNetwork"
     }
     else    

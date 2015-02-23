@@ -5,7 +5,8 @@
 # <onColor> and <offColor> specify the colors of ON/1 and OFF/0 states.
 # <file> is the name of the output LaTeX document.
 attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = list(), plotFixed = TRUE, 
-        onColor="[gray]{0.9}",offColor="[gray]{0.6}", file="attractors.tex")  
+        onColor="[gray]{0.9}",offColor="[gray]{0.6}", 
+        reverse=FALSE, file="attractors.tex")  
 {
   stopifnot(inherits(attractorInfo,"AttractorInfo") || inherits(attractorInfo, "SymbolicSimulation"))
   
@@ -73,20 +74,18 @@ attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = lis
   res <- lapply(seq_along(lengthTable),function(i)
   # accumulate all attractors with equal length in one matrix and plot them
   {
-    len <- as.integer(names(lengthTable)[i])
-    
-     if (length(intersect(which(attractorLengths == len),subset)) > 0)
+     len <- as.integer(names(lengthTable)[i])
+     attractorIndices <- intersect(which(attractorLengths == len), subset)
+     if (length(attractorIndices) > 0)
      {
-      cnt <- lengthTable[i]
-
       # build accumulated matrix     
       totalMatrix <- c()
-      for (mat in binMatrices[intersect(which(attractorLengths == len),subset)])
+      for (mat in binMatrices[attractorIndices])
       {
         totalMatrix <- cbind(totalMatrix,mat)
       }
       rownames(totalMatrix) <- geneNames[plotIndices]
-      colnames(totalMatrix) <- sapply(intersect(which(attractorLengths == len),subset),function(i)paste("Attr",i,".",seq_len(len),sep=""))
+      colnames(totalMatrix) <- sapply(attractorIndices,function(i)paste("Attr",i,".",seq_len(len),sep=""))
     
       if(length(grouping)>0)
       {
@@ -112,7 +111,12 @@ attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = lis
             sep=""),collapse="\t&\t"),"\\\\\n")    
     
       # output active and inactive states
-      for(j in seq_len(nrow(totalMatrix)))
+      if (reverse)
+        indices <- rev(seq_len(nrow(totalMatrix)))
+      else
+        indices <- seq_len(nrow(totalMatrix))
+  
+      for(j in indices)
       {
         separator <- which(separationPositions==j)
         if (length(separator) != 0)
@@ -135,12 +139,22 @@ attractorsToLaTeX <- function (attractorInfo, subset, title = "", grouping = lis
       # output frequency of attractor (basin size / number of states)
       if (inherits(attractorInfo,"AttractorInfo"))
       {
-        freq <- round(sapply(attractorInfo$attractors[intersect(which(attractorLengths == len),subset)],
-            function(attractor)attractor$basinSize/ncol(attractorInfo$stateInfo$table)) * 100,2)
+        if (is.null(attractorInfo$stateInfo$table))
+            freq <- rep(NA, length(attractorIndices))
+        else
+          freq <- round(sapply(attractorInfo$attractors[attractorIndices],
+              function(attractor)attractor$basinSize/ncol(attractorInfo$stateInfo$table)) * 100,2)
       }
       else
       {
-        freq <- rep(NA, length(attractorInfo$attractors))
+        if (!is.null(attractorInfo$graph))
+        {
+          freq <- round(sapply(attractorIndices, 
+                        function(i)sum(attractorInfo$graph$attractorAssignment == i)/
+                        nrow(attractorInfo$graph)) * 100,2)
+        }
+        else
+          freq <- rep(NA, length(attractorIndices))
       }
 
       if (!isTRUE(all(is.na(freq))))

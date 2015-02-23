@@ -20,6 +20,7 @@ sequenceToLaTeX(network,
                 onColor="[gray]{0.9}",
                 offColor="[gray]{0.6}", 
                 highlightAttractor=TRUE,
+                reverse = FALSE,                
                 file="sequence.tex")
 }
 
@@ -59,12 +60,17 @@ sequenceToLaTeX(network,
   \item{offColor}{
 	An optional color value for the 0/OFF values in the table. Defaults to light grey.	
 }
-  \item{file}{
-	The file to which the LaTeX document is written. Defaults to "sequence.tex".
-}
 
  \item{highlightAttractor}{
 If set to true, the attractor states are highlighted in the plot by drawing a line at the begin of the attractor and labeling the states correspondingly. Information on the attractor must be supplied in the attribute \code{attractor} of the sequence, which is a vector of indices of the states that belong to the attractor. This attribute is usually present if the sequence was obtained using \code{\link{getPathToAttractor}}.
+}
+
+  \item{reverse}{
+Specifies the order of the genes in the plot. By default, the first gene is placed in the first row of the table. If \code{reverse=TRUE}, the first gene in the network is placed in the bottom row of the table. 
+}
+
+  \item{file}{
+	The file to which the LaTeX document is written. Defaults to "sequence.tex".
 }
 
 }

@@ -5,7 +5,8 @@
 # <onColor> and <offColor> specify the colors of ON/1 and OFF/0 states.
 plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","graph"),
                             grouping = list(), plotFixed = TRUE, onColor="green",offColor="red",
-                            layout=layout.circle, drawLabels=TRUE, drawLegend=TRUE, ask=TRUE, ...) 
+                            layout=layout.circle, drawLabels=TRUE, drawLegend=TRUE, ask=TRUE, 
+                            reverse=FALSE, ...) 
 {
   stopifnot(inherits(attractorInfo,"AttractorInfo") || inherits(attractorInfo, "SymbolicSimulation"))
   
@@ -71,18 +72,19 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
     # accumulate all attractors with equal length in one matrix and plot them
     {
       len <- as.integer(names(lengthTable)[i])
-      if (length(intersect(which(attractorLengths == len),subset)) > 0)
+      attractorIndices <- intersect(which(attractorLengths == len), subset)
+      if (length(attractorIndices) > 0)
       {
-        cnt <- lengthTable[i]
+        cnt <- length(attractorIndices)
 
         # build accumulated matrix     
         totalMatrix <- c()
-        for (mat in binMatrices[intersect(which(attractorLengths == len),subset)])
+        for (mat in binMatrices[attractorIndices])
         {
           totalMatrix <- cbind(totalMatrix,mat)
         }
         rownames(totalMatrix) <- geneNames[plotIndices]
-        colnames(totalMatrix) <- sapply(intersect(which(attractorLengths == len),subset),function(i)paste("Attr",i,".",seq_len(len),sep=""))
+        colnames(totalMatrix) <- sapply(attractorIndices,function(i)paste("Attr",i,".",seq_len(len),sep=""))
     
         if(length(grouping)>0)
            # reorder genes according to the supplied groups
@@ -90,8 +92,13 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
 
         par(ask=ask && i > 1 && dev.interactive())
         # initialize with empty plot
-        plot(c(),c(),xlim=c(0,len*cnt),ylim=c(-2,nrow(totalMatrix)+1),xlab="",ylab="",
-             axes=FALSE,main=paste(title, "Attractors with ",len," state(s)",sep=""))    
+        
+        if (reverse)       
+          plot(c(),c(),xlim=c(0,len*cnt),ylim=c(-2,nrow(totalMatrix)+1),xlab="",ylab="",
+               axes=FALSE,main=paste(title, "Attractors with ",len," state(s)",sep=""))
+        else
+          plot(c(),c(),xlim=c(0,len*cnt),ylim=c(nrow(totalMatrix)+1,-2),xlab="",ylab="",
+               axes=FALSE,main=paste(title, "Attractors with ",len," state(s)",sep=""))
         axis(2,seq_len(nrow(totalMatrix))-0.5,rownames(totalMatrix), yaxt='s', las=2)
 
         # plot active and inactive states
@@ -112,17 +119,22 @@ plotAttractors <- function (attractorInfo, subset, title = "", mode=c("table","g
         
         if (inherits(attractorInfo,"AttractorInfo"))
         {
-          freq <- round(sapply(attractorInfo$attractors[intersect(which(attractorLengths == len),subset)],
-              function(attractor)attractor$basinSize/ncol(attractorInfo$stateInfo$table)) * 100,2)
+          if (is.null(attractorInfo$stateInfo$table))
+            freq <- rep(NA, length(attractorIndices))
+          else
+            freq <- round(sapply(attractorInfo$attractors[attractorIndices],
+                function(attractor)attractor$basinSize/ncol(attractorInfo$stateInfo$table)) * 100,2)
         }
         else
         {
           if (!is.null(attractorInfo$graph))
           {
-            freq <- round(sapply(intersect(which(attractorLengths == len),subset), 
+            freq <- round(sapply(attractorIndices, 
                           function(i)sum(attractorInfo$graph$attractorAssignment == i)/
                           nrow(attractorInfo$graph)) * 100,2)
           }
+          else
+            freq <- rep(NA, length(attractorIndices))
         }
         
         if (!isTRUE(all(is.na(freq))))

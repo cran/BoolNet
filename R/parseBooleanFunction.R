@@ -476,7 +476,8 @@ stringFromParseTree <- function(tree)
       }
       else
       {
-        paste(tree$operator,"(",paste(sapply(tree$operands,stringFromParseTree), collapse=", "),")",sep="")
+        paste({if (tree$negated) "!" else ""},
+              tree$operator,"(",paste(sapply(tree$operands,stringFromParseTree), collapse=", "),")",sep="")
       }
     },    
     atom = paste({if (tree$negated) "!" else ""},

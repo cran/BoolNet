@@ -127,7 +127,7 @@ loadNetwork <- function(file, bodySeparator=",", lowercaseGenes=FALSE, symbolic=
     names(fixed) <- genes
     
     res <- list(genes = genes, interactions=interactions, fixed=fixed)
-    res$internalStructs <- .Call("constructNetworkTrees",res)
+    res$internalStructs <- .Call("constructNetworkTrees_R",res)
     res$timeDelays <- delays
     
     class(res) <- "SymbolicBooleanNetwork"

@@ -8,13 +8,18 @@
 \usage{
 getAttractors(network, 
               type = c("synchronous","asynchronous"), 
-              method = c("exhaustive","random","chosen"), 
+              method = c("exhaustive",
+                         "sat.exhaustive",
+                         "sat.restricted",
+                         "random",
+                         "chosen"), 
               startStates = list(),
               genesON = c(), genesOFF = c(), 
               canonical = TRUE,
               randomChainLength = 10000, 
               avoidSelfLoops = TRUE, 
               geneProbabilities = NULL, 
+              maxAttractorLength = Inf,
               returnTable = TRUE) 
 }
 
@@ -33,7 +38,9 @@ See Details for more information on the algorithms.
   }
 
   \item{method}{
-  	The search method to be used. If "exhaustive", attractors are identified by exhaustive search of all 2^n states (where n is the number of genes that are not set to a fixed value). This kind of search is only available for synchronous attractor search, and the maximum number of genes allowed for exhaustive search is 29, as R cannot allocate memory for larger state tables.
+  	The search method to be used. If "exhaustive", attractors are identified by exhaustive state space search, i.e. by calculating the sucessors of all 2^n states (where n is the number of genes that are not set to a fixed value). This kind of search is only available for synchronous attractor search, and the maximum number of genes allowed for exhaustive search is 29. Apart from the attractors, this method generates the full state transition graph.
+  	
+  	If \code{method} is "sat.exhaustive" or "sat.restricted", attractors are identified using algorithms based on the satisfiability problem. This search type is also restricted to synchronous networks. It can be used to identify attractors in much larger networks than with \code{method="exhaustive"}, but does not return the state transition graph. For \code{method="sat.exhaustive"}, an exhaustive attractor search is performed, while \code{method="sat.restricted"} only searches for attractors of a specified maximum length \code{maxAttractorLength}.
   	
   	If \code{method} is "random", \code{startStates} is interpreted as an integer value specifying the number of states to be generated randomly. The algorithm is then initialized with these random states and identifies the attractors to which these states lead.
   	
@@ -67,8 +74,10 @@ If \code{type="asynchronous"} and \code{avoidSelfLoops=TRUE}, the asynchronous a
 If \code{type="asynchronous"}, this allows to specify probabilities for the genes. By default, each gene has the same probability to be chosen for the next state transition. You can supply a vector of probabilities for each of the genes which sums up to one.
 }
 
+\item{maxAttractorLength}{If \code{method="sat.restricted"}, this required parameter specifies the maximum size of attractors (i.e. the number of states in the loop) to be searched. For \code{method="sat.exhaustive"}, this parameter is optional and specifies the maximum attractor length for the initial length-restricted search phase that is performed to speed up the subsequent exhaustive search. In this case, changing this value might bring performance benefits, but does not change the results.}
+
 \item{returnTable}{
-Specifies whether a transition table is included in the returned \code{AttractorInfo} structure. If \code{type="asynchronous"}, this parameter is ignored, as the asynchronous search never returns a transition table due to the large size.
+Specifies whether a transition table is included in the returned \code{AttractorInfo} structure. If \code{type="asynchronous"} or \code{method="sat"}, this parameter is ignored, as the corresponding algorithms never return a transition table.
 }
  
 }
@@ -77,12 +86,20 @@ Depending on the type of network and the chosen parameters, different search alg
 
 For \code{BooleanNetwork} networks, there are three different modes of attractor search:
 \describe{
-\item{Exhaustive synchronous search}{
+\item{Exhaustive synchronous state space search}{
 In this mode, synchronous state transitions are carried out from each of the possible states until an attractor is reached. This identifies all synchronous attractors.
 }
 
-\item{Heuristic synchronous search}{
+\item{Heuristic synchronous state space search}{
 In contrast to exhaustive synchronous search, only a subset of the possible states is used. From these states, synchronous transitions are carried out until an attractor is reached. This subset is specified in \code{startStates}.
+}
+
+\item{Exhaustive synchronous SAT-based search}{
+Here, the attractor search problem is formulated as a satisfiability problem and solved using Armin Biere's PicoSAT solver. The algorithm is a variant of the method by Dubrova and Teslenko which searches for a satisfying assignment of a chain constructed by unfolding the transition relation. Depending on \code{maxAttractorLength}, it additionally applies an initial size-restricted SAT-based search (see below) to increase overall search speed. This method is suitable for larger networks of up to several hundreds of genes and exhaustively identifies all attractors in these networks. In contrast to the state space search, it does not construct and return a state transition table.
+}
+
+\item{Size-restricted synchronous SAT-based search}{
+Here, the SAT solver directly looks for satisfying assignments for loops of a specific size. This may be more efficient for large networks and is guaranteed to find all attractors that comprise up to \code{maxAttractorLength} states (e.g. all steady states for \code{maxAttractorLength=1}) , but does not find any larger attractors. As for the exhaustive SAT-based method, no transition table is returned.
 }
 
 \item{Heuristic asynchronous search}{
@@ -133,7 +150,11 @@ S. A. Kauffman (1993), The Origins of Order. Oxford University Press.
 I. Harvey, T. Bossomaier (1997), Time out of joint: Attractors in asynchronous random Boolean networks. Proc. of the Fourth European Conference on
 Artificial Life, 67--75.
 
-A. Garg, A. Di Cara, I. Xenarios, L. Mendoza, G. De Micheli (2008): Synchronous versus asynchronous modeling of gene regulatory networks. Bioinformatics 24(17):1917--1925. 
+A. Garg, A. Di Cara, I. Xenarios, L. Mendoza, G. De Micheli (2008), Synchronous versus asynchronous modeling of gene regulatory networks. Bioinformatics 24(17):1917--1925. 
+
+E. Dubrova, M. Teslenko (2011), A SAT-based algorithm for finding attractors in synchronous Boolean networks. IEEE/ACM Transactions on Computational Biology and Bioinformatics 8(5):1393--1399.
+
+A. Biere (2008), PicoSAT Essentials. Journal on Satisfiability, Boolean Modeling and Computation 4:75-97.
 }
 
 \seealso{
@@ -160,9 +181,14 @@ attractors <- getAttractors(cellcycle, method="chosen",
                             startStates=list(rep(0, length(cellcycle$genes))))
 plotAttractors(attractors)
 
+# also finds the attractor with 1 state by restricting the attractor length
+attractors <- getAttractors(cellcycle, method="sat.restricted",
+                            maxAttractorLength=1)
+plotAttractors(attractors)
+
 # identifies asynchronous attractors
 attractors <- getAttractors(cellcycle, type="asynchronous", startStates=100)
-\donttest{plotAttractors(attractors, mode="graph")}
+plotAttractors(attractors, mode="graph")
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

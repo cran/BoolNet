@@ -8,7 +8,7 @@ symbolicToTruthTable <- function(network)
               fixed = network$fixed,
               interactions = lapply(network$interactions, function(int)
               {
-                newInt <- .Call("getTruthTable", int, length(network$genes))
+                newInt <- .Call("getTruthTable_R", int, length(network$genes))
                 names(newInt) <- c("input","func")
                 newInt$expression <- stringFromParseTree(int)
                 return(newInt)

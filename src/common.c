@@ -47,7 +47,7 @@ void bin2dec(int *dec, int *bin, int *numBits)
 
 	for(i = 0; i < *numBits; ++i)
 	{
-		unsigned_dec[i / BITS_PER_BLOCK_32] |= (bin[i] << (i % BITS_PER_BLOCK_32));
+		unsigned_dec[i / BITS_PER_BLOCK_32] |= ((unsigned int)bin[i] << (i % BITS_PER_BLOCK_32));
 	}
 }
 
