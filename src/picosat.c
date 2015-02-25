@@ -27,6 +27,7 @@ IN THE SOFTWARE.
 #include <limits.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <stdint.h>
 
 #include "picosat.h"
 
@@ -117,7 +118,7 @@ IN THE SOFTWARE.
 
 #define ENLARGE(start,head,end) \
   do { \
-    unsigned old_num = (unsigned)((end) - (start)); \
+    unsigned old_num = (ptrdiff_t)((end) - (start)); \
     size_t new_num = old_num ? (2 * old_num) : 1; \
     unsigned count = (head) - (start); \
     assert ((start) <= (end)); \
@@ -128,20 +129,20 @@ IN THE SOFTWARE.
 
 #define NOTLIT(l) (ps->lits + (1 ^ ((l) - ps->lits)))
 
-#define LIT2IDX(l) ((unsigned)((l) - ps->lits) / 2)
-#define LIT2IMPLS(l) (ps->impls + (unsigned)((l) - ps->lits))
+#define LIT2IDX(l) ((ptrdiff_t)((l) - ps->lits) / 2)
+#define LIT2IMPLS(l) (ps->impls + (ptrdiff_t)((l) - ps->lits))
 #define LIT2INT(l) ((int)(LIT2SGN(l) * LIT2IDX(l)))
-#define LIT2SGN(l) (((unsigned)((l) - ps->lits) & 1) ? -1 : 1)
+#define LIT2SGN(l) (((ptrdiff_t)((l) - ps->lits) & 1) ? -1 : 1)
 #define LIT2VAR(l) (ps->vars + LIT2IDX(l))
-#define LIT2HTPS(l) (ps->htps + (unsigned)((l) - ps->lits))
+#define LIT2HTPS(l) (ps->htps + (ptrdiff_t)((l) - ps->lits))
 #define LIT2JWH(l) (ps->jwh + ((l) - ps->lits))
 
 #ifndef NDSC
-#define LIT2DHTPS(l) (ps->dhtps + (unsigned)((l) - ps->lits))
+#define LIT2DHTPS(l) (ps->dhtps + (ptrdiff_t)((l) - ps->lits))
 #endif
 
 #ifdef NO_BINARY_CLAUSES
-typedef unsigned long Wrd;
+typedef uintptr_t Wrd;
 #define ISLITREASON(C) (1&(Wrd)C)
 #define LIT2REASON(L) \
   (assert (L->val==TRUE), ((Cls*)(1 + (2*(L - ps->lits)))))

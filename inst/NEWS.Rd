@@ -1,6 +1,12 @@
 \name{NEWS}
 \title{NEWS file for the \pkg{BoolNet} package}
 
+\section{Changes in version 2.1.1}{
+\itemize{
+\item{Fixed compilation errors on Windows.}
+}
+}
+
 \section{Changes in version 2.1.0}{
 
 \subsection{Modified functions}{

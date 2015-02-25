@@ -513,6 +513,8 @@ BooleanFormula * parseRTree(SEXP formula, unsigned int * memorySizes,
 			op = OPERATOR_TIMEGT;
 		else if (strcmp(operator, "timelt") == 0)
 			op = OPERATOR_TIMELT;
+		else
+			error("Unknown operator!");
 
 		SEXP operands = getListElement(formula, "operands");
 		BooleanOperator * res = allocOperator(op,

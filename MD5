@@ -1,4 +1,4 @@
-d212f12270807f1f5e1ce5dd78dd3f88 *DESCRIPTION
+253a55df1ad036477a600d951da47816 *DESCRIPTION
 2ac8698b8109b3fa4e41d7336d15ffff *NAMESPACE
 57679970d38c17ac9c95478b9313aed0 *R/attractorsToLaTeX.R
 0e037f01fa88a832cb43d3a9d5e9f5dd *R/binarizeTimeSeries.R
@@ -56,13 +56,13 @@ ec45191be2833f0b81cdd9b9a7b8a34c *build/vignette.rds
 d58578f1cc7da58378f1617a6d8bb021 *data/igf.rda
 8919de127f7ee2391900468a36c5dcd4 *data/yeastTimeSeries.rda
 62409980eecaca8e52f1d495f499d6bd *inst/CITATION
-7fd3c150f4102765d2eb8f5304ae51d0 *inst/NEWS.Rd
+425dfe841d43b1c66473d819e098dd4a *inst/NEWS.Rd
 6f2a639feacaaedd0e6ba03706c5bed3 *inst/doc/BoolNet_package_vignette.R
 e5183b47ee9e7fb9417498d986c59e12 *inst/doc/BoolNet_package_vignette.Snw
-e0a46a6a6b382b1e83657689a119e2c2 *inst/doc/BoolNet_package_vignette.pdf
+93fecaf746049931eac6508d4b1fb934 *inst/doc/BoolNet_package_vignette.pdf
 fcb0ddc4a26eb5062f05b55032e5b151 *inst/doc/cellcycle.txt
 27bccf40991bbe762bc274cbd7874f40 *inst/doc/example.btp
-7f4537b139742a14418190097187af1c *man/BoolNet-package.Rd
+a9e0ea6aa1d8787e05472cc2fcaaeaa7 *man/BoolNet-package.Rd
 67caa758b9f663491e69a3c18f4ee36f *man/attractorsToLaTeX.Rd
 3461bfd43dd57a88d01d83df611f95c0 *man/binarizeTimeSeries.Rd
 3623b2fe85476af5336cf7e220c1d60e *man/cellcycle.Rd
@@ -110,13 +110,14 @@ a5db19da3fb5103170c96cad7d537b74 *man/toPajek.Rd
 205d9b5aa773edc1124a0ae58d5e7a0e *man/toSBML.Rd
 a43aad3b0dd5fff7a95a9075bdfdaa2e *man/truthTableToSymbolic.Rd
 7ffc48740e826cbf5c56c11fb8dfe9df *man/yeastTimeSeries.Rd
+da975f995fc5f2ef57170b3d3ba53178 *src/Makevars.win
 56a684219ad834529e4c4c6e9deb9ef2 *src/attractor_info.c
 8b25f0694d6279bba2e28c947e304524 *src/attractor_info.h
 036826c4ebee96d5885709f10efbd391 *src/attractor_search_interface.c
 8e4fdfd767d86b61f15c5c245e8dba77 *src/boolean_network.h
 8bcc0d40927949da8d50a8b116fc45d9 *src/common.c
 156f9c56866c9e7707594d1f0faf101b *src/common.h
-8f288bed1c74ff912ac00889f9a85321 *src/picosat.c
+3ae7901969630cf0f1c12ac9024957eb *src/picosat.c
 2c29607ee624151f84ac09f55535010e *src/picosat.h
 a869a6a74b9c0a1c4c796003c1251d60 *src/probabilistic_boolean_network.c
 686e443cfcfa3f597ea866bc25c356e7 *src/random.h
@@ -127,7 +128,7 @@ a869a6a74b9c0a1c4c796003c1251d60 *src/probabilistic_boolean_network.c
 c085761b2f853545febe7170a3715eb2 *src/statespace_search.h
 4d4e389c0ff626a5e0db88416991e94e *src/symbolic_network.c
 dbbf4848847aefb8b756d749519bdf1d *src/symbolic_network.h
-553d079fd9a679f043cf0cb5a24ddcae *src/symbolic_simulator.c
+a92bedbf4bd0438dab983bd4713b6456 *src/symbolic_simulator.c
 460b4e88a7af5ba2c60231ca9f3644c8 *src/uthash.h
 e5183b47ee9e7fb9417498d986c59e12 *vignettes/BoolNet_package_vignette.Snw
 45d3f76bd49d22f8d6e0ad5cc2a14c62 *vignettes/BoolNet_package_vignette.bib

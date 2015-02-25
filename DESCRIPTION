@@ -1,8 +1,8 @@
 Package: BoolNet
 Type: Package
 Title: Construction, Simulation and Analysis of Boolean Networks
-Version: 2.1.0
-Date: 2015-02-23
+Version: 2.1.1
+Date: 2015-02-25
 Authors@R: c(person("Christoph", "Müssel", role = "aut"),
              person("Martin", "Hopfensitz", role = "aut"),
              person("Dao", "Zhou", role = "aut"),
@@ -11,12 +11,12 @@ Authors@R: c(person("Christoph", "Müssel", role = "aut"),
 			 person(c("Troy", "D."), "Hanson", role = "ctb", comment="contributed uthash macros"))
 Imports: igraph (>= 0.6), XML
 Description: Provides methods to reconstruct and generate synchronous,
-        asynchronous, and probabilistic Boolean networks, and to
+        asynchronous, probabilistic and temporal Boolean networks, and to
         analyze and visualize attractors in Boolean networks.
 License: Artistic-2.0
 LazyLoad: yes
 Encoding: UTF-8
-Packaged: 2015-02-23 16:56:03 UTC; muessel
+Packaged: 2015-02-25 09:19:38 UTC; muessel
 Author: Christoph Müssel [aut],
   Martin Hopfensitz [aut],
   Dao Zhou [aut],
@@ -26,4 +26,4 @@ Author: Christoph Müssel [aut],
 Maintainer: Hans A. Kestler <hans.kestler@uni-ulm.de>
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2015-02-23 18:48:13
+Date/Publication: 2015-02-25 11:52:49
