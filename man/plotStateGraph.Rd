@@ -11,10 +11,15 @@ Plots a graph containing all states visited in \code{stateGraph}, and optionally
 plotStateGraph(stateGraph, highlightAttractors = TRUE, 
                colorBasins = TRUE, colorSet, 
                drawLegend = TRUE, drawLabels = FALSE, 
-               layout = layout.fruchterman.reingold,
+               layout = layout.kamada.kawai,
                piecewise = FALSE,  
-               basin.lty = 2, attractor.lty = 1, 
-               plotIt = TRUE, ...)
+               basin.lty = 2, attractor.lty = 1,
+               plotIt = TRUE, 
+               colorsAlpha = c(colorBasinsNodeAlpha    = .3,
+                               colorBasinsEdgeAlpha    = .3,
+                               colorAttractorNodeAlpha = 1,
+                               colorAttractorEdgeAlpha = 1),
+               ...)
 }
 
 \arguments{
@@ -52,6 +57,9 @@ plotStateGraph(stateGraph, highlightAttractors = TRUE,
   \item{plotIt}{
 	If this is true, a plot is generated. Otherwise, only an object of class \code{igraph} is returned, but no plot is drawn.
 }
+  \item{colorsAlpha}{
+	These parameters apply alpha correction to the colors of basins and attractors in the following order: basin node, basin edge, attractor node, attractor edge. Defaults to a vector of length 4 with settings \code{alpha = 0.3} for basins and \code{alpha = 1} for attractors.
+}
   \item{\dots}{
 	Further graphical parameters to be passed to \code{\link[igraph:plot.graph]{plot.igraph}}.
 }
@@ -74,7 +82,7 @@ attractors <- getAttractors(cellcycle)
 
 # plot state graph
 \dontrun{
-plotStateGraph(attractors, main="Cell cycle network")
+plotStateGraph(attractors, main = "Cell cycle network", layout = layout.fruchterman.reingold)
 }
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

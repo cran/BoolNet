@@ -1,8 +1,8 @@
 Package: BoolNet
 Type: Package
 Title: Construction, Simulation and Analysis of Boolean Networks
-Version: 2.1.1
-Date: 2015-02-25
+Version: 2.1.3
+Date: 2016-06-21
 Authors@R: c(person("Christoph", "Müssel", role = "aut"),
              person("Martin", "Hopfensitz", role = "aut"),
              person("Dao", "Zhou", role = "aut"),
@@ -15,8 +15,10 @@ Description: Provides methods to reconstruct and generate synchronous,
         analyze and visualize attractors in Boolean networks.
 License: Artistic-2.0
 LazyLoad: yes
+ByteCompile: TRUE
 Encoding: UTF-8
-Packaged: 2015-02-25 09:19:38 UTC; muessel
+NeedsCompilation: yes
+Packaged: 2016-06-24 13:47:18 UTC; burkovae
 Author: Christoph Müssel [aut],
   Martin Hopfensitz [aut],
   Dao Zhou [aut],
@@ -24,6 +26,5 @@ Author: Christoph Müssel [aut],
   Armin Biere [ctb] (contributed PicoSAT code),
   Troy D. Hanson [ctb] (contributed uthash macros)
 Maintainer: Hans A. Kestler <hans.kestler@uni-ulm.de>
-NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2015-02-25 11:52:49
+Date/Publication: 2016-11-21 12:23:47

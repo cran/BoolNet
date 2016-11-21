@@ -3,6 +3,13 @@
 
 \section{Changes in version 2.1.1}{
 \itemize{
+\item{Minor bug fixing in \code{plotStateGraph}.}
+\item{Added cosmetic changes to \code{plotAttractors} and \code{plotSequence}.}
+}
+}
+
+\section{Changes in version 2.1.1}{
+\itemize{
 \item{Fixed compilation errors on Windows.}
 }
 }

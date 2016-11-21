@@ -14,13 +14,17 @@ plotSequence(network,
              title = "", 
              mode=c("table","graph"),
              plotFixed = TRUE, grouping = list(),
-             onColor="green",
-             offColor="red",
+             onColor="#4daf4a",
+             offColor="#e41a1c",
              layout, 
              drawLabels=TRUE, 
              drawLegend=TRUE, 
              highlightAttractor=TRUE,
-             reverse = FALSE,             
+             reverse = FALSE,
+             borderColor = "black", 
+             eps=0.1,
+             attractor.sep.lwd = 2, 
+             attractor.sep.col = "blue",
              ...)
 }
 
@@ -57,9 +61,9 @@ plotSequence(network,
   	\item{index}{A list with the same length as \code{class}. Each element is a vector of gene names or gene indices belonging to the group.}}
 }
 
-  \item{onColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 1/ON values in the table. Defaults to green.
+  \item{onColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 1/ON values in the table. Defaults to greenish color.
 }
-  \item{offColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 0/OFF values in the table. Defaults to red.
+  \item{offColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 0/OFF values in the table. Defaults to reddish color.
 }
 
   \item{layout}{If \code{mode="graph"}, this parameter specifies a layouting function that determines the placement of the nodes in the graph. Please refer to the \code{\link[igraph]{layout}} manual entry in the \pkg{igraph} package for further details. By default, the nodes are placed in a horizontal line.
@@ -77,6 +81,18 @@ If set to true, the attractor states are highlighted in the plot. If \code{mode=
 
   \item{reverse}{
 Specifies the order of the genes in the plot. By default, the first gene is placed in the first row of the plot. If \code{reverse=TRUE} (which was the default until \pkg{BoolNet} version 2.0.2), the first gene in the network is placed in the bottom row of the plot. 
+}
+  \item{borderColor}{
+Specifies the border or seprating color of states in an attractor. Defaults to \code{"black"}.
+}
+  \item{eps}{
+Specifies plotting margin for the sequence of states. Defaults to \code{0.1}.
+}
+  \item{attractor.sep.lwd}{
+Specifies the line width of the attractor separator. Defaults to \code{2}.
+}
+  \item{attractor.sep.col}{
+Specifies the line color of the attractor separator. Defaults to \code{"blue"}.
 }
 
     \item{\dots}{

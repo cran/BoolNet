@@ -1,4 +1,5 @@
 ### R code from vignette source 'BoolNet_package_vignette.Snw'
+### Encoding: UTF-8
 
 ###################################################
 ### code chunk number 1: BoolNet_package_vignette.Snw:81-82 (eval = FALSE)
@@ -285,7 +286,7 @@ path
 ###################################################
 pdf("sequence.pdf")
 par(mar = c(1, 4, 2, 1))
-plotSequence(sequence=path)
+plotSequence(sequence = path)
 dev.off()
 
 

@@ -15,13 +15,16 @@ plotAttractors(attractorInfo,
                mode = c("table","graph"),
                grouping = list(), 
                plotFixed = TRUE, 
-               onColor = "green",
-               offColor = "red",
+               onColor = "#4daf4a",
+               offColor = "#e41a1c",
                layout = layout.circle, 
                drawLabels = TRUE,
                drawLegend = TRUE,
                ask = TRUE,
                reverse = FALSE,
+               borderColor = "black",
+               eps = 0.1, 
+               allInOnePlot = FALSE,
                ...) 
 }
 \arguments{
@@ -46,9 +49,9 @@ plotAttractors(attractorInfo,
   \item{plotFixed}{This optional parameter is only used if \code{mode="table"}.
 	If this is true, genes with fixed values are included in the plot. Otherwise, these genes are not drawn.
 }
-  \item{onColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 1/ON values in the table. Defaults to green.
+  \item{onColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 1/ON values in the table. Defaults to greenish color.
 }
-  \item{offColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 0/OFF values in the table. Defaults to red.
+  \item{offColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 0/OFF values in the table. Defaults to reddish color.
 }
 
   \item{layout}{If \code{mode="graph"}, this parameter specifies a layouting function that determines the placement of the nodes in the graph. Please refer to the \code{\link[igraph]{layout}} manual entry in the \pkg{igraph} package for further details. By default, the circle layout is used.
@@ -65,6 +68,15 @@ If set to true, the plot function will prompt for a user input for each new plot
 }
   \item{reverse}{
 Specifies the order of the genes in the plot. By default, the first gene is placed in the first row of the plot. If \code{reverse=TRUE} (which was the default until \pkg{BoolNet} version 2.0.2), the first gene in the network is placed in the bottom row of the plot. 
+}
+  \item{borderColor}{
+Specifies the border or seprating color of states in an attractor. Defaults to \code{"black"}.
+}
+  \item{eps}{
+Specifies plotting margin for the sequence of states. Defaults to \code{0.1}.
+}
+  \item{allInOnePlot}{
+If this is \code{TRUE} then all attractors, with \code{mode = "table"}, are plotted in one plot as specified internally by \code{par$mfrow} parameter. Previous value of the \code{par$mfrow} parameter is preserved. Defaults to \code{FALSE}, meaning the plots for more than one attractor will be switched interactively or all plotted in an non-interactive graphical device.
 }
 
     \item{\dots}{

@@ -496,7 +496,7 @@ A sequence can be visualized by plotting a table of state changes:
 <<echo=FALSE,results=hide>>=
 pdf("sequence.pdf")
 par(mar = c(1, 4, 2, 1))
-plotSequence(sequence=path)
+plotSequence(sequence = path)
 dev.off()
 @
 <<eval=FALSE>>=
