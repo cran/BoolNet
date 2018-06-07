@@ -1379,7 +1379,7 @@ SEXP simulateStates_R(SEXP network, SEXP states, SEXP maxTransitions,
 /**
  * Check whether <ptr> is a null pointer.
  */
-SEXP checkNullPointer(SEXP ptr)
+SEXP checkNullPointerC(SEXP ptr)
 {
 	void * p = R_ExternalPtrAddr(ptr);
 

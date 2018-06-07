@@ -30,7 +30,7 @@ void freeAllMemory()
  * <dec> is an array of <num> elements, and <bin> points
  * to an integer to which the result is written.
  */
-void bin2dec(int *dec, int *bin, int *numBits)
+void bin2decC(int *dec, int *bin, int *numBits)
 {
 	// clear output first
 	unsigned int numElts;
@@ -57,7 +57,7 @@ void bin2dec(int *dec, int *bin, int *numBits)
  * <bin> points to the result vector, <dec> is a number
  * to be decoded, and <num> is the number of bits/elements in bin
  */
-void dec2bin(int *bin, int *dec, int *numBits)
+void dec2binC(int *bin, int *dec, int *numBits)
 {
 	unsigned int i;
 	unsigned int * unsigned_dec = (unsigned int *) dec;
@@ -100,7 +100,7 @@ void insertFixedGenes(unsigned int * value, int* fixedGenes, unsigned int numGen
 	}
 
 	// re-encode Boolean array to integer value
-	bin2dec((int *)value,(int*)tmp,(int*)&numGenes);
+	bin2decC((int *)value,(int*)tmp,(int*)&numGenes);
 }
 
 /**
@@ -129,7 +129,7 @@ void removeFixedGenes(unsigned int * value, int* fixedGenes, unsigned int numGen
 	}
 
 	// re-encode Boolean array to integer value
-	bin2dec((int *)value,(int*)tmp,(int*)&numGenes);
+	bin2decC((int *)value,(int*)tmp,(int*)&numGenes);
 }
 
 

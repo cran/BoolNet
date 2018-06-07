@@ -14,8 +14,8 @@ plotSequence(network,
              title = "", 
              mode=c("table","graph"),
              plotFixed = TRUE, grouping = list(),
-             onColor="#4daf4a",
-             offColor="#e41a1c",
+             onColor="#4daf4a", 
+             offColor = "#e41a1c",
              layout, 
              drawLabels=TRUE, 
              drawLegend=TRUE, 
@@ -61,9 +61,9 @@ plotSequence(network,
   	\item{index}{A list with the same length as \code{class}. Each element is a vector of gene names or gene indices belonging to the group.}}
 }
 
-  \item{onColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 1/ON values in the table. Defaults to greenish color.
+  \item{onColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 1/ON values in the table. Defaults to green.
 }
-  \item{offColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 0/OFF values in the table. Defaults to reddish color.
+  \item{offColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 0/OFF values in the table. Defaults to red.
 }
 
   \item{layout}{If \code{mode="graph"}, this parameter specifies a layouting function that determines the placement of the nodes in the graph. Please refer to the \code{\link[igraph]{layout}} manual entry in the \pkg{igraph} package for further details. By default, the nodes are placed in a horizontal line.

@@ -1,8 +1,8 @@
 Package: BoolNet
 Type: Package
 Title: Construction, Simulation and Analysis of Boolean Networks
-Version: 2.1.3
-Date: 2016-06-21
+Version: 2.1.4
+Date: 2018-05-23
 Authors@R: c(person("Christoph", "Müssel", role = "aut"),
              person("Martin", "Hopfensitz", role = "aut"),
              person("Dao", "Zhou", role = "aut"),
@@ -18,7 +18,7 @@ LazyLoad: yes
 ByteCompile: TRUE
 Encoding: UTF-8
 NeedsCompilation: yes
-Packaged: 2016-06-24 13:47:18 UTC; burkovae
+Packaged: 2018-05-23 11:35:57 UTC; julian_schwab
 Author: Christoph Müssel [aut],
   Martin Hopfensitz [aut],
   Dao Zhou [aut],
@@ -27,4 +27,4 @@ Author: Christoph Müssel [aut],
   Troy D. Hanson [ctb] (contributed uthash macros)
 Maintainer: Hans A. Kestler <hans.kestler@uni-ulm.de>
 Repository: CRAN
-Date/Publication: 2016-11-21 12:23:47
+Date/Publication: 2018-06-07 17:43:58 UTC

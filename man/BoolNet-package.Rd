@@ -9,8 +9,8 @@
 \tabular{ll}{
 Package: \tab BoolNet\cr
 Type: \tab Package\cr
-Version: \tab 2.1.2\cr
-Date: \tab 2015-07-03\cr
+Version: \tab 2.1.4\cr
+Date: \tab 2018-05-23\cr
 License: \tab Artistic-2.0\cr
 LazyLoad: \tab yes\cr
 }

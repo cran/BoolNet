@@ -49,9 +49,9 @@ plotAttractors(attractorInfo,
   \item{plotFixed}{This optional parameter is only used if \code{mode="table"}.
 	If this is true, genes with fixed values are included in the plot. Otherwise, these genes are not drawn.
 }
-  \item{onColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 1/ON values in the table. Defaults to greenish color.
+  \item{onColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 1/ON values in the table. Defaults to green.
 }
-  \item{offColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 0/OFF values in the table. Defaults to reddish color.
+  \item{offColor}{This optional parameter is only used if \code{mode="table"} and specifies the color value for the 0/OFF values in the table. Defaults to red.
 }
 
   \item{layout}{If \code{mode="graph"}, this parameter specifies a layouting function that determines the placement of the nodes in the graph. Please refer to the \code{\link[igraph]{layout}} manual entry in the \pkg{igraph} package for further details. By default, the circle layout is used.

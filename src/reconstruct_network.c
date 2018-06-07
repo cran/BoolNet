@@ -1065,7 +1065,7 @@ SEXP reconstructNetwork_R(SEXP inputStates,
 
       if (_returnPBN)
       // for PBN, functions are internally represented as bit vectors to save memory
-  			dec2bin(array,(int*)cur->transitionFunction,(int*)&numBits);
+  			dec2binC(array,(int*)cur->transitionFunction,(int*)&numBits);
   	  else
   	  // for incomplete truth tables, we need a third "don't care" value 
   	  // hence, each bit is an integer in this case (but far fewer entries => less memory)

@@ -1,11 +1,11 @@
-useDynLib(BoolNet)
+useDynLib(BoolNet, .registration = TRUE)
 
 import("igraph", "XML")
 importFrom("graphics", "abline", "arrows", "axis", "hist", "legend", "lines", "par", "plot", "rect", "text")
+importFrom("grDevices", "adjustcolor")
 importFrom("grDevices", "dev.interactive")
 importFrom("stats", "dist", "kmeans", "quantile", "rnorm", "rpois", "runif")
 importFrom("utils", "installed.packages", "tail")
-importFrom("grDevices", "adjustcolor")
 
 S3method(print, AttractorInfo)
 S3method(print, SymbolicSimulation)

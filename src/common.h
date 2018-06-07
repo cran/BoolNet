@@ -159,8 +159,9 @@ static inline bool getNextState(unsigned char * state, int * fixed, unsigned int
 /**
  * Free all remaining memory blocks stored in
  * the global map.
+ * moved to init.c
  */
-extern void freeAllMemory();
+//extern void freeAllMemory();
 
 /**
  * A structure that provides flexible
@@ -203,16 +204,18 @@ static inline void freeArrayList(ArrayListElement * head)
  * The rightmost element in <bin> is the leftmost bit in <dec>
  * <dec> is an array of <num> elements, and <bin> points
  * to an integer to which the result is written.
+ * Moved to init.c
  */
-extern void bin2dec(int *dec, int *bin, int *numBits);
+extern void bin2decC(int *dec, int *bin, int *numBits);
 
 /**
  * Decode an integer to a vector of binary values.
  * The rightmost element in <bin> is the leftmost bit in <dec>
  * <bin> points to the result vector, <dec> is a number
  * to be decoded, and <num> is the number of bits/elements in bin
+ * moved to init.c
  */
-extern void dec2bin(int *bin, int *dec, int *numBits);
+extern void dec2binC(int *bin, int *dec, int *numBits);
 
 /**
  * Inserts values of fixed genes into states - this is required as

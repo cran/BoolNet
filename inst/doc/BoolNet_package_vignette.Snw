@@ -496,10 +496,12 @@ A sequence can be visualized by plotting a table of state changes:
 <<echo=FALSE,results=hide>>=
 pdf("sequence.pdf")
 par(mar = c(1, 4, 2, 1))
-plotSequence(sequence = path)
+path <- getPathToAttractor(cellcycle, rep(0,10))
+plotSequence(sequence=path)
 dev.off()
 @
 <<eval=FALSE>>=
+path <- getPathToAttractor(cellcycle, rep(0,10))
 plotSequence(sequence=path)
 @
 

@@ -1,10 +1,9 @@
 \name{NEWS}
 \title{NEWS file for the \pkg{BoolNet} package}
 
-\section{Changes in version 2.1.1}{
+\section{Changes in version 2.1.4}{
 \itemize{
-\item{Minor bug fixing in \code{plotStateGraph}.}
-\item{Added cosmetic changes to \code{plotAttractors} and \code{plotSequence}.}
+\item{\code{getAttractors()} now allows for plotting all attractors inside one plot. Fixed minor bugs.}
 }
 }
 

@@ -26,9 +26,8 @@ plotSequence <- function (network, startState, includeAttractorStates = c("all",
     }
   }
   else {
-    if (missing(sequence) || !missing(startState)) {
+    if (missing(sequence) || !missing(startState))
       stop("Either \"network\" and \"startState\" or \"sequence\" must be provided!")
-    }
   }
   switch(match.arg(mode, c("table", "graph")), table = {
     totalMatrix <- t(sequence)
@@ -95,8 +94,8 @@ plotSequence <- function (network, startState, includeAttractorStates = c("all",
     }
     #if (drawLegend) legend(x = "bottomright", pch = c(15, 15), col = c(onColor, offColor), legend = c("active", "inactive"), cex = 0.7, horiz = T)
     if (drawLegend) legend(x = 0, y = -2, pch = c(15, 15), col = c(onColor, offColor), legend = c("active", "inactive"), cex = 0.7, horiz = T, xpd=T)
-    netGenes <- if (missing(network)) colnames(sequence) else network$genes
-    return(totalMatrix[netGenes,,drop=F])
+    #return(totalMatrix[network$genes,])
+    return(totalMatrix)
   }, graph = {
     if (installed.packages()["igraph", "Version"] < package_version("0.6")) bias <- 1 else bias <- 0
     args <- list(...)

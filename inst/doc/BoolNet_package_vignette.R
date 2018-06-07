@@ -282,54 +282,56 @@ path
 
 
 ###################################################
-### code chunk number 38: BoolNet_package_vignette.Snw:496-500
+### code chunk number 38: BoolNet_package_vignette.Snw:496-501
 ###################################################
 pdf("sequence.pdf")
 par(mar = c(1, 4, 2, 1))
-plotSequence(sequence = path)
+path <- getPathToAttractor(cellcycle, rep(0,10))
+plotSequence(sequence=path)
 dev.off()
 
 
 ###################################################
-### code chunk number 39: BoolNet_package_vignette.Snw:502-503 (eval = FALSE)
+### code chunk number 39: BoolNet_package_vignette.Snw:503-505 (eval = FALSE)
 ###################################################
+## path <- getPathToAttractor(cellcycle, rep(0,10))
 ## plotSequence(sequence=path)
 
 
 ###################################################
-### code chunk number 40: BoolNet_package_vignette.Snw:516-517 (eval = FALSE)
+### code chunk number 40: BoolNet_package_vignette.Snw:518-519 (eval = FALSE)
 ###################################################
 ## sequenceToLaTeX(sequence=path, file="sequence.tex")
 
 
 ###################################################
-### code chunk number 41: BoolNet_package_vignette.Snw:522-524
+### code chunk number 41: BoolNet_package_vignette.Snw:524-526
 ###################################################
 startState <- generateState(cellcycle, specs=c("CycD"=1,"CycA"=1))
 stateTransition(cellcycle,startState)
 
 
 ###################################################
-### code chunk number 42: BoolNet_package_vignette.Snw:531-532
+### code chunk number 42: BoolNet_package_vignette.Snw:533-534
 ###################################################
 data(igf)
 
 
 ###################################################
-### code chunk number 43: BoolNet_package_vignette.Snw:537-539
+### code chunk number 43: BoolNet_package_vignette.Snw:539-541
 ###################################################
 startState <- generateState(igf, specs=c("IGF"=1))
 stateTransition(igf, startState)
 
 
 ###################################################
-### code chunk number 44: BoolNet_package_vignette.Snw:542-543
+### code chunk number 44: BoolNet_package_vignette.Snw:544-545
 ###################################################
 getPathToAttractor(network=igf,state=startState)
 
 
 ###################################################
-### code chunk number 45: BoolNet_package_vignette.Snw:548-551
+### code chunk number 45: BoolNet_package_vignette.Snw:550-553
 ###################################################
 startState <- generateState(igf, specs=list("IGF"=c(0,0,1)))
 
@@ -337,7 +339,7 @@ startState
 
 
 ###################################################
-### code chunk number 46: BoolNet_package_vignette.Snw:561-565
+### code chunk number 46: BoolNet_package_vignette.Snw:563-567
 ###################################################
 pdf("sequence_igf.pdf")
 par(mar = c(1, 9, 2, 1))
@@ -346,65 +348,65 @@ dev.off()
 
 
 ###################################################
-### code chunk number 47: BoolNet_package_vignette.Snw:567-568 (eval = FALSE)
+### code chunk number 47: BoolNet_package_vignette.Snw:569-570 (eval = FALSE)
 ###################################################
 ## plotSequence(network=igf, startState=startState)
 
 
 ###################################################
-### code chunk number 48: BoolNet_package_vignette.Snw:574-575
+### code chunk number 48: BoolNet_package_vignette.Snw:576-577
 ###################################################
 set.seed(54321)
 
 
 ###################################################
-### code chunk number 49: BoolNet_package_vignette.Snw:577-578
+### code chunk number 49: BoolNet_package_vignette.Snw:579-580
 ###################################################
 stateTransition(cellcycle, rep(1,10), type="asynchronous")
 
 
 ###################################################
-### code chunk number 50: BoolNet_package_vignette.Snw:584-585
+### code chunk number 50: BoolNet_package_vignette.Snw:586-587
 ###################################################
 set.seed(4321)
 
 
 ###################################################
-### code chunk number 51: BoolNet_package_vignette.Snw:587-589
+### code chunk number 51: BoolNet_package_vignette.Snw:589-591
 ###################################################
 stateTransition(cellcycle, rep(1,10), type="asynchronous", 
 geneProbabilities=c(0.05,0.05,0.2,0.3,0.05,0.05,0.05,0.05,0.1,0.1))
 
 
 ###################################################
-### code chunk number 52: BoolNet_package_vignette.Snw:596-598
+### code chunk number 52: BoolNet_package_vignette.Snw:598-600
 ###################################################
 stateTransition(cellcycle, rep(1,10), type="asynchronous", 
 chosenGene="CycE")
 
 
 ###################################################
-### code chunk number 53: BoolNet_package_vignette.Snw:602-603
+### code chunk number 53: BoolNet_package_vignette.Snw:604-605
 ###################################################
 set.seed(432)
 
 
 ###################################################
-### code chunk number 54: BoolNet_package_vignette.Snw:605-607
+### code chunk number 54: BoolNet_package_vignette.Snw:607-609
 ###################################################
 data(examplePBN)
 stateTransition(examplePBN, c(0,1,1), type="probabilistic")
 
 
 ###################################################
-### code chunk number 55: BoolNet_package_vignette.Snw:610-612
+### code chunk number 55: BoolNet_package_vignette.Snw:612-614
 ###################################################
 stateTransition(examplePBN, c(0,1,1), type="probabilistic", 
 chosenFunctions=c(2,1,2))
 
 
 ###################################################
-### code chunk number 56: BoolNet_package_vignette.Snw:630-633 (eval = FALSE)
+### code chunk number 56: BoolNet_package_vignette.Snw:632-635 (eval = FALSE)
 ###################################################
 ## data(cellcycle)
 ## attr <- getAttractors(cellcycle)
@@ -412,38 +414,38 @@ chosenFunctions=c(2,1,2))
 
 
 ###################################################
-### code chunk number 57: BoolNet_package_vignette.Snw:636-638
+### code chunk number 57: BoolNet_package_vignette.Snw:638-640
 ###################################################
 attr <- getAttractors(cellcycle)
 attr
 
 
 ###################################################
-### code chunk number 58: BoolNet_package_vignette.Snw:644-645 (eval = FALSE)
+### code chunk number 58: BoolNet_package_vignette.Snw:646-647 (eval = FALSE)
 ###################################################
 ## print(attr, activeOnly=TRUE)
 
 
 ###################################################
-### code chunk number 59: BoolNet_package_vignette.Snw:648-649
+### code chunk number 59: BoolNet_package_vignette.Snw:650-651
 ###################################################
 print(attr, activeOnly=TRUE)
 
 
 ###################################################
-### code chunk number 60: BoolNet_package_vignette.Snw:658-659
+### code chunk number 60: BoolNet_package_vignette.Snw:660-661
 ###################################################
 getAttractorSequence(attr, 2)
 
 
 ###################################################
-### code chunk number 61: BoolNet_package_vignette.Snw:671-672 (eval = FALSE)
+### code chunk number 61: BoolNet_package_vignette.Snw:673-674 (eval = FALSE)
 ###################################################
 ## plotAttractors(attr, subset=2)
 
 
 ###################################################
-### code chunk number 62: BoolNet_package_vignette.Snw:674-678
+### code chunk number 62: BoolNet_package_vignette.Snw:676-680
 ###################################################
 pdf("attractor1.pdf")
 par(mar=c(1,5,1,1))
@@ -452,32 +454,32 @@ dev.off()
 
 
 ###################################################
-### code chunk number 63: BoolNet_package_vignette.Snw:681-682 (eval = FALSE)
+### code chunk number 63: BoolNet_package_vignette.Snw:683-684 (eval = FALSE)
 ###################################################
 ## attractorsToLaTeX(attr, subset=2, file="attractors.tex")
 
 
 ###################################################
-### code chunk number 64: BoolNet_package_vignette.Snw:689-691 (eval = FALSE)
+### code chunk number 64: BoolNet_package_vignette.Snw:691-693 (eval = FALSE)
 ###################################################
 ## tt <- getTransitionTable(attr)
 ## tt
 
 
 ###################################################
-### code chunk number 65: BoolNet_package_vignette.Snw:705-706 (eval = FALSE)
+### code chunk number 65: BoolNet_package_vignette.Snw:707-708 (eval = FALSE)
 ###################################################
 ## getBasinOfAttraction(attr, 1)
 
 
 ###################################################
-### code chunk number 66: BoolNet_package_vignette.Snw:711-712 (eval = FALSE)
+### code chunk number 66: BoolNet_package_vignette.Snw:713-714 (eval = FALSE)
 ###################################################
 ## getStateSummary(attr, c(1,1,1,1,1,1,1,1,1,1))
 
 
 ###################################################
-### code chunk number 67: BoolNet_package_vignette.Snw:724-729
+### code chunk number 67: BoolNet_package_vignette.Snw:726-731
 ###################################################
 pdf("stategraph1.pdf")
 set.seed(43210)
@@ -487,13 +489,13 @@ dev.off()
 
 
 ###################################################
-### code chunk number 68: BoolNet_package_vignette.Snw:731-732 (eval = FALSE)
+### code chunk number 68: BoolNet_package_vignette.Snw:733-734 (eval = FALSE)
 ###################################################
 ## plotStateGraph(attr)
 
 
 ###################################################
-### code chunk number 69: BoolNet_package_vignette.Snw:738-743
+### code chunk number 69: BoolNet_package_vignette.Snw:740-745
 ###################################################
 pdf("piecewisestategraph.pdf")
 set.seed(43210)
@@ -503,19 +505,19 @@ dev.off()
 
 
 ###################################################
-### code chunk number 70: BoolNet_package_vignette.Snw:745-746 (eval = FALSE)
+### code chunk number 70: BoolNet_package_vignette.Snw:747-748 (eval = FALSE)
 ###################################################
 ## plotStateGraph(attr, piecewise=TRUE)
 
 
 ###################################################
-### code chunk number 71: BoolNet_package_vignette.Snw:770-771
+### code chunk number 71: BoolNet_package_vignette.Snw:772-773
 ###################################################
 attr <- getAttractors(cellcycle, method="random", startStates=100)
 
 
 ###################################################
-### code chunk number 72: BoolNet_package_vignette.Snw:775-778
+### code chunk number 72: BoolNet_package_vignette.Snw:777-780
 ###################################################
 attr <- getAttractors(cellcycle, 
                       method="chosen", 
@@ -523,14 +525,14 @@ attr <- getAttractors(cellcycle,
 
 
 ###################################################
-### code chunk number 73: BoolNet_package_vignette.Snw:787-789
+### code chunk number 73: BoolNet_package_vignette.Snw:789-791
 ###################################################
 attr <- getAttractors(cellcycle, 
                       method="sat.exhaustive")
 
 
 ###################################################
-### code chunk number 74: BoolNet_package_vignette.Snw:794-797
+### code chunk number 74: BoolNet_package_vignette.Snw:796-799
 ###################################################
 attr <- getAttractors(cellcycle, 
                       method="sat.restricted",
@@ -538,19 +540,19 @@ attr <- getAttractors(cellcycle,
 
 
 ###################################################
-### code chunk number 75: BoolNet_package_vignette.Snw:800-801 (eval = FALSE)
+### code chunk number 75: BoolNet_package_vignette.Snw:802-803 (eval = FALSE)
 ###################################################
 ## attr
 
 
 ###################################################
-### code chunk number 76: BoolNet_package_vignette.Snw:804-805
+### code chunk number 76: BoolNet_package_vignette.Snw:806-807
 ###################################################
 attr
 
 
 ###################################################
-### code chunk number 77: BoolNet_package_vignette.Snw:813-817
+### code chunk number 77: BoolNet_package_vignette.Snw:815-819
 ###################################################
 attr <- getAttractors(cellcycle, 
                       type="asynchronous",
@@ -559,13 +561,13 @@ attr <- getAttractors(cellcycle,
 
 
 ###################################################
-### code chunk number 78: BoolNet_package_vignette.Snw:823-824 (eval = FALSE)
+### code chunk number 78: BoolNet_package_vignette.Snw:825-826 (eval = FALSE)
 ###################################################
 ## attr
 
 
 ###################################################
-### code chunk number 79: BoolNet_package_vignette.Snw:850-855 (eval = FALSE)
+### code chunk number 79: BoolNet_package_vignette.Snw:852-857 (eval = FALSE)
 ###################################################
 ## attr <- getAttractors(cellcycle, 
 ##                       type="asynchronous",
@@ -575,7 +577,7 @@ attr <- getAttractors(cellcycle,
 
 
 ###################################################
-### code chunk number 80: BoolNet_package_vignette.Snw:870-874
+### code chunk number 80: BoolNet_package_vignette.Snw:872-876
 ###################################################
 pdf("attractor2.pdf")
 par(mar=c(1,1,1,1))
@@ -584,27 +586,27 @@ dev.off()
 
 
 ###################################################
-### code chunk number 81: BoolNet_package_vignette.Snw:876-877 (eval = FALSE)
+### code chunk number 81: BoolNet_package_vignette.Snw:878-879 (eval = FALSE)
 ###################################################
 ## plotAttractors(attr, subset=2, mode="graph", drawLabels=FALSE)
 
 
 ###################################################
-### code chunk number 82: BoolNet_package_vignette.Snw:885-887 (eval = FALSE)
+### code chunk number 82: BoolNet_package_vignette.Snw:887-889 (eval = FALSE)
 ###################################################
 ## sim <- simulateSymbolicModel(igf)
 ## sim
 
 
 ###################################################
-### code chunk number 83: BoolNet_package_vignette.Snw:890-892
+### code chunk number 83: BoolNet_package_vignette.Snw:892-894
 ###################################################
 sim <- simulateSymbolicModel(igf)
 sim
 
 
 ###################################################
-### code chunk number 84: BoolNet_package_vignette.Snw:906-914
+### code chunk number 84: BoolNet_package_vignette.Snw:908-916
 ###################################################
 pdf("attractor3.pdf")
 par(mar=c(1,5,1,1))
@@ -617,49 +619,49 @@ dev.off()
 
 
 ###################################################
-### code chunk number 85: BoolNet_package_vignette.Snw:916-917 (eval = FALSE)
+### code chunk number 85: BoolNet_package_vignette.Snw:918-919 (eval = FALSE)
 ###################################################
 ## plotAttractors(sim, subset=2)
 
 
 ###################################################
-### code chunk number 86: BoolNet_package_vignette.Snw:920-921 (eval = FALSE)
+### code chunk number 86: BoolNet_package_vignette.Snw:922-923 (eval = FALSE)
 ###################################################
 ## plotStateGraph(sim)
 
 
 ###################################################
-### code chunk number 87: BoolNet_package_vignette.Snw:937-938
+### code chunk number 87: BoolNet_package_vignette.Snw:939-940
 ###################################################
 set.seed(43851)
 
 
 ###################################################
-### code chunk number 88: BoolNet_package_vignette.Snw:940-941
+### code chunk number 88: BoolNet_package_vignette.Snw:942-943
 ###################################################
 sim <- simulateSymbolicModel(igf, method="random", startStates=2)
 
 
 ###################################################
-### code chunk number 89: BoolNet_package_vignette.Snw:944-945
+### code chunk number 89: BoolNet_package_vignette.Snw:946-947
 ###################################################
 sim$sequences
 
 
 ###################################################
-### code chunk number 90: BoolNet_package_vignette.Snw:950-951
+### code chunk number 90: BoolNet_package_vignette.Snw:952-953
 ###################################################
 sim <- simulateSymbolicModel(igf, method="sat.exhaustive")
 
 
 ###################################################
-### code chunk number 91: BoolNet_package_vignette.Snw:954-955
+### code chunk number 91: BoolNet_package_vignette.Snw:956-957
 ###################################################
 sim <- simulateSymbolicModel(igf, method="sat.restricted", maxAttractorLength=1)
 
 
 ###################################################
-### code chunk number 92: BoolNet_package_vignette.Snw:971-974
+### code chunk number 92: BoolNet_package_vignette.Snw:973-976
 ###################################################
 data(examplePBN)
 sim <- markovSimulation(examplePBN)
@@ -667,13 +669,13 @@ sim
 
 
 ###################################################
-### code chunk number 93: BoolNet_package_vignette.Snw:980-981 (eval = FALSE)
+### code chunk number 93: BoolNet_package_vignette.Snw:982-983 (eval = FALSE)
 ###################################################
 ## plotPBNTransitions(sim)
 
 
 ###################################################
-### code chunk number 94: BoolNet_package_vignette.Snw:983-988
+### code chunk number 94: BoolNet_package_vignette.Snw:985-990
 ###################################################
 pdf("pbntransitions.pdf")
 set.seed(4961)
@@ -683,7 +685,7 @@ dev.off()
 
 
 ###################################################
-### code chunk number 95: BoolNet_package_vignette.Snw:1001-1006
+### code chunk number 95: BoolNet_package_vignette.Snw:1003-1008
 ###################################################
 data(cellcycle)
 sim <- markovSimulation(cellcycle, 
@@ -693,7 +695,7 @@ sim
 
 
 ###################################################
-### code chunk number 96: BoolNet_package_vignette.Snw:1015-1020
+### code chunk number 96: BoolNet_package_vignette.Snw:1017-1022
 ###################################################
 sim <- markovSimulation(cellcycle, 
                         numIterations=1024,
@@ -703,13 +705,13 @@ sim
 
 
 ###################################################
-### code chunk number 97: BoolNet_package_vignette.Snw:1032-1033
+### code chunk number 97: BoolNet_package_vignette.Snw:1034-1035
 ###################################################
 set.seed(3361)
 
 
 ###################################################
-### code chunk number 98: BoolNet_package_vignette.Snw:1035-1040
+### code chunk number 98: BoolNet_package_vignette.Snw:1037-1042
 ###################################################
 data(cellcycle)
 r <- perturbTrajectories(cellcycle, 
@@ -719,13 +721,13 @@ r <- perturbTrajectories(cellcycle,
 
 
 ###################################################
-### code chunk number 99: BoolNet_package_vignette.Snw:1044-1045
+### code chunk number 99: BoolNet_package_vignette.Snw:1046-1047
 ###################################################
 r$value
 
 
 ###################################################
-### code chunk number 100: BoolNet_package_vignette.Snw:1049-1054
+### code chunk number 100: BoolNet_package_vignette.Snw:1051-1056
 ###################################################
 r <- perturbTrajectories(cellcycle, 
                          measure="sensitivity", 
@@ -735,13 +737,13 @@ r <- perturbTrajectories(cellcycle,
 
 
 ###################################################
-### code chunk number 101: BoolNet_package_vignette.Snw:1056-1057
+### code chunk number 101: BoolNet_package_vignette.Snw:1058-1059
 ###################################################
 r$value
 
 
 ###################################################
-### code chunk number 102: BoolNet_package_vignette.Snw:1062-1067
+### code chunk number 102: BoolNet_package_vignette.Snw:1064-1069
 ###################################################
 r <- perturbTrajectories(cellcycle, 
                          measure="attractor", 
@@ -751,7 +753,7 @@ r$value
 
 
 ###################################################
-### code chunk number 103: BoolNet_package_vignette.Snw:1074-1077
+### code chunk number 103: BoolNet_package_vignette.Snw:1076-1079
 ###################################################
 perturbedNet <- perturbNetwork(cellcycle, 
                                perturb="functions", 
@@ -759,7 +761,7 @@ perturbedNet <- perturbNetwork(cellcycle,
 
 
 ###################################################
-### code chunk number 104: BoolNet_package_vignette.Snw:1082-1085
+### code chunk number 104: BoolNet_package_vignette.Snw:1084-1087
 ###################################################
 perturbedNet <- perturbNetwork(cellcycle, 
                                perturb="functions", 
@@ -767,7 +769,7 @@ perturbedNet <- perturbNetwork(cellcycle,
 
 
 ###################################################
-### code chunk number 105: BoolNet_package_vignette.Snw:1091-1095
+### code chunk number 105: BoolNet_package_vignette.Snw:1093-1097
 ###################################################
 perturbedNet <- perturbNetwork(cellcycle, 
                                perturb="transitions", 
@@ -776,7 +778,7 @@ perturbedNet <- perturbNetwork(cellcycle,
 
 
 ###################################################
-### code chunk number 106: BoolNet_package_vignette.Snw:1103-1159 (eval = FALSE)
+### code chunk number 106: BoolNet_package_vignette.Snw:1105-1161 (eval = FALSE)
 ###################################################
 ## # Perform a robustness test on a network
 ## # by counting the numbers of perturbed networks
@@ -837,7 +839,7 @@ perturbedNet <- perturbNetwork(cellcycle,
 
 
 ###################################################
-### code chunk number 107: BoolNet_package_vignette.Snw:1193-1198 (eval = FALSE)
+### code chunk number 107: BoolNet_package_vignette.Snw:1195-1200 (eval = FALSE)
 ###################################################
 ## data(cellcycle)
 ## res <- testNetworkProperties(cellcycle, 
@@ -847,7 +849,7 @@ perturbedNet <- perturbNetwork(cellcycle,
 
 
 ###################################################
-### code chunk number 108: BoolNet_package_vignette.Snw:1204-1213
+### code chunk number 108: BoolNet_package_vignette.Snw:1206-1215
 ###################################################
 pdf("attractor_robustness.pdf")
 par(mar=c(4,4,2,1))
@@ -861,7 +863,7 @@ dev.off()
 
 
 ###################################################
-### code chunk number 109: BoolNet_package_vignette.Snw:1234-1239 (eval = FALSE)
+### code chunk number 109: BoolNet_package_vignette.Snw:1236-1241 (eval = FALSE)
 ###################################################
 ## testNetworkProperties(cellcycle, 
 ##                       numRandomNets=100,
@@ -871,7 +873,7 @@ dev.off()
 
 
 ###################################################
-### code chunk number 110: BoolNet_package_vignette.Snw:1242-1252
+### code chunk number 110: BoolNet_package_vignette.Snw:1244-1254
 ###################################################
 pdf("transition_robustness.pdf")
 par(mar=c(4,4,2,1))
@@ -886,7 +888,7 @@ dev.off()
 
 
 ###################################################
-### code chunk number 111: BoolNet_package_vignette.Snw:1257-1260 (eval = FALSE)
+### code chunk number 111: BoolNet_package_vignette.Snw:1259-1262 (eval = FALSE)
 ###################################################
 ## testNetworkProperties(cellcycle, 
 ##                       numRandomNets=100, 
@@ -894,7 +896,7 @@ dev.off()
 
 
 ###################################################
-### code chunk number 112: BoolNet_package_vignette.Snw:1262-1269
+### code chunk number 112: BoolNet_package_vignette.Snw:1264-1271
 ###################################################
 pdf("indegree.pdf")
 par(mar=c(4,4,2,1))
@@ -906,7 +908,7 @@ dev.off()
 
 
 ###################################################
-### code chunk number 113: BoolNet_package_vignette.Snw:1286-1290 (eval = FALSE)
+### code chunk number 113: BoolNet_package_vignette.Snw:1288-1292 (eval = FALSE)
 ###################################################
 ## testNetworkProperties(cellcycle, 
 ##                       numRandomNets=100, 
@@ -915,7 +917,7 @@ dev.off()
 
 
 ###################################################
-### code chunk number 114: BoolNet_package_vignette.Snw:1292-1300
+### code chunk number 114: BoolNet_package_vignette.Snw:1294-1302
 ###################################################
 pdf("indegree_kl.pdf")
 par(mar=c(4,4,2,1))
@@ -928,7 +930,7 @@ dev.off()
 
 
 ###################################################
-### code chunk number 115: BoolNet_package_vignette.Snw:1316-1328
+### code chunk number 115: BoolNet_package_vignette.Snw:1318-1330
 ###################################################
 testBasinSizes <- function(network, accumulate=TRUE, params)
 {
@@ -945,7 +947,7 @@ testBasinSizes <- function(network, accumulate=TRUE, params)
 
 
 ###################################################
-### code chunk number 116: BoolNet_package_vignette.Snw:1334-1338 (eval = FALSE)
+### code chunk number 116: BoolNet_package_vignette.Snw:1336-1340 (eval = FALSE)
 ###################################################
 ## testNetworkProperties(cellcycle, 
 ##                       numRandomNets=100,
@@ -954,7 +956,7 @@ testBasinSizes <- function(network, accumulate=TRUE, params)
 
 
 ###################################################
-### code chunk number 117: BoolNet_package_vignette.Snw:1340-1348
+### code chunk number 117: BoolNet_package_vignette.Snw:1342-1350
 ###################################################
 pdf("basinsize.pdf")
 par(mar=c(4,4,2,1))
@@ -967,20 +969,20 @@ dev.off()
 
 
 ###################################################
-### code chunk number 118: BoolNet_package_vignette.Snw:1371-1372 (eval = FALSE)
+### code chunk number 118: BoolNet_package_vignette.Snw:1373-1374 (eval = FALSE)
 ###################################################
 ## saveNetwork(cellcycle, file="cellcycle.txt")
 
 
 ###################################################
-### code chunk number 119: BoolNet_package_vignette.Snw:1377-1379
+### code chunk number 119: BoolNet_package_vignette.Snw:1379-1381
 ###################################################
 net <- generateRandomNKNetwork(n=10, k=3, readableFunctions=FALSE)
 saveNetwork(net, file="randomnet.txt", generateDNF=TRUE)
 
 
 ###################################################
-### code chunk number 120: BoolNet_package_vignette.Snw:1394-1397
+### code chunk number 120: BoolNet_package_vignette.Snw:1396-1399
 ###################################################
 toSBML(cellcycle, file="cellcycle.sbml")
 sbml_cellcycle <- loadSBML("cellcycle.sbml")
@@ -988,37 +990,37 @@ sbml_cellcycle
 
 
 ###################################################
-### code chunk number 121: BoolNet_package_vignette.Snw:1416-1417 (eval = FALSE)
+### code chunk number 121: BoolNet_package_vignette.Snw:1418-1419 (eval = FALSE)
 ###################################################
 ## system.file("doc/example.btp", package="BoolNet")
 
 
 ###################################################
-### code chunk number 122: BoolNet_package_vignette.Snw:1449-1450
+### code chunk number 122: BoolNet_package_vignette.Snw:1451-1452
 ###################################################
 net <- loadBioTapestry(system.file("doc/example.btp", package="BoolNet"))
 
 
 ###################################################
-### code chunk number 123: BoolNet_package_vignette.Snw:1452-1453 (eval = FALSE)
+### code chunk number 123: BoolNet_package_vignette.Snw:1454-1455 (eval = FALSE)
 ###################################################
 ## net <- loadBioTapestry("example.btp")
 
 
 ###################################################
-### code chunk number 124: BoolNet_package_vignette.Snw:1458-1459 (eval = FALSE)
+### code chunk number 124: BoolNet_package_vignette.Snw:1460-1461 (eval = FALSE)
 ###################################################
 ## net
 
 
 ###################################################
-### code chunk number 125: BoolNet_package_vignette.Snw:1482-1483 (eval = FALSE)
+### code chunk number 125: BoolNet_package_vignette.Snw:1484-1485 (eval = FALSE)
 ###################################################
 ## plotNetworkWiring(net)
 
 
 ###################################################
-### code chunk number 126: BoolNet_package_vignette.Snw:1485-1490
+### code chunk number 126: BoolNet_package_vignette.Snw:1487-1492
 ###################################################
 pdf("wiring_biotap.pdf")
 par(mar=c(1,1,1,1))
@@ -1028,7 +1030,7 @@ dev.off()
 
 
 ###################################################
-### code chunk number 127: BoolNet_package_vignette.Snw:1511-1514 (eval = FALSE)
+### code chunk number 127: BoolNet_package_vignette.Snw:1513-1516 (eval = FALSE)
 ###################################################
 ## data(cellcycle)
 ## attr <- getAttractors(cellcycle)
@@ -1036,7 +1038,7 @@ dev.off()
 
 
 ###################################################
-### code chunk number 128: BoolNet_package_vignette.Snw:1518-1519 (eval = FALSE)
+### code chunk number 128: BoolNet_package_vignette.Snw:1520-1521 (eval = FALSE)
 ###################################################
 ## toPajek(attr, file="cellcycle.net", includeLabels=TRUE)
 

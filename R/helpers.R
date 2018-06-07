@@ -10,7 +10,7 @@ bin2dec <- function(bin,len)
 
   dec = rep(0,numElts)
   
-  dec = .C("bin2dec",as.integer(dec),as.integer(bin),as.integer(len))[[1]]
+  dec = .C("bin2decC",as.integer(dec),as.integer(bin),as.integer(len))[[1]]
 }
 
 # Decode the <len> low-order bits of <dec> to a vector of binary values,
@@ -19,7 +19,7 @@ dec2bin <- function(dec,len)
 {
   bin = rep(0,len)
   
-  bin = .C("dec2bin",as.integer(bin),as.integer(dec),as.integer(len),NAOK=TRUE)[[1]]
+  bin = .C("dec2binC",as.integer(bin),as.integer(dec),as.integer(len),NAOK=TRUE)[[1]]
 }
 
 # Generate a list of all assignments of n variables with N possible values
@@ -339,7 +339,7 @@ adjustGeneNames <- function(geneNames)
 # Check whether the internal C pointer <ptr> is null
 checkNullPointer <- function(ptr)
 {
-  return(.Call("checkNullPointer",ptr))
+  return(.Call("checkNullPointerC",ptr))
 }
 
 # Print a synchronous attractor specified by a data frame <attractor>
