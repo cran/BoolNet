@@ -1,6 +1,12 @@
 \name{NEWS}
 \title{NEWS file for the \pkg{BoolNet} package}
 
+
+\section{Changes in version 2.1.5}{
+\itemize{
+\item{Fixed vignette compilation errors on Solaris 10.}
+}
+}
 \section{Changes in version 2.1.4}{
 \itemize{
 \item{\code{getAttractors()} now allows for plotting all attractors inside one plot. Fixed minor bugs.}

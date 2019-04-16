@@ -46,7 +46,7 @@ chooseNetwork <- function(probabilisticNetwork,functionIndices,dontCareValues=NU
                            " value(s) for \"don't care\" entries in the function for gene \"",
                            gene,"\"!",sep=""))
 
-              func[[dcPos]] <- dontCareValues[[gene]]
+              func[dcPos] <- dontCareValues[[gene]]
               expression <- getInteractionString(readableFunctions,
                                                  func,
                                                  probabilisticNetwork$genes[interaction[[index]]$input])

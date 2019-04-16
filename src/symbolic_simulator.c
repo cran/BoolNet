@@ -885,8 +885,8 @@ SEXP symbolicSATSearch_R(SEXP network, SEXP maxAttractorSize,
 		el = el->next;
 	}
 	SETCADDR(retSXP, attractorListSXP);
-	UNPROTECT(2);
-	PutRNGstate();
+    PutRNGstate();
+    UNPROTECT(2);
 	return (retSXP);
 }
 

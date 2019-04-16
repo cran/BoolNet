@@ -3,7 +3,7 @@
 \SweaveOpts{keep.source=TRUE}
 %\VignetteIndexEntry{Detailed introduction to all major features of BoolNet}
 
-\usepackage{a4wide}
+%\usepackage{a4wide}
 
 \usepackage{graphicx}
 \usepackage{amsmath}
@@ -294,9 +294,12 @@ If you would like to obtain a \texttt{BooleanNetwork} object with only one funct
 <<>>=
 net <- reconstructNetwork(binSeries$binarizedMeasurements, 
 method="bestfit", maxK=4)
-singleNet <- chooseNetwork(net, c(1,2,3,2))
+functionIndices <- c(1,2,3,2) #select function index for each regulatory component
+dontCareDefaults <- lapply(seq_along(net$interactions), function(idx) rep(F, sum(net$interactions[[idx]][[functionIndices[idx]]]$func == -1))) #determine number of don't care values for each selected function and set them to 0
+names(dontCareDefaults) <- net$genes
+singleNet <- chooseNetwork(net, functionIndices, dontCareValues = dontCareDefaults)
 @
-The result is a Boolean network that is created by extracting the first function of gene Fkh2, the second function of genes Swi5 and Clb1, and the third function of gene Sic1 from the above probabilistic network:
+In case of don't care values in reconstructed functions, it is possible to set them to 0 or 1 per default. The result is a Boolean network that is created by extracting the first function of gene Fkh2, the second function of genes Swi5 and Clb1, and the third function of gene Sic1 from the above probabilistic network:
 <<>>=
 singleNet
 @
@@ -496,12 +499,10 @@ A sequence can be visualized by plotting a table of state changes:
 <<echo=FALSE,results=hide>>=
 pdf("sequence.pdf")
 par(mar = c(1, 4, 2, 1))
-path <- getPathToAttractor(cellcycle, rep(0,10))
 plotSequence(sequence=path)
 dev.off()
 @
 <<eval=FALSE>>=
-path <- getPathToAttractor(cellcycle, rep(0,10))
 plotSequence(sequence=path)
 @
 
@@ -562,7 +563,7 @@ specifies that the first two states ($t=-2, t=-1$) should have all genes inactiv
 
 <<echo=FALSE,results=hide>>=
 pdf("sequence_igf.pdf")
-par(mar = c(1, 9, 2, 1))
+par(mar = c(1, 4, 2, 1))
 plotSequence(network=igf, startState=startState)
 dev.off()
 @
@@ -626,7 +627,7 @@ Attractors are stable cycles of states in a Boolean network. As they comprise th
 
 The \texttt{getAttractors()} function incorporates several methods for the identification of attractors in synchronous and asynchronous networks. We present these methods using the included mammalian cell cycle network as an example. This network has one steady-state attractor, one simple synchronous attractor consisting of 7 states, and one complex asynchronous attractor with 112 states (see \cite{faure06}).
 
-We first demonstrate the use of exhaustive synchronous state space search. This means that the software starts from all possible states of the network and performs synchronous state transitions until a simple or steady-state attractor is reached. 
+We first demonstrate the use of exhaustive synchronous search. This means that the software starts from all possible states of the network and performs synchronous state transitions until a simple or steady-state attractor is reached. 
 
 \pagebreak[4]
 <<eval=FALSE>>=
@@ -662,30 +663,7 @@ getAttractorSequence(attr, 2)
 @
 retrieves the states that make up the second (i.e., the 7-state attractor) as a data frame with the genes in the columns and the successive states in the rows.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.65\linewidth]{attractor1}
-\caption{Visualization of the state changes in an attractor. The columns of the table represent consecutive states of the attractor. On top, the percentage of states leading to the attractor is supplied.}
-\label{fig:attractor1}
-\end{figure}
-
-Synchronous attractors can also be visualized by plotting a table of changes of gene values in the states of the attractor: 
-<<eval=FALSE>>=
-plotAttractors(attr, subset=2)
-@
-<<echo=FALSE,results=hide>>=
-pdf("attractor1.pdf")
-par(mar=c(1,5,1,1))
-plotAttractors(attr, subset=2)
-dev.off()
-@
-plots the state changes of the simple attractor with 7 states, as depicted in Figure~\ref{fig:attractor1}. Similarly,
-<<eval=FALSE>>=
-attractorsToLaTeX(attr, subset=2, file="attractors.tex")
-@
-exports the same state table to a \LaTeX\ document.
-
-The advantage of the exhaustive search method is that apart from the attractors themselves, the complete transition table is calculated and stored in the return value. This table comprises information that is used by a number of analysis methods described below.
+The advantage of the exhaustive search method is that the complete transition table is calculated and stored in the return value. This table stores information that is used by a number of analysis methods described below.
 
 You can extract the transition table in a data frame and print it out using
 <<eval=FALSE>>=
@@ -757,59 +735,49 @@ is depicted at the bottom of Figure~\ref{fig:stategraph}.
 \label{fig:stategraph}
 \end{figure}
 
-Exhaustive search consumes a high amount of time and memory with increasing size of the network, which makes it intractable for large networks (\texttt{BoolNet} currently supports networks with up to 29 genes for exhaustive state space search). Therefore, \texttt{BoolNet} also allows for other search techniques that can handle larger networks. Depending on the requirements, the following options are available:
-\begin{description}
-  \item[Heuristic state space search] basically uses the same technique as exhaustive attractor search, but only uses a subset of states as initial states instead of the full state space. It then identifies the attractors to which state transitions from these states lead. The start states can either be supplied, or they can be calculated randomly.
-  \item[Exhaustive SAT-based search] exhaustively identifies all possible
-  attractors of a network based on a formulation of attractor search as a
-  satisfiability (SAT) problem and then applies the PicoSAT solver
-  \cite{biere08} to the problem. The algorithm is an adaption of that of Dubrova and Teslenko \cite{dubrova11}. Unlike exhaustive state space search, this method only returns the attractors, but not the state transition table/graph. Depending on the network structure, it can be applied to networks comprising several hundreds of genes.
-  \item[Restricted SAT-based search] uses another formulation as a satisfiability problem and only identifies attractors of a predefined maximum cycle length. It is exhaustive with regard to attractors of at most this size, but will never return any attractors that comprise more than the predefined number of states. Like the exhaustive SAT-based search, this method does not return a transition table.
-\end{description}
-The following shows the application of the above methods exemplarily.
 
-A heuristic state space search from randomly chosen start states in the mammalian cell cycle network can be started via
-<<>>=
+Exhaustive search consumes a high amount of time and memory with increasing size of the network, which makes it intractable for large networks (\texttt{BoolNet} currently supports networks with up to 29 genes for exhaustive search due to memory restrictions in {\em R}). Therefore, \texttt{BoolNet} also allows for heuristic search of attractors, which works for larger networks as well. Heuristic synchronous search starts from a predefined small set of states and identifies the attractors to which state transitions from these states lead. The start states can either be supplied, or they can be calculated randomly.
+
+<<eval=FALSE>>=
 attr <- getAttractors(cellcycle, method="random", startStates=100)
 @
-This chooses 100 random start states for the heuristic search and usually identifies both attractors.
+chooses 100 random start states for the heuristic search and usually identifies both attractors. 
 
-<<>>=
+<<eval=FALSE>>=
 attr <- getAttractors(cellcycle, 
                       method="chosen", 
                       startStates=list(rep(0,10),rep(1,10)))
 @
 starts from the states \texttt{(0,0,0,0,0,0,0,0,0,0)} and \texttt{(1,1,1,1,1,1,1,1,1,1)} and again identifies both synchronous attractors.
- 
+
 \begin{sloppypar}
-For the above calls, only the subset of the transition table traversed by the heuristic search is returned. This means that there is no guarantee that, e.g. \texttt{getBasinOfAttraction()} returns the complete basin of attraction of an attractor in heuristic mode.
+For the previous calls, only the subset of the transition table traversed by the heuristic is returned. This means that there is no guarantee that, e.g. \texttt{getBasinOfAttraction()} returns the complete basin of attraction of an attractor in heuristic mode.
 \end{sloppypar}
 
-An exhaustive SAT-based search can be started using 
-<<>>=
-attr <- getAttractors(cellcycle, 
-                      method="sat.exhaustive")
-@
-This will again return all attractors, but no transition table. 
-
-If you are only interested in a subset of attractors that have a predefined length, the restricted SAT-based search can be applied. For example,
-<<>>=
-attr <- getAttractors(cellcycle, 
-                      method="sat.restricted",
-                      maxAttractorLength=1)
-@
-restricts the attractor search to steady states. Correspondingly, only the first attractor of the network is returned:
+Synchronous attractors can be visualized by plotting a table of changes of gene values in the states of the attractor: 
 <<eval=FALSE>>=
-attr
+plotAttractors(attr, subset=2)
 @
-\begin{lstlisting}[linewidth=.9\linewidth]
-<<echo=FALSE,results=tex>>=
-attr
+<<echo=FALSE,results=hide>>=
+pdf("attractor1.pdf")
+par(mar=c(1,5,1,1))
+plotAttractors(attr, subset=2)
+dev.off()
 @
-\end{lstlisting}
+plots the state changes of the simple attractor with 7 states, as depicted in Figure~\ref{fig:attractor1}. Similarly,
+<<eval=FALSE>>=
+attractorsToLaTeX(attr, subset=2, file="attractors.tex")
+@
+exports the same state table to a \LaTeX\ document.
 
-\texttt{BoolNet} can also identify attractors in asynchronous Boolean network.
-For this purpose, another special heuristic algorithm is included. This algorithm starts from a small subset of states and makes a number of random transitions to reach an attractor with a high probability. After that, a validation step is performed to analyze whether a complex attractor has been identified.
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.65\linewidth]{attractor1}
+\caption{Visualization of the state changes in an attractor. The columns of the table represent consecutive states of the attractor. On top, the percentage of states leading to the attractor is supplied.}
+\label{fig:attractor1}
+\end{figure}
+
+To identify asynchronous attractors, another special heuristic algorithm is included. This algorithm again starts from a small subset of states and makes a number of random transitions to reach an attractor with a high probability. After that, a validation step is performed to analyze whether a complex attractor has been identified.
 
 The command
 <<results=hide>>=
@@ -933,9 +901,7 @@ The two plots are shown in Figure~\ref{fig:temporal_plots}.
 \label{fig:temporal_plots}
 \end{figure}
 
-For temporal networks, it is often infeasible to perform an exhaustive state-space simulation, as the search space is not only exponential in the number of genes, but also in the time delays. There are two options to deal with this:
-
-First, the search can be restricted to randomly generated or prespecified start states similarly to \texttt{getAttractors()}. If time delays of more than 1 are included in the network, not only single start states are generated, but the required history of states is generated as well. For example,
+For temporal networks, it is often infeasible to perform an exhaustive search, as the search space is not only exponential in the number of genes, but also in the time delays. Hence, the search can also be restricted to randomly generated or prespecified start states similarly to \texttt{getAttractors()}. If time delays of more than 1 are included in the network, not only single start states are generated, but the required history of states is generated as well. For example,
 <<echo=FALSE>>=
 set.seed(43851)
 @
@@ -947,17 +913,6 @@ generates two start state matrices, each comprising 3 states (the maximum delay 
 sim$sequences
 @
 Both sequences comprise start states $t=-2$, $t=-1$ and $t=0$.
-
-The second option is to use a SAT-based attractor search similar to that in \texttt{getAttractors()}. Here, only the attractors are identified, but no state sequences and no state transition graph are returned. 
-<<>>=
-sim <- simulateSymbolicModel(igf, method="sat.exhaustive")
-@
-identifies all attractors in the network in an exhaustive manner. Alternatively, one can only search for attractors of a specific maximum length:
-<<>>=
-sim <- simulateSymbolicModel(igf, method="sat.restricted", maxAttractorLength=1)
-@
-will only return the steady-state attractor representing pathway inactivity, but not the 14-state attractor.
-Please note that this length-restricted search cannot be applied to temporal networks comprising the time-dependent predicates \texttt{timeis},\texttt{timelt} or \texttt{timegt}.
 
 \begin{sloppypar}
 Classical synchronous Boolean networks can also be simulated using the symbolic simulator \texttt{simulateSymbolicModel()} if they are in a symbolic form. However, in most cases, \texttt{getAttractors()} will be faster and will consume less memory for synchronous networks without temporal elements. Only if the number of inputs to genes is very high and exhaustive simulation is not required, it may be advisable to use the symbolic simulator.
@@ -1054,8 +1009,6 @@ r <- perturbTrajectories(cellcycle,
                          numSamples=100, 
                          flipBits=1, 
                          gene="CycE")
-@
-<<>>=
 r$value
 @
 measures the average sensitivity of the transition function for gene CycE.

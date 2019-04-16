@@ -44,8 +44,7 @@ SEXP getAttractors_R(SEXP inputGenes, SEXP inputGenePositions,
 	GetRNGstate();
 
 	// decode information in SEXP for use in C
-
-	TruthTableBooleanNetwork network;
+    TruthTableBooleanNetwork network;
 	network.type = TRUTHTABLE_BOOLEAN_NETWORK;
 	network.numGenes = length(fixedGenes);
 
@@ -146,21 +145,23 @@ SEXP getAttractors_R(SEXP inputGenes, SEXP inputGenePositions,
 					_avoidSelfLoops, _probabilities);
 		}
 	}
-
-	// pack results in SEXP structure for return value
-	SEXP resSXP;
-	SEXP stateInfoSXP;
-	int* array;
-
-	// create a result list with two elements (attractors and transition table)
-	PROTECT(resSXP = allocList(2));
-	SET_TAG(resSXP, install("stateInfo"));
-	SET_TAG(CDR(resSXP), install("attractors"));
-
+    
+    // pack results in SEXP structure for return value
+    
+    SEXP stateInfoSXP;
+    if (res->tableSize != 0 && _returnTable)
+        stateInfoSXP = allocList(4);
+    else
+        stateInfoSXP = R_NilValue;
+    
+    PROTECT(stateInfoSXP); //1
+    
+    int* array;
+	
 	if (res->tableSize != 0 && _returnTable)
 	{
 		// create a 3-element list for the transition table
-		PROTECT(stateInfoSXP = allocList(4));
+		//PROTECT(stateInfoSXP = allocList(4));
 		SET_TAG(stateInfoSXP, install("table"));
 		SET_TAG(CDR(stateInfoSXP), install("attractorAssignment"));
 		SET_TAG(CDR(CDR(stateInfoSXP)), install("stepsToAttractor"));
@@ -169,7 +170,7 @@ SEXP getAttractors_R(SEXP inputGenes, SEXP inputGenePositions,
 		// write transition table result column
 		SEXP tableSXP;
 		PROTECT(
-				tableSXP = allocVector(INTSXP,res->tableSize * res->numElementsPerEntry));
+				tableSXP = allocVector(INTSXP,res->tableSize * res->numElementsPerEntry)); //2
 		array = INTEGER(tableSXP);
 		for (i = 0; i < res->tableSize; ++i)
 		{
@@ -181,34 +182,34 @@ SEXP getAttractors_R(SEXP inputGenes, SEXP inputGenePositions,
 					res->numElementsPerEntry * sizeof(unsigned int));
 		}
 		SETCAR(stateInfoSXP, tableSXP);
-		UNPROTECT(1);
+		UNPROTECT(1); //tableSXP 1
 
 		// write attractor assignment vector for states in transition table
 		SEXP assignmentSXP;
-		PROTECT(assignmentSXP = allocVector(INTSXP,res->tableSize));
+		PROTECT(assignmentSXP = allocVector(INTSXP,res->tableSize)); //2
 		array = INTEGER(assignmentSXP);
 		memcpy(array, res->attractorAssignment, res->tableSize * sizeof(int));
 		SETCADR(stateInfoSXP, assignmentSXP);
-		UNPROTECT(1);
+		UNPROTECT(1); //assignmentSXP 1
 
 		// write a vector with number of transitions from a state to an attractor
 		SEXP stepSXP;
-		PROTECT(stepSXP = allocVector(INTSXP,res->tableSize));
+		PROTECT(stepSXP = allocVector(INTSXP,res->tableSize)); //2
 		array = INTEGER(stepSXP);
 		memcpy(array, res->stepsToAttractor, res->tableSize * sizeof(int));
 		SETCADDR(stateInfoSXP, stepSXP);
-		UNPROTECT(1);
+		UNPROTECT(1); //stepSXP 1
 
 		// if available, write the original states
 		SEXP initialStateSXP;
 		if (res->initialStates == 0)
-			initialStateSXP = R_NilValue;
+			PROTECT(initialStateSXP = R_NilValue); //2
 		else
 		// if start states are specified, the initial states for each transition have to be saved as well,
 		// as they cannot be inferred by enumeration
 		{
 			PROTECT(
-					initialStateSXP = allocVector(INTSXP,res->tableSize * res->numElementsPerEntry));
+					initialStateSXP = allocVector(INTSXP,res->tableSize * res->numElementsPerEntry)); //2
 			array = INTEGER(initialStateSXP);
 			for (i = 0; i < res->tableSize; ++i)
 			{
@@ -220,119 +221,115 @@ SEXP getAttractors_R(SEXP inputGenes, SEXP inputGenePositions,
 						&res->initialStates[i * res->numElementsPerEntry],
 						res->numElementsPerEntry * sizeof(unsigned int));
 			}
-			SETCADDDR(stateInfoSXP, initialStateSXP);
-			UNPROTECT(1);
+			
 		}
+        SETCADDDR(stateInfoSXP, initialStateSXP);
+        UNPROTECT(1); //initialStateSXP 1
 	}
-	else
-	{
-		stateInfoSXP = R_NilValue;
-	}
+    
+   
+    // count attractors
+    unsigned int numAttractors = 0;
+    pAttractor el;
 
-	// assign to result list
-	SETCAR(resSXP, stateInfoSXP);
+    for (el = res->attractorList; el->next != NULL; el = el->next)
+        ++numAttractors;
 
-	if (res->tableSize != 0 && _returnTable)
-		UNPROTECT(1);
+    // write attractors
+    SEXP attractorsSXP;
+    PROTECT(attractorsSXP = allocList(numAttractors)); //2
+    SEXP listPos = attractorsSXP;
+    for (el = res->attractorList, i = 0; el->next != NULL; el = el->next, ++i)
+    {
+        SEXP attractorSXP;
+        // each attractor is a 2-element list with a list of states included
+        // in the attractor and the size of the basin
+        if (el->transitionTableSize == 0)
+            attractorSXP = allocList(2);
+        else
+            attractorSXP = allocList(4);
 
-	// count attractors
-	unsigned int numAttractors = 0;
-	pAttractor el;
+        PROTECT(attractorSXP); //3
+        SET_TAG(attractorSXP, install("involvedStates"));
+        SET_TAG(CDR(attractorSXP), install("basinSize"));
 
-	for (el = res->attractorList; el->next != NULL; el = el->next)
-		++numAttractors;
+        if (el->transitionTableSize != 0)
+        {
+            SET_TAG(CDR(CDR(attractorSXP)), install("initialStates"));
+            SET_TAG(CDR(CDR(CDR(attractorSXP))), install("nextStates"));
+        }
 
-	// write attractors
-	SEXP attractorsSXP;
-	PROTECT(attractorsSXP = allocList(numAttractors));
-	SEXP listPos = attractorsSXP;
-	for (el = res->attractorList, i = 0; el->next != NULL; el = el->next, ++i)
-	{
-		SEXP attractorSXP;
-		// each attractor is a 2-element list with a list of states included
-		// in the attractor and the size of the basin
-		if (el->transitionTableSize == 0)
-			PROTECT(attractorSXP = allocList(2));
-		else
-			PROTECT(attractorSXP = allocList(4));
-		SET_TAG(attractorSXP, install("involvedStates"));
-		SET_TAG(CDR(attractorSXP), install("basinSize"));
+        SEXP stateSXP;
+        PROTECT(stateSXP = allocVector(INTSXP,el->length * el->numElementsPerEntry)); //4
+        array = INTEGER(stateSXP);
+        for (i = 0; i < el->length; ++i)
+        {
+            if (_networkType == SYNC_MODE_STATE_SPACE)
+                // insert fixed gene values, as they are missing in the calculated results
+                insertFixedGenes(
+                        &el->involvedStates[i * el->numElementsPerEntry],
+                        network.fixedGenes, network.numGenes);
 
-		if (el->transitionTableSize != 0)
-		{
-			SET_TAG(CDR(CDR(attractorSXP)), install("initialStates"));
-			SET_TAG(CDR(CDR(CDR(attractorSXP))), install("nextStates"));
-		}
+            memcpy(&array[i * el->numElementsPerEntry],
+                    &el->involvedStates[i * el->numElementsPerEntry],
+                    el->numElementsPerEntry * sizeof(unsigned int));
 
-		SEXP stateSXP;
-		PROTECT(
-				stateSXP = allocVector(INTSXP,el->length * el->numElementsPerEntry));
-		array = INTEGER(stateSXP);
-		for (i = 0; i < el->length; ++i)
-		{
-			if (_networkType == SYNC_MODE_STATE_SPACE)
-				// insert fixed gene values, as they are missing in the calculated results
-				insertFixedGenes(
-						&el->involvedStates[i * el->numElementsPerEntry],
-						network.fixedGenes, network.numGenes);
+        }
+        SETCAR(attractorSXP, stateSXP);
 
-			memcpy(&array[i * el->numElementsPerEntry],
-					&el->involvedStates[i * el->numElementsPerEntry],
-					el->numElementsPerEntry * sizeof(unsigned int));
+        // write basin size
+        SEXP basinSXP;
+        PROTECT(basinSXP = allocVector(INTSXP,1)); //5
+        array = INTEGER(basinSXP);
+        array[0] = el->basinSize;
+        SETCADR(attractorSXP, basinSXP);
+        SETCAR(listPos, attractorSXP);
+        if (el->next != NULL)
+            listPos = CDR(listPos);
 
-		}
-		SETCAR(attractorSXP, stateSXP);
+        if (el->transitionTableSize != 0)
+        {
+            SEXP attrInitialStateSXP;
+            SEXP attrNextStateSXP;
+            PROTECT(attrInitialStateSXP = allocVector(INTSXP,el->numElementsPerEntry * el->transitionTableSize)); //6
+            PROTECT(attrNextStateSXP = allocVector(INTSXP,el->numElementsPerEntry * el->transitionTableSize)); //7
+            unsigned int * initial = (unsigned int*) INTEGER(
+                    attrInitialStateSXP);
+            unsigned int * next = (unsigned int*) INTEGER(attrNextStateSXP);
 
-		// write basin size
-		SEXP basinSXP;
-		PROTECT(basinSXP = allocVector(INTSXP,1));
-		array = INTEGER(basinSXP);
-		array[0] = el->basinSize;
-		SETCADR(attractorSXP, basinSXP);
-		SETCAR(listPos, attractorSXP);
-		if (el->next != NULL)
-			listPos = CDR(listPos);
+            TransitionTableEntry * currentState = el->table;
+            for (i = 0; i < el->transitionTableSize; ++i)
+            {
+                memcpy(&initial[i * el->numElementsPerEntry],
+                        currentState->initialState,
+                        sizeof(unsigned int) * el->numElementsPerEntry);
+                memcpy(&next[i * el->numElementsPerEntry],
+                        currentState->nextState,
+                        sizeof(unsigned int) * el->numElementsPerEntry);
+                currentState = currentState->next;
+            }
+            SETCADDR(attractorSXP, attrInitialStateSXP);
+            SETCADDDR(attractorSXP, attrNextStateSXP);
+            UNPROTECT(2); //attrInitialStateSXP,attrNextStateSXP 5
+        }
 
-		if (el->transitionTableSize != 0)
-		{
-			SEXP attrInitialStateSXP;
-			SEXP attrNextStateSXP;
-			PROTECT(
-					attrInitialStateSXP = allocVector(INTSXP,el->numElementsPerEntry * el->transitionTableSize));
-			PROTECT(
-					attrNextStateSXP = allocVector(INTSXP,el->numElementsPerEntry * el->transitionTableSize));
-			unsigned int * initial = (unsigned int*) INTEGER(
-					attrInitialStateSXP);
-			unsigned int * next = (unsigned int*) INTEGER(attrNextStateSXP);
+        UNPROTECT(3); //basinSXP,stateSXP,attractorSXP //2
+    }
 
-			TransitionTableEntry * currentState = el->table;
-			for (i = 0; i < el->transitionTableSize; ++i)
-			{
-				memcpy(&initial[i * el->numElementsPerEntry],
-						currentState->initialState,
-						sizeof(unsigned int) * el->numElementsPerEntry);
-				memcpy(&next[i * el->numElementsPerEntry],
-						currentState->nextState,
-						sizeof(unsigned int) * el->numElementsPerEntry);
-				currentState = currentState->next;
-			}
-			SETCADDR(attractorSXP, attrInitialStateSXP);
-			SETCADDDR(attractorSXP, attrNextStateSXP);
-			UNPROTECT(2);
-		}
-
-		UNPROTECT(3);
-	}
-	UNPROTECT(1);
+    SEXP resSXP;
+    
+    // create a result list with two elements (attractors and transition table)
+    PROTECT(resSXP = allocList(2)); //3
+    SET_TAG(resSXP, install("stateInfo"));
+    SET_TAG(CDR(resSXP), install("attractors"));
 	SETCADR(resSXP, attractorsSXP);
+    SETCAR(resSXP, stateInfoSXP);
 
-	PutRNGstate();
-	UNPROTECT(1);
-
-	// free resources
+    PutRNGstate();
+	UNPROTECT(3);
+    // free resources
 	freeAttractorInfo(res);
-
-	FREE(network.nonFixedGeneBits);
-
+    FREE(network.nonFixedGeneBits);
+    
 	return (resSXP);
 }
