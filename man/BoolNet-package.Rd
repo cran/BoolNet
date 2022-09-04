@@ -55,19 +55,6 @@ S. A. Kauffman (1993), The Origins of Order. Oxford University Press.
 
 Further references are listed in the corresponding help sections.
 }
-\keyword{package 
-	Boolean network
-	probabilistic Boolean network
-	PBN
-	attractor
-	cycle
-	basin
-	transition
-	Markov chain simulation
-	state
-	graph
-	reconstruction}
-
 \examples{
 ##################################
 # Example 1: identify attractors #

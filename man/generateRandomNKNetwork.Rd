@@ -97,6 +97,7 @@ M. Aldana and S. Coppersmith and L. P. Kadanoff (2003), Boolean dynamics with ra
 \code{\link{perturbNetwork}},\code{\link{loadNetwork}}, \code{\link{simplifyNetwork}}, \code{\link{fixGenes}}
 }
 \examples{
+\dontrun{
 # generate different random networks
 net1 <- generateRandomNKNetwork(n=10, k=10, 
                                 topology="scale_free", 
@@ -124,8 +125,4 @@ print(getAttractors(net1))
 print(getAttractors(net2))
 print(getAttractors(net3))
 }
-\keyword{LaTeX
-	Boolean network
-	attractor
-	cycle
-	random network}
+}

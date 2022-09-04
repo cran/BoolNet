@@ -119,6 +119,7 @@ If \code{mode="graph"}, an object of class \code{igraph} describing the graph fo
 \code{\link{sequenceToLaTeX}}, \code{\link{plotAttractors}}, \code{\link{attractorsToLaTeX}}, \code{\link{getPathToAttractor}}, \code{\link{getAttractorSequence}}, \code{\link{simulateSymbolicModel}}
 }
 \examples{
+\dontrun{
 # load example data
 data(cellcycle)
 
@@ -137,8 +138,4 @@ sequence <- getPathToAttractor(cellcycle,
 plotSequence(sequence=sequence, 
              mode="graph")
 }
-\keyword{Boolean network
-         state
-         path
-         sequence
-         plot}
+}

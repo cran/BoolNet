@@ -165,8 +165,10 @@ If \code{symbolic=TRUE}, a structure of class \code{SymbolicBooleanNetwork} that
 \code{\link{getAttractors}}, \code{\link{simulateSymbolicModel}}, \code{\link{markovSimulation}}, \code{\link{stateTransition}}, \code{\link{fixGenes}}, \code{\link{loadSBML}}, \code{\link{loadBioTapestry}}
 }
 \examples{
+\dontrun{
 # write example network to file
-sink("testNet.bn")
+fil <- tempfile(pattern = "testNet")
+sink(fil)
 cat("targets, factors\n")
 cat("Gene1, !Gene2 | !Gene3\n")
 cat("Gene2, Gene3 & Gene4\n")
@@ -175,12 +177,7 @@ cat("Gene4, 1\n")
 sink()
 
 # read file
-net <- loadNetwork("testNet.bn")
+net <- loadNetwork(fil)
 print(net)
 }
-\keyword{Boolean network
-  probabilistic Boolean network
-  PBN
-	file
-	logic
-	parse}
+}

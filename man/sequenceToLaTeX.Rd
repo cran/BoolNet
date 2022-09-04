@@ -87,6 +87,7 @@ Returns a matrix corresponding to the table. The matrix has the genes in the row
 \code{\link{attractorsToLaTeX}}, \code{\link{plotSequence}}, \code{\link{plotAttractors}}, \code{\link{getPathToAttractor}}, \code{\link{getAttractorSequence}}.
 }
 \examples{
+\dontrun{
 # load example data
 data(cellcycle)
 
@@ -105,10 +106,4 @@ sequence <- getPathToAttractor(cellcycle,
 sequenceToLaTeX(sequence=sequence, 
                 file="sequence.txt")
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{Boolean network
-         state
-         path
-         sequence
-         LaTeX}
+}

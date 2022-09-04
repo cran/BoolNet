@@ -161,6 +161,7 @@ A. Biere (2008), PicoSAT Essentials. Journal on Satisfiability, Boolean Modeling
 \code{\link{loadNetwork}}, \code{\link{generateRandomNKNetwork}}, \code{\link{simulateSymbolicModel}}, \code{\link{plotAttractors}}, \code{\link{attractorsToLaTeX}}, \code{\link{getTransitionTable}}, \code{\link{getBasinOfAttraction}}, \code{\link{getAttractorSequence}}, \code{\link{getStateSummary}}, \code{\link{getPathToAttractor}}, \code{\link{fixGenes}}, \code{\link{generateState}}
 }
 \examples{
+\dontrun{
 # load example data
 data(cellcycle)
 
@@ -190,12 +191,4 @@ plotAttractors(attractors)
 attractors <- getAttractors(cellcycle, type="asynchronous", startStates=100)
 plotAttractors(attractors, mode="graph")
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{Boolean network
-  synchronous update
-  asynchronous update
-  symbolic Boolean network
-	attractor
-	cycle
-	basin}
+}

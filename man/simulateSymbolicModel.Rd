@@ -99,6 +99,7 @@ A. Biere (2008), PicoSAT Essentials. Journal on Satisfiability, Boolean Modeling
 }
 
 \examples{
+\dontrun{
 data(igf)
 
 # exhaustive state space simulation
@@ -109,7 +110,4 @@ plotAttractors(sim)
 sim <- simulateSymbolicModel(igf, method="sat.exhaustive")
 plotAttractors(sim)
 }
-
-\keyword{simulation
-symbolic Boolean network
-temporal predicates}
+}

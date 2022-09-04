@@ -31,8 +31,3 @@ Invisibly returns the printed object
 \seealso{
 \code{\link{print}}, \code{\link{reconstructNetwork}}, \code{\link{loadNetwork}}
 }
-\keyword{network
-	Boolean network
-	probabilistic Boolean network
-	PBN
-	print}

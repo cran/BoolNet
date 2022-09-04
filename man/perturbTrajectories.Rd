@@ -62,6 +62,7 @@ I. Shmulevich and S. A. Kauffman (2004), Activities and Sensitivities in Boolean
 \code{\link{testNetworkProperties}}, \code{\link{perturbNetwork}}
 }
 \examples{
+\dontrun{
 data(cellcycle)
 
 # calculate average normalized Hamming distance of successor states
@@ -76,11 +77,4 @@ print(sensitivity$value)
 attrEqual <- perturbTrajectories(cellcycle, measure="attractor", numSamples=100)
 print(attrEqual$value)
 }
-\keyword{Boolean network
-         probabilistic Boolean network,
-         PBN,
-         perturbation
-         perturb
-         trajectory
-         noise
-         robustness}
+}

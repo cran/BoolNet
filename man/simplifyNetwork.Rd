@@ -34,6 +34,7 @@ The simplified network of class \code{BooleanNetwork}, \code{ProbabilisticBoolea
 \code{\link{loadNetwork}},\code{\link{generateRandomNKNetwork}}, \code{\link{perturbNetwork}}, \code{\link{reconstructNetwork}}, \code{\link{fixGenes}}
 }
 \examples{
+\dontrun{
 # load example data
 data(cellcycle)
 
@@ -45,9 +46,4 @@ print(perturbedNet$interactions)
 perturbedNet <- simplifyNetwork(perturbedNet)
 print(perturbedNet$interactions)
 }
-\keyword{Boolean network
-  probabilistic Boolean network
-  PBN
-	logic
-	simplify
-	simplification}
+}

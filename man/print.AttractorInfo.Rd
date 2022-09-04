@@ -33,5 +33,3 @@ Invisibly returns the printed object
 \seealso{
 \code{\link{print}}, \code{\link{getAttractors}}
 }
-\keyword{attractor
-	print}

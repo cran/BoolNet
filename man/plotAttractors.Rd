@@ -102,6 +102,7 @@ If \code{mode="graph"}, a list of objects of class \code{igraph} is returned. Ea
 \code{\link{getAttractors}}, \code{\link{simulateSymbolicModel}}, \code{\link{attractorsToLaTeX}}, \code{\link{plotSequence}}, \code{\link{sequenceToLaTeX}}
 }
 \examples{
+\dontrun{
 # load example data
 data(cellcycle)
 
@@ -128,14 +129,4 @@ attractors <- getAttractors(cellcycle, type="asynchronous")
 par(mfrow=c(1, length(attractors$attractors)))
 plotAttractors(attractors, mode="graph")
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{
-	Boolean network
-	attractor
-	cycle
-	basin
-	transition
-	state
-	graph
-	plot}
+}

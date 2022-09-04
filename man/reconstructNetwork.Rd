@@ -70,6 +70,7 @@ S. Liang, S. Fuhrman and R. Somogyi (1998), REVEAL, a general reverse engineerin
 \code{\link{generateTimeSeries}}, \code{\link{binarizeTimeSeries}}, \code{\link{chooseNetwork}}
 }
 \examples{
+\dontrun{
 # load example data
 data(yeastTimeSeries)
 
@@ -85,9 +86,4 @@ print(net)
 # plot reconstructed net
 plotNetworkWiring(net)
 }
-
-\keyword{probabilistic Boolean network
-  PBN
-	reconstruction
-	REVEAL
-	best-fit extension}
+}

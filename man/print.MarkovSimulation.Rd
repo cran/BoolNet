@@ -34,8 +34,3 @@ Invisibly returns the printed object
 \seealso{
 \code{\link{print}}, \code{\link{markovSimulation}}
 }
-
-\keyword{print
-        Markov chain simulation
-        probabilistic Boolean network
-        PBN}% __ONLY ONE__ keyword per line

@@ -158,6 +158,7 @@ The function returns a list with the following elements
 \code{\link{generateRandomNKNetwork}}, \code{\link{perturbNetwork}}, \code{\link{perturbTrajectories}}, \code{\link{plotStateGraph}}, \code{\link{getAttractors}}
 }
 \examples{
+\dontrun{
 # load mammalian cell cycle network
 data(cellcycle)
 
@@ -192,7 +193,4 @@ if (interactive())
                         alternative="less")
 }                     
 }
-
-\keyword{robustness analysis
-         perturbation
-         in-degree}
+}

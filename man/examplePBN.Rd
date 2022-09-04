@@ -21,6 +21,3 @@ data(examplePBN)
 # the network is stored in a variable called 'examplePBN'
 print(examplePBN)
 }
-\keyword{datasets
-        probabilistic Boolean network
-        PBN}

@@ -29,6 +29,7 @@ S. Kauffman and C. Peterson and B. Samuelsson and C. Troein (2004), Genetic netw
 \code{\link{generateRandomNKNetwork}}
 }
 \examples{
+\dontrun{
   # generate a random network with canalyzing functions
   net1 <- generateRandomNKNetwork(n=10, k=5, 
                                   functionGeneration="generateCanalyzing")
@@ -38,8 +39,5 @@ S. Kauffman and C. Peterson and B. Samuelsson and C. Troein (2004), Genetic netw
   net2 <- generateRandomNKNetwork(n=10, k=5, 
                                   functionGeneration="generateNestedCanalyzing")
   print(net2)                                  
+}  
 }
-\keyword{canalyzing function
-         nested canalyzing function,
-         random network}
-

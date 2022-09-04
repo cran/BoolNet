@@ -85,13 +85,3 @@ attractors <- getAttractors(cellcycle)
 plotStateGraph(attractors, main = "Cell cycle network", layout = layout.fruchterman.reingold)
 }
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{Boolean network
-	attractor
-	cycle
-	basin
-	transition
-	state
-	graph
-	plot}

@@ -19,7 +19,3 @@ data(igf)
 sim <- simulateSymbolicModel(igf)
 plotAttractors(sim)
 }
-\keyword{datasets
-         IGF pathway
-         symbolic Boolean network
-         time delays}

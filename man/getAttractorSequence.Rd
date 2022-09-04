@@ -27,6 +27,7 @@ Returns a data frame with the genes in the columns. The rows are the successive 
 \code{\link{getAttractors}}, \code{\link{simulateSymbolicModel}}, \code{\link{getPathToAttractor}}, \code{\link{plotSequence}}, \code{\link{sequenceToLaTeX}}
 }
 \examples{
+\dontrun{
 # load example data
 data(cellcycle)
 
@@ -35,11 +36,5 @@ attractors <- getAttractors(cellcycle)
 
 # print basin of 7-state attractor
 print(getAttractorSequence(attractors, 2))
-
 }
-
-\keyword{Boolean network
-	attractor
-	cycle
-	sequence
-	state}
+}

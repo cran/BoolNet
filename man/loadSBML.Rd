@@ -43,16 +43,15 @@ Returns a structure of class \code{BooleanNetwork} or \code{SymbolicBooleanNetwo
 \code{\link{toSBML}}, \code{\link{loadNetwork}}
 }
 \examples{
+\dontrun{
 # load the cell cycle network
 data(cellcycle)
 
+fil <- tempfile()
 # export the network to SBML
-toSBML(cellcycle, "cellcycle.sbml")
+toSBML(cellcycle, fil)
 
 # reimport the model
-print(loadSBML("cellcycle.sbml"))
+print(loadSBML(fil))
 }
-\keyword{SBML
-        Boolean network
-        file
-        import}
+}

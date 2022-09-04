@@ -50,6 +50,7 @@ This function uses the \code{\link[igraph:plot.graph]{plot.igraph}} function fro
 \code{\link{markovSimulation}}
 }
 \examples{
+\dontrun{
 # load example network
 data(examplePBN)
 
@@ -59,10 +60,4 @@ sim <- markovSimulation(examplePBN)
 # plot the transitions and their probabilities
 plotPBNTransitions(sim)
 }
-
-\keyword{probabilistic Boolean network
-        PBN
-        Boolean network
-        plot
-        transition
-        graph}
+}

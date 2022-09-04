@@ -27,6 +27,7 @@ The \code{TransitionTable} class supports pretty printing using the \code{\link{
 \code{\link{getStateSummary}}, \code{\link{getBasinOfAttraction}}, \code{\link{getAttractors}}, \code{\link{simulateSymbolicModel}}
 }
 \examples{
+\dontrun{
 # load example data
 data(cellcycle)
 
@@ -36,9 +37,4 @@ attractors <- getAttractors(cellcycle)
 # print the transition table
 print(getTransitionTable(attractors))
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{Boolean network
-	transition
-	transition table
-	state}
+}

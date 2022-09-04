@@ -28,6 +28,7 @@ Depending on the input, an object of class \code{BooleanNetwork}, \code{Symbolic
 \code{\link{loadNetwork}}}
 
 \examples{
+\dontrun{
 # load example data
 data(cellcycle)
 
@@ -41,10 +42,4 @@ attractors <- getAttractors(net)
 
 print(attractors)
 }
-\keyword{Boolean network
-    probabilistic Boolean network
-    PBN
-		knock-out
-		over-expression
-		fixed gene
-		fix}
+}

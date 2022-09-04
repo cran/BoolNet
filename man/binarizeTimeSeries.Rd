@@ -95,9 +95,3 @@ reconstructed <- reconstructNetwork(bin$binarizedMeasurements,
                                     method="bestfit", maxK=4)
 print(reconstructed)
 }
-\keyword{Boolean network
-	binarization
-	binarize
-	k-means
-	edge detector
-	scan statistic}

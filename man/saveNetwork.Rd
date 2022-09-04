@@ -40,6 +40,7 @@ If the expressions in the transition functions cannot be parsed or \code{generat
 \code{\link{loadNetwork}}
 }
 \examples{
+\dontrun{
 # load the cell cycle network
 data(cellcycle)
 
@@ -49,9 +50,4 @@ saveNetwork(cellcycle, file="cellcycle.txt")
 # reload the model
 print(loadNetwork("cellcycle.txt"))
 }
-\keyword{Boolean network
-  probabilistic Boolean network
-  PBN
-	file
-	export}
-
+}

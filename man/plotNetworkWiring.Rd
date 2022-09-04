@@ -36,13 +36,11 @@ Further graphical parameters to be passed to \code{\link[igraph:plot.graph]{plot
 \code{\link{loadNetwork}}, \code{\link{generateRandomNKNetwork}}, \code{\link{reconstructNetwork}}, \code{\link{plotStateGraph}}, \code{\link[igraph:plot.graph]{igraph.plotting}}
 }
 \examples{
+\dontrun{
 # load example data
 data(cellcycle)
 
 # plot wiring graph
 plotNetworkWiring(cellcycle)
 }
-\keyword{wiring graph
-        plot
-        Boolean network
-        dependencies}
+}

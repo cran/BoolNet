@@ -54,6 +54,7 @@ Depending on the input, an object of class \code{BooleanNetwork} or \code{Probab
 \code{\link{loadNetwork}}, \code{\link{generateRandomNKNetwork}}, \code{\link{reconstructNetwork}}, \code{\link{simplifyNetwork}}}
 
 \examples{
+\dontrun{
 # load example data
 data(cellcycle)
 
@@ -65,16 +66,9 @@ perturbedNet2 <- perturbNetwork(cellcycle, perturb="transitions", method="bitfli
 print(getAttractors(perturbedNet1))
 print(getAttractors(perturbedNet2))
 }
+}
 \references{
 Y. Xiao and E. R. Dougherty (2007), The impact of function perturbations in Boolean networks. Bioinformatics 23(10):1265--1273.
 
 I. Shmulevich, E. R. Dougherty, W. Zhang (2002), Control of stationary behavior in probabilistic Boolean networks by means of structural intervention. Journal of Biological Systems 10(4):431--445.
 }
-\keyword{Boolean network
-  probabilistic Boolean network
-  PBN
-	state
-	perturb
-	perturbation
-	noise
-	robustness}

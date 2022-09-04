@@ -56,6 +56,7 @@ I. Shmulevich, E. R. Dougherty, S. Kim, W. Zhang (2002), Probabilistic Boolean n
 \code{\link{reconstructNetwork}}, \code{\link{plotPBNTransitions}}, \code{\link{getTransitionProbabilities}}
 }
 \examples{
+  \dontrun{
 # load example network
 data(examplePBN)
 
@@ -68,7 +69,4 @@ print(sim)
 # plot the transitions and their probabilities
 plotPBNTransitions(sim)
 }
-\keyword{probabilistic Boolean network
-         PBN
-         Markov chain
 }

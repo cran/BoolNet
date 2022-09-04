@@ -27,6 +27,3 @@ Invisibly returns the printed object
 \seealso{
 \code{\link{print}}, \code{\link{loadNetwork}}
 }
-\keyword{network
-	Boolean network
-	print}

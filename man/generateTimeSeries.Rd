@@ -58,6 +58,7 @@ The result format is compatible with the input parameters of \code{\link{binariz
 \code{\link{stateTransition}}, \code{\link{binarizeTimeSeries}}, \code{\link{reconstructNetwork}}
 }
 \examples{
+\dontrun{
 # generate noisy time series from the cell cycle network
 data(cellcycle)
 ts <- generateTimeSeries(cellcycle, numSeries=50, numMeasurements=10, noiseLevel=0.1)
@@ -68,8 +69,4 @@ bin <- binarizeTimeSeries(ts, method="kmeans")$binarizedMeasurements
 # reconstruct the network
 print(reconstructNetwork(bin, method="bestfit"))
 }
-
-\keyword{time series
-        Boolean network
-      	synchronous update
-      	asynchronous update }
+}

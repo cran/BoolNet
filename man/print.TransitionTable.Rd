@@ -38,5 +38,3 @@ Invisibly returns the printed object
 \seealso{
 \code{\link{print}}, \code{\link{getTransitionTable}}, \code{\link{getBasinOfAttraction}}, \code{\link{getStateSummary}}
 }
-\keyword{transition table
-	print}

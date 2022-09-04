@@ -29,6 +29,7 @@ Returns an object of class \code{BooleanNetwork}, as described in \code{\link{lo
 \code{\link{truthTableToSymbolic}}, \code{\link{loadNetwork}}
 }
 \examples{
+\dontrun{
 # Convert a truth table representation into a 
 # symbolic representation and back
 data(cellcycle)
@@ -39,6 +40,4 @@ print(symbolicNet)
 ttNet <- symbolicToTruthTable(symbolicNet)
 print(cellcycle)
 }
-\keyword{Boolean network
-         symbolic Boolean network
-         conversion}
+}

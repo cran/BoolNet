@@ -65,6 +65,7 @@ A list of matrices corresponding to the plots is returned. Each of these matrice
 \code{\link{getAttractors}}, \code{\link{plotAttractors}}, \code{\link{sequenceToLaTeX}}, \code{\link{plotSequence}}
 }
 \examples{
+\dontrun{
 # load example data
 data(cellcycle)
 
@@ -74,12 +75,4 @@ attractors <- getAttractors(cellcycle)
 # output LaTeX document
 attractorsToLaTeX(attractors, file="attractors.tex")
 }
-
-\keyword{LaTeX
-	Boolean network
-	attractor
-	cycle
-	basin
-	transition
-	state
-	graph}
+}

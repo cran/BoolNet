@@ -31,6 +31,7 @@ Returns a full state vector with one entry for each gene of the network, or a ma
 \code{\link{getAttractors}}, \code{\link{simulateSymbolicModel}}, \code{\link{stateTransition}}
 }
 \examples{
+\dontrun{
 # load cell cycle network
 data(cellcycle)
 
@@ -41,7 +42,4 @@ print(state)
 # use the state as a start state for attractor search
 print(getAttractors(cellcycle, startStates=list(state)))
 }
-\keyword{state 
-         Boolean network
-         probabilistic Boolean network
-         PBN}
+}

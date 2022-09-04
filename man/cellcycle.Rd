@@ -21,7 +21,3 @@ data(cellcycle)
 print(cellcycle)
 
 }
-\keyword{datasets
-	cell cycle
-	mammalian
-	Boolean network}

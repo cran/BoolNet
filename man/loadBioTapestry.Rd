@@ -48,5 +48,3 @@ net <- loadBioTapestry(exampleFile)
 # print the imported network
 print(net)
 }
-\keyword{BioTapestry
-        import}

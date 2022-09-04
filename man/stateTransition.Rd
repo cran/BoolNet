@@ -50,6 +50,7 @@ stateTransition(network,
 \code{\link{loadNetwork}}, \code{\link{generateRandomNKNetwork}}, \code{\link{generateState}}
 }
 \examples{
+\dontrun{
 # load example network
 data(cellcycle)
 
@@ -67,11 +68,4 @@ data(examplePBN)
 print(stateTransition(examplePBN, c(0,1,1),
                       type="probabilistic"))       
 }
-\keyword{state transition
-	Boolean network
-	synchronous update
-	asynchronous update
-	probabilistic Boolean network
-	PBN
-	transition
-	state}
+}

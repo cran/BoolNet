@@ -44,5 +44,3 @@ Invisibly returns the printed object
 \seealso{
 \code{\link{simulateSymbolicModel}}
 }
-\keyword{print
-         symbolic Boolean network}

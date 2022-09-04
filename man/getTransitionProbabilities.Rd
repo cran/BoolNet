@@ -24,6 +24,7 @@ Returns a data frame with the first \code{n} columns describing the values of th
 \code{\link{markovSimulation}}
 }
 \examples{
+\dontrun{
 # load example network
 data(examplePBN)
 
@@ -33,9 +34,4 @@ sim <- markovSimulation(examplePBN)
 # print out the probability table
 print(getTransitionProbabilities(sim))
 }
-
-\keyword{Boolean network
-        probabilistic Boolean network
-        PBN
-        transition
-        probability}
+}

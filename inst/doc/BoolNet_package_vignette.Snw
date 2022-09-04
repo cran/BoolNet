@@ -3,7 +3,7 @@
 \SweaveOpts{keep.source=TRUE}
 %\VignetteIndexEntry{Detailed introduction to all major features of BoolNet}
 
-%\usepackage{a4wide}
+\usepackage{a4wide}
 
 \usepackage{graphicx}
 \usepackage{amsmath}
@@ -250,13 +250,6 @@ net
 \begin{sloppypar}
 The dependencies among the genes in the network can be visualized using the \texttt{plotNetworkWiring()} function. In this graph, each gene corresponds to a vertex, and the inputs of transition functions correspond to edges.
 \end{sloppypar}
-<<echo=FALSE,results=hide>>=
-pdf("wiring1.pdf") 
-par(mar = c(1, 1, 1, 1))
-set.seed(333)
-plotNetworkWiring(net)
-dev.off()
-@
 <<eval=FALSE>>=
 plotNetworkWiring(net)
 @
@@ -278,13 +271,7 @@ net <- reconstructNetwork(binSeries$binarizedMeasurements,
                           maxK=4, 
                           excludedDependencies = list("Sic1" = c("Sic1", "Fkh2")))
 @
-<<echo=FALSE,results=hide>>=
-pdf("wiring2.pdf") 
-par(mar = c(1, 1, 1, 1))
-set.seed(442)
-plotNetworkWiring(net)
-dev.off()
-@
+
 
 The wiring of the reconstruction with prior knowledge is shown at the bottom of Figure~\ref{fig:wiring}. We can see that the two false links are now eliminated. Similar to \texttt{excludedDependencies}, there is also a parameter \texttt{requiredDependencies} that specifies dependencies that must be included in the network.
 
@@ -496,12 +483,6 @@ path
 The returned matrix consists of the subsequent states until an attractor is reached. Depending on the optional parameter \texttt{includeAttractorStates}, the sequence comprises all attractor states, only the first attractor state or none of the attractor states.
 
 A sequence can be visualized by plotting a table of state changes:
-<<echo=FALSE,results=hide>>=
-pdf("sequence.pdf")
-par(mar = c(1, 4, 2, 1))
-plotSequence(sequence=path)
-dev.off()
-@
 <<eval=FALSE>>=
 plotSequence(sequence=path)
 @
@@ -561,12 +542,6 @@ specifies that the first two states ($t=-2, t=-1$) should have all genes inactiv
 \label{fig:sequence_igf}
 \end{figure}
 
-<<echo=FALSE,results=hide>>=
-pdf("sequence_igf.pdf")
-par(mar = c(1, 4, 2, 1))
-plotSequence(network=igf, startState=startState)
-dev.off()
-@
 <<eval=FALSE>>=
 plotSequence(network=igf, startState=startState)
 @
@@ -701,13 +676,6 @@ CycA p27 Cdc20 Cdh1 UbcH10 CycB
 
 The visualization function \texttt{getStateGraph()} makes use of the transition table as well: It plots a transition graph in which the basins of attraction are drawn in different colors, and the attractors are highlighted.
 The result of
-<<echo=FALSE,results=hide>>=
-pdf("stategraph1.pdf")
-set.seed(43210)
-par(mar=c(1,1,1,1))
-plotStateGraph(attr)
-dev.off()
-@
 <<eval=FALSE>>=
 plotStateGraph(attr)
 @
@@ -715,13 +683,6 @@ is depicted at the top of Figure~\ref{fig:stategraph}. The blue basin belongs to
 
 The above call does not ensure that the basins of attraction are clearly separated in the plot. If this is desired, one can choose to use a piecewise layout, which means that the layouting function is applied separately to each basin of attraction, and the basins are drawn side by side.
 The result of
-<<echo=FALSE,results=hide>>=
-pdf("piecewisestategraph.pdf")
-set.seed(43210)
-par(mar=c(1,1,1,1))
-plotStateGraph(attr, piecewise=TRUE)
-dev.off()
-@
 <<eval=FALSE>>=
 plotStateGraph(attr, piecewise=TRUE)
 @
@@ -758,12 +719,6 @@ Synchronous attractors can be visualized by plotting a table of changes of gene 
 <<eval=FALSE>>=
 plotAttractors(attr, subset=2)
 @
-<<echo=FALSE,results=hide>>=
-pdf("attractor1.pdf")
-par(mar=c(1,5,1,1))
-plotAttractors(attr, subset=2)
-dev.off()
-@
 plots the state changes of the simple attractor with 7 states, as depicted in Figure~\ref{fig:attractor1}. Similarly,
 <<eval=FALSE>>=
 attractorsToLaTeX(attr, subset=2, file="attractors.tex")
@@ -773,7 +728,7 @@ exports the same state table to a \LaTeX\ document.
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.65\linewidth]{attractor1}
-\caption{Visualization of the state changes in an attractor. The columns of the table represent consecutive states of the attractor. On top, the percentage of states leading to the attractor is supplied.}
+\caption{Visualization of the state changes in an attractor. The columns of the table represent consecutive states of the attractor.}
 \label{fig:attractor1}
 \end{figure}
 
@@ -837,12 +792,6 @@ The asynchronous heuristic search does not return a transition table, such that 
 \end{figure}
 
 As there are multiple possible transitions for each state, complex attractors cannot be visualized as in Figure~\ref{fig:attractor1}. For this reason, \texttt{plotAttractors()} supports a graph mode that visualizes the transitions among the states in the attractor:
-<<echo=FALSE,results=hide>>=
-pdf("attractor2.pdf")
-par(mar=c(1,1,1,1))
-plotAttractors(attr, subset=2, mode="graph", drawLabels=FALSE)
-dev.off()
-@
 <<eval=FALSE>>=
 plotAttractors(attr, subset=2, mode="graph", drawLabels=FALSE)
 @
@@ -873,16 +822,6 @@ In this case, the network has two attractors: A steady state describes the inact
 
 All visualization and analysis function described above can also be applied to the simulation results obtained by \texttt{simulateSymbolicModel}. For example, the cascade attractor can be visualized via
 
-<<echo=FALSE,results=hide>>=
-pdf("attractor3.pdf")
-par(mar=c(1,5,1,1))
-plotAttractors(sim, subset=2)
-dev.off()
-pdf("stategraph2.pdf")
-par(mar=c(1,1,1,1))
-plotStateGraph(sim)
-dev.off()
-@
 <<eval=FALSE>>=
 plotAttractors(sim, subset=2)
 @
@@ -936,13 +875,6 @@ Only states with a non-zero probability are listed in the two tables. The first 
 If the transition table is included in the simulation results, we can plot a graph of the network:
 <<eval=FALSE>>=
 plotPBNTransitions(sim)
-@
-<<echo=FALSE,results=hide>>=
-pdf("pbntransitions.pdf")
-set.seed(4961)
-par(mar=c(1,1,1,1))
-plotPBNTransitions(sim)
-dev.off()
 @
 This graph is displayed in Figure~\ref{fig:pbntransitions}. The vertices are the states of the graph. The edges represent transitions and are annotated with the corresponding transition probabilities. For this plot, the \texttt{igraph} package must be installed.
 
@@ -1156,18 +1088,6 @@ creates a set of 100 random networks (each with the same number of input genes f
 
 The function plots a histogram of this robustness measures of the random networks (see Figure~\ref{fig:robustness}, top panel). The corresponding value of the original cell cycle network is plotted as a red line, and the 95\% quantile is plotted as a blue line.
 
-<<echo=FALSE,results=hide>>=
-pdf("attractor_robustness.pdf")
-par(mar=c(4,4,2,1))
-data(cellcycle)
-set.seed(3241)
-res <- testNetworkProperties(cellcycle, 
-                      numRandomNets=100, 
-                      testFunction="testAttractorRobustness", 
-                      testFunctionParams = list(copies=100, perturb="functions"))
-dev.off()
-@
-
 \begin{figure}[p]
 \centering
 \includegraphics[width=0.6\linewidth]{attractor_robustness}
@@ -1194,18 +1114,7 @@ testNetworkProperties(cellcycle,
                       alternative="less")  
 @
 
-<<echo=FALSE,results=hide>>=
-pdf("transition_robustness.pdf")
-par(mar=c(4,4,2,1))
-data(cellcycle)
-set.seed(22652)
-testNetworkProperties(cellcycle, 
-                      numRandomNets=100,
-                      testFunction="testTransitionRobustness",
-                      testFunctionParams=list(numSamples=100),
-                      alternative="less")  
-dev.off()
-@
+
 The results are shown in the bottom panel of Figure~\ref{fig:robustness}. Again, the result is highly significant (indeed, the Hamming distances are \emph{always} lower in the biological network), which means that the biological network is considerably more robust to noise in the states than the randomly generated models.
 
 Another network property can also be tested using a built-in function: When looking at the state graph of a biological network (which can be generated using \texttt{plotStateGraph()}), it can often be observed that many state transitions lead to the same successor states, which means that the dynamics of the network quickly concentrate on a few states after a number of state transitions. We call the number of states whose synchronous state transitions lead to a state $s$ the {\em in-degree} of state $s$. We expect the biological network to have a few states with a high in-degree and many states with a low in-degree. A characteristic to summarize the in-degrees is the Gini index, which is a measure of inhomogeneity. If all states have an in-degree of 1, the Gini index is 0; if all state transitions lead to only one state, the Gini index is 1.
@@ -1214,15 +1123,7 @@ testNetworkProperties(cellcycle,
                       numRandomNets=100, 
                       testFunction="testIndegree")
 @
-<<echo=FALSE,results=hide>>=
-pdf("indegree.pdf")
-par(mar=c(4,4,2,1))
-set.seed(6314)
-testNetworkProperties(cellcycle, 
-                      numRandomNets=100, 
-                      testFunction="testIndegree")
-dev.off()
-@
+
 plots an histogram of Gini indices in 100 random networks and draws the Gini index of the cell cycle network as a red line, as depicted in the top panel of Figure~\ref{fig:indegree}.
 
 
@@ -1243,16 +1144,6 @@ testNetworkProperties(cellcycle,
                       numRandomNets=100, 
                       testFunction="testIndegree", 
                       accumulation="kullback_leibler")
-@
-<<echo=FALSE,results=hide>>=
-pdf("indegree_kl.pdf")
-par(mar=c(4,4,2,1))
-set.seed(234256)
-testNetworkProperties(cellcycle, 
-                      numRandomNets=100, 
-                      testFunction="testIndegree", 
-                      accumulation="kullback_leibler")
-dev.off()
 @
 results in the plot displayed in the bottom panel of Figure~\ref{fig:indegree}.
 
@@ -1291,16 +1182,6 @@ testNetworkProperties(cellcycle,
                       numRandomNets=100,
                       testFunction="testBasinSizes",
                       xlab="Average size of basins of attraction")
-@
-<<echo=FALSE,results=hide>>=
-pdf("basinsize.pdf")
-par(mar=c(4,4,2,1))
-set.seed(6724)
-testNetworkProperties(cellcycle, 
-                      numRandomNets=100,
-                      testFunction="testBasinSizes",
-                      xlab="Average size of basins of attraction")
-dev.off()
 @
 to produce the plot shown in Figure~\ref{fig:basinsize}. Apparently, the average basin sizes do not differ as much as the built-in test characteristics between the random networks and the cell cycle network.
 
@@ -1346,7 +1227,7 @@ The \texttt{generateDNF} parameter can also be used to detail which type of DNF 
 An export to SBML is usually not associated with any loss of information. For example, we can write the cell cycle network to a file and re-import it into \texttt{BoolNet}:
 
 \begin{footnotesize}
-<<>>=
+<<eval=FALSE>>=
 toSBML(cellcycle, file="cellcycle.sbml")
 sbml_cellcycle <- loadSBML("cellcycle.sbml")
 sbml_cellcycle
@@ -1436,13 +1317,6 @@ Input 1 = 1
 We can see that Input~1 is specified as an over-expressed constant gene. Input~2 is modeled as depending only on itself, i.e. it keeps its initial value. Gene~1 is a representation of the XOR function in Disjunctive Normal Form (DNF), using only logical ANDs, logical ORs, and negations. Gene~2 and Gene~3 consist of conjunctions and disjunctions of their inputs respectively. In addition to this textual description, we can visually verify the network by plotting its wiring:
 <<eval=FALSE>>=
 plotNetworkWiring(net)
-@
-<<echo=FALSE,results=hide>>=
-pdf("wiring_biotap.pdf")
-par(mar=c(1,1,1,1))
-set.seed(559652)
-plotNetworkWiring(net)
-dev.off()
 @
 The resulting plot is shown in Figure~\ref{fig:wiring_biotap}.
 \begin{figure}[h]

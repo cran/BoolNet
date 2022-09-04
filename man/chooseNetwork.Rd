@@ -37,6 +37,7 @@ Constant genes are automatically fixed (e.g. knocked-out or over-expressed). Thi
 \code{\link{reconstructNetwork}}, \code{\link{loadNetwork}}
 }
 \examples{
+  \dontrun{
 # load example data
 data(examplePBN)
 
@@ -46,10 +47,5 @@ net <- chooseNetwork(examplePBN, rep(1, length(examplePBN$genes)))
 
 # get attractors from this network
 print(getAttractors(net))
-
 }
-\keyword{Boolean network
-  probabilistic Boolean network
-  PBN
-  conversion
-	reconstruction}
+}

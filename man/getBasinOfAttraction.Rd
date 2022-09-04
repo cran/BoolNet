@@ -29,6 +29,7 @@ The \code{TransitionTable} class supports pretty printing using the \code{\link{
 \code{\link{getStateSummary}}, \code{\link{getTransitionTable}}, \code{\link{getAttractors}}, \code{\link{simulateSymbolicModel}}
 }
 \examples{
+\dontrun{
 # load example data
 data(cellcycle)
 
@@ -38,7 +39,4 @@ attractors <- getAttractors(cellcycle)
 # print basin of first attractor
 print(getBasinOfAttraction(attractors, 1))
 }
-\keyword{Boolean network
-	attractor
-	cycle
-	basin}
+}

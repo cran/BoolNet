@@ -32,6 +32,7 @@ This function has no return value.
 \code{\link{getAttractors}}, \code{\link{simulateSymbolicModel}}, \code{\link{getTransitionTable}}, \code{\link{getBasinOfAttraction}}, \code{\link{getStateSummary}}, \code{\link{toSBML}}
 }
 \examples{
+\dontrun{
 # load example data
 data(cellcycle)
 
@@ -41,13 +42,4 @@ attractors <- getAttractors(cellcycle)
 # export to Pajek
 toPajek(attractors, file="pajek_export.net")
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{Pajek
-	Boolean network
-	attractor
-	cycle
-	basin
-	transition
-	state
-	graph}
+}

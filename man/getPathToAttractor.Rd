@@ -30,6 +30,7 @@ Returns a data frame with the genes in the columns. The rows are the successive 
 \code{\link{getAttractors}}, \code{\link{simulateSymbolicModel}}, \code{\link{getTransitionTable}}, \code{\link{getBasinOfAttraction}}, \code{\link{plotSequence}}, \code{\link{attributes}}
 }
 \examples{
+\dontrun{
 # load example network
 data(cellcycle)
 
@@ -49,9 +50,4 @@ path <- getPathToAttractor(cellcycle, rep(1,10),
                            includeAttractorStates="none")
 print(path)
 }
-
-\keyword{Boolean network
-        sequence
-        path
-        basin
-        attractor}
+}

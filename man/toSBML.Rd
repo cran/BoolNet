@@ -45,6 +45,7 @@ For symbolic networks, temporal operators and delays of more than one time step 
 \code{\link{loadSBML}}, \code{\link{loadNetwork}}, \code{\link{saveNetwork}}, \code{\link{toPajek}}
 }
 \examples{
+\dontrun{
 # load the cell cycle network
 data(cellcycle)
 
@@ -54,7 +55,4 @@ toSBML(cellcycle, file="cellcycle.sbml")
 # reimport the model
 print(loadSBML("cellcycle.sbml"))
 }
-\keyword{SBML
-        Boolean network
-        file
-        export}
+}
