@@ -5,7 +5,7 @@
 Export a network to the Pajek file format
 }
 \description{
-Exports a network to the Pajek file format to visualize transition trajectories. For more information on Pajek, please refer to \url{http://pajek.imfm.si/doku.php}
+Exports a network to the Pajek file format to visualize transition trajectories. For more information on Pajek, please refer to \url{http://mrvar.fdv.uni-lj.si/pajek/}
 }
 \usage{
 toPajek(stateGraph, file = "boolean.net", includeLabels=FALSE, ...)

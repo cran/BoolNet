@@ -103,7 +103,7 @@ Solver * initSATSolver()
  * Initialize the PicoSAT SAT solver using appropriate memory handlers
  * and interrupt handlers.
  */
-Solver * initSATSolver()
+Solver * initSATSolver(void)
 {
 	Solver * sat = picosat_minit(NULL, &SATAlloc, &SATRealloc, &SATDealloc);
 	picosat_set_interrupt(sat, NULL, &SATInterrupt);

@@ -9,7 +9,7 @@
 /**
  *  Returns a random double in [0,1)
  */
-static inline double doublerand_1()
+static inline double doublerand_1(void)
 {
 	return unif_rand();
 }

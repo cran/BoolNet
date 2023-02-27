@@ -6,7 +6,7 @@
 /* .C calls */
 extern void bin2decC(void *, void *, void *);
 extern void dec2binC(void *, void *, void *);
-extern void freeAllMemory();
+extern void freeAllMemory(void);
 
 /* .Call calls */
 extern SEXP checkNullPointerC(SEXP);

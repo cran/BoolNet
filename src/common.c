@@ -12,7 +12,7 @@ AllocatedMemory * memoryMap = NULL;
  * Contact christoph.muessel@uni-ulm.de
  */
 
-void freeAllMemory()
+void freeAllMemory(void)
 {  
   AllocatedMemory * m, * tmp;
   HASH_ITER(hh, memoryMap, m, tmp) 

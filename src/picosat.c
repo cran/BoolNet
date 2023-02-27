@@ -2271,7 +2271,7 @@ write_rup_header (PS * ps, FILE * file)
   char line[80];
   int i;
 
-  sprintf (line, "%%RUPD32 %u %u", ps->rupvariables, ps->rupclauses);
+  //sprintf (line, "%%RUPD32 %u %u", ps->rupvariables, ps->rupclauses);
 
   picosat_fputs (line, file);
   for (i = 255 - strlen (line); i >= 0; i--)
@@ -3268,8 +3268,8 @@ relemhead (PS * ps, const char * name, int fp, double val)
       x = ps->RCOUNT & 1;
       y = (ps->RCOUNT / 2) * 12 + x * 6;
 
-      if (ps->RCOUNT == 1)
-	sprintf (ps->rline[1], "%6s", "");
+//      if (ps->RCOUNT == 1)
+//	sprintf (ps->rline[1], "%6s", "");
 
       len = strlen (name);
       while (ps->szrline <= len + y + 1)
@@ -3281,7 +3281,7 @@ relemhead (PS * ps, const char * name, int fp, double val)
 	}
 
       fmt = (len <= 6) ? "%6s%10s" : "%-10s%4s";
-      sprintf (ps->rline[x] + y, fmt, name, "");
+ //     sprintf (ps->rline[x] + y, fmt, name, "");
     }
   else if (val < 0)
     {
@@ -4393,8 +4393,8 @@ viscores (PS * ps)
       assert (flt2double (s) <= 1.0);
     }
 
-  sprintf (name, "/tmp/picosat-viscores/data/%08u", ps->conflicts);
-  sprintf (cmd, "sort -n|nl>%s", name);
+  //sprintf (name, "/tmp/picosat-viscores/data/%08u", ps->conflicts);
+  //sprintf (cmd, "sort -n|nl>%s", name);
 
   data = popen (cmd, "w");
   for (p = ps->rnks + 1; p <= ps->eor; p++)
@@ -4410,7 +4410,7 @@ viscores (PS * ps)
 
   for (i = 0; i < 8; i++)
     {
-      sprintf (cmd, "awk '$3%%8==%d' %s>%s.%d", i, name, name, i);
+//      sprintf (cmd, "awk '$3%%8==%d' %s>%s.%d", i, name, name, i);
       system (cmd);
     }
 

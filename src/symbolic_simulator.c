@@ -341,7 +341,7 @@ TemporalAttractorStateListElement * getAttractorForState(
 /**
  * Allocate a list structure that stores attractors
  */
-TemporalAttractorStateList * allocAttractorStateList()
+TemporalAttractorStateList * allocAttractorStateList(void)
 {
 	TemporalAttractorStateList * res = CALLOC(1,
 			sizeof(TemporalAttractorStateList));
