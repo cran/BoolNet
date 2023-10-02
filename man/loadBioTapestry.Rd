@@ -4,7 +4,7 @@
 Import a network from BioTapestry
 }
 \description{
-Imports a Boolean network from a BioTapestry file (*.btp). BioTapestry is an interactive tool for building, visualizing, and simulating gene-regulatory networks, and can be accessed at \url{http://www.biotapestry.org}. 
+Imports a Boolean network from a BioTapestry file (*.btp). BioTapestry is an interactive tool for building, visualizing, and simulating gene-regulatory networks, and can be accessed at \url{https://biotapestry.systemsbiology.net}. 
 }
 \usage{
 loadBioTapestry(file,

@@ -1,4 +1,4 @@
-01fed944e279eddea6c5ec7af20fca39 *DESCRIPTION
+4b70769bfd8edc1a783f323350f07d02 *DESCRIPTION
 9784bbd31ff5e76e9a8013fb1718d14d *NAMESPACE
 57679970d38c17ac9c95478b9313aed0 *R/attractorsToLaTeX.R
 0e037f01fa88a832cb43d3a9d5e9f5dd *R/binarizeTimeSeries.R
@@ -59,10 +59,9 @@ c2ba2ffc7f8eecb769b2d151a0a567c3 *inst/CITATION
 49fe6c2b2f5db31583cdedb90833d8ce *inst/NEWS.Rd
 fb4bff4a00b9ef7f7933814535609bbe *inst/doc/BoolNet_package_vignette.R
 d67c2471fb9f1075461b6d2fc79aa2b1 *inst/doc/BoolNet_package_vignette.Snw
-83c73e63d89dfd76b9d3b47b2be1cb8d *inst/doc/BoolNet_package_vignette.pdf
+195bc9de963d2ec89d00ba1d8aa9ad1c *inst/doc/BoolNet_package_vignette.pdf
 fcb0ddc4a26eb5062f05b55032e5b151 *inst/doc/cellcycle.txt
 27bccf40991bbe762bc274cbd7874f40 *inst/doc/example.btp
-666722c4d3e2c4c1af753fd9910831aa *man/BoolNet-package.Rd
 c18e73532d5371152f71d625415e81b2 *man/attractorsToLaTeX.Rd
 3f38a60cff23b336642ed070e649f36a *man/binarizeTimeSeries.Rd
 66463757d6cb6fab74e9a955a6164267 *man/cellcycle.Rd
@@ -81,7 +80,7 @@ f5b9134d6cb133543a1d3649b8d5915c *man/getPathToAttractor.Rd
 394097ff1ec32744befa8ca978f25de0 *man/getTransitionProbabilities.Rd
 bba61ea4a4e91e29298e56a5d8907d10 *man/getTransitionTable.Rd
 55e1e5c8c85820e3d07687552d44944a *man/igf.Rd
-cb3b1dfa6eda57e0bf1ffe145dee8394 *man/loadBioTapestry.Rd
+587e3d9f92b152e985488e938940ac71 *man/loadBioTapestry.Rd
 4977fd501e88e2cee72643a701912b63 *man/loadNetwork.Rd
 652f08ea8e4fb8f8c633f7fa9d900f3c *man/loadSBML.Rd
 355384e357d123772fa178b50957e972 *man/markovSimulation.Rd
